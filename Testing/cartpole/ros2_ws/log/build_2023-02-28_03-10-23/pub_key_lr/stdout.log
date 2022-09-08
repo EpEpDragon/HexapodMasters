@@ -1,0 +1,39 @@
+running egg_info
+creating ../../build/pub_key_lr/pub_key_lr.egg-info
+writing ../../build/pub_key_lr/pub_key_lr.egg-info/PKG-INFO
+writing dependency_links to ../../build/pub_key_lr/pub_key_lr.egg-info/dependency_links.txt
+writing entry points to ../../build/pub_key_lr/pub_key_lr.egg-info/entry_points.txt
+writing requirements to ../../build/pub_key_lr/pub_key_lr.egg-info/requires.txt
+writing top-level names to ../../build/pub_key_lr/pub_key_lr.egg-info/top_level.txt
+writing manifest file '../../build/pub_key_lr/pub_key_lr.egg-info/SOURCES.txt'
+reading manifest file '../../build/pub_key_lr/pub_key_lr.egg-info/SOURCES.txt'
+writing manifest file '../../build/pub_key_lr/pub_key_lr.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/pub_key_lr/build
+creating /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/pub_key_lr/build/lib
+creating /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/pub_key_lr/build/lib/pub_key_lr
+copying pub_key_lr/__init__.py -> /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/pub_key_lr/build/lib/pub_key_lr
+copying pub_key_lr/subscriber.py -> /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/pub_key_lr/build/lib/pub_key_lr
+copying pub_key_lr/publisher.py -> /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/pub_key_lr/build/lib/pub_key_lr
+running install
+running install_lib
+creating /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/lib/python3.8/site-packages/pub_key_lr
+copying /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/pub_key_lr/build/lib/pub_key_lr/__init__.py -> /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/lib/python3.8/site-packages/pub_key_lr
+copying /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/pub_key_lr/build/lib/pub_key_lr/subscriber.py -> /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/lib/python3.8/site-packages/pub_key_lr
+copying /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/pub_key_lr/build/lib/pub_key_lr/publisher.py -> /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/lib/python3.8/site-packages/pub_key_lr
+byte-compiling /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/lib/python3.8/site-packages/pub_key_lr/__init__.py to __init__.cpython-38.pyc
+byte-compiling /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/lib/python3.8/site-packages/pub_key_lr/subscriber.py to subscriber.cpython-38.pyc
+byte-compiling /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/lib/python3.8/site-packages/pub_key_lr/publisher.py to publisher.cpython-38.pyc
+running install_data
+creating /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/share/ament_index
+creating /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/share/ament_index/resource_index
+creating /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/share/ament_index/resource_index/packages
+copying resource/pub_key_lr -> /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/share/ament_index/resource_index/packages
+copying package.xml -> /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/share/pub_key_lr
+running install_egg_info
+Copying ../../build/pub_key_lr/pub_key_lr.egg-info to /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/lib/python3.8/site-packages/pub_key_lr-0.0.0-py3.8.egg-info
+running install_scripts
+Installing angle_listener script to /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/lib/pub_key_lr
+Installing key_publish script to /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/pub_key_lr/lib/pub_key_lr
+writing list of installed files to '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/pub_key_lr/install.log'

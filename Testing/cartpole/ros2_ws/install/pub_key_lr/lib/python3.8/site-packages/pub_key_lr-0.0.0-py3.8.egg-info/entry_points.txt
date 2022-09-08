@@ -1,0 +1,4 @@
+[console_scripts]
+angle_listener = pub_key_lr.subscriber:main
+key_publish = pub_key_lr.publisher:main
+
