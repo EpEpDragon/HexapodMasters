@@ -34,12 +34,12 @@ void IK::set_final_targets(Eigen::Vector3d targets[6], bool is_swinging[6])
 void IK::solve_next_moves(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, double move_speed, uint8_t leg_id)
 {
     // Snap to final target is close enough
-//    Eigen::Vector3d delta = this->effector_current_positions[leg_id] - this->final_targets[leg_id];
-//    if( delta.dot(delta) < 10*10)
-//    {
-//      IK::solve_ik(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3, this->final_targets[leg_id], Eigen::Vector3d{move_speed,move_speed,move_speed}, leg_id);
-//      return;
-//    }
+    Eigen::Vector3d delta = this->effector_current_positions[leg_id] - this->final_targets[leg_id];
+    if( delta.dot(delta) < 10*10)
+    {
+      IK::solve_ik(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3, this->final_targets[leg_id], Eigen::Vector3d{move_speed,move_speed,move_speed}, leg_id);
+      return;
+    }
 
     // Calculate the required movement direction
     Eigen::Vector3d move_dir;   
@@ -176,16 +176,17 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     double d, dmL1, c2, c, L22pL32mc2, beta, alpha;
     IK::calc_shared_vars(d, dmL1, c2, c, L22pL32mc2, beta, alpha, x, y, z);
 
-    theta1 = -std::atan(y/x);
-    theta2 = M_PI/2 - alpha - std::atan( dmL1 / z ) + HIP_PITCH_OFFSET; // Offset because I cant design parts correctly
+    theta1 = -atan2(y,x);
+    theta2 = M_PI/2.0 - alpha - atan2( dmL1, z ) + HIP_PITCH_OFFSET; // Offset because I cant design parts correctly
     theta3 = M_PI - beta + KNEE_OFFSET; // Offset because I cant design parts correctly
 
      if (leg_id == 5)
      {
        char msg[50];
-       sprintf(msg,"leg %i theta target: [%.2f, %.2f, %.2f]", leg_id, theta1, theta2, theta3);
+       sprintf(msg,"leg %i M_PI/2.0 %.2f, alpha %.2f, atan %.2f, offset %.2f, beta %.2f, theta %.2f", leg_id, M_PI/2.0, - alpha, - std::atan( dmL1 / z ), HIP_PITCH_OFFSET, beta, theta2);
        push_log(msg);  
      }
+
     
     //-------------------- Angular rates -------------------------
     x = this->effector_current_positions[leg_id][0];
