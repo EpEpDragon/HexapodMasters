@@ -6,17 +6,24 @@
     <arg name = "height"    default="240"/>
     <arg name = "fps"       default="30"/>
     <arg name = "exposure"  default="2000"/>
-
     <arg name = "camera_pitch_offset"    default="23"/>
+    <!-- Serial Port -->
+    <arg name="port" default="/dev/Arduino_port"/>
 
+    <!-- Serial Comms -->
+    <node pkg ="rosserial_python" type="serial_node.py" name="serial_node" output="screen">
+        <param name="port" value="$(arg port)"/>
+        <param name="baud" value="115200"/>
+    </node>
+
+    <!-- Primary logic -->
     <node pkg = "hexapod_ros" type = "node_hmap.py" name = "hmap" output="screen"> </node>  
         <param name = "pkg_root" value = '$(arg pkg_root)'/>
         <param name = "camera_pitch_offset" value = '$(arg camera_pitch_offset)'/>
-    
     <node pkg = "hexapod_ros" type = "node_command_listner.py" name = "hexapod_command_listner" output="screen"> </node>  
 
+    <!-- Camera -->
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
-
         <arg name="depth_width"     value="$(arg width)"/>
         <arg name="depth_height"    value="$(arg height)"/>
         <arg name="color_width"     value="$(arg width)"/>

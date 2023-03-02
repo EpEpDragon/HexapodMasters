@@ -40,6 +40,7 @@ MyDynamixel dxl(DXL_SERIAL, 1000000, DEPin);
 #include <geometry_msgs/Vector3.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Int32.h>
 #include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/String.h>
 #include <my_message/LegPath.h>
@@ -221,19 +222,22 @@ void modeSelect_cb(const std_msgs::Int32& msg)
 {
   if(msg.data == -1)
   {
-    startUp == -1
+    startUp = -1;
+    logdata.data = "Torqu off";
     // TODO Disable servo torque
   }
   else if(msg.data == 0)
   {
+    logdata.data = "Startup";
     startUp = 0;
   }
   else
   {
+    logdata.data = "Mode selected";
     mode = msg.data;
   }
 }
-ros::Subscriber<std_msgs::Float32> rosSubModeSelect("hexapod_mode", modeSelect_cb);
+ros::Subscriber<std_msgs::Int32> rosSubModeSelect("hexapod_mode", modeSelect_cb);
 
 //Pitch roll input subscriber
 float pitchInput = 0.0;
@@ -248,6 +252,8 @@ ros::Subscriber<geometry_msgs::Vector3> rosSubPitchRollInput("/RollPitch_input",
 void setup() 
 {
  Serial.begin(9600);
+ pinMode(LED_BUILTIN, OUTPUT);
+ digitalWrite(LED_BUILTIN, HIGH);
 
   // ROS setup
   nh.getHardware()->setBaud(115200);      // set baud rate to 115200
@@ -318,6 +324,8 @@ void loop()
   if(currentmillis - prevmillis >= 10)
   {
     prevmillis = currentmillis;
+
+    pub_log.publish(&logdata);
 
     //On Startup
     if(startUp == 0)
