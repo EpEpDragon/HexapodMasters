@@ -8,11 +8,11 @@ layout(location = 1) uniform vec4 camera_quat;
 layout(location = 2) uniform int temporal_i;
 
 // CPU Shared Buffers 
-layout(std430, binding = 0) readonly restrict buffer image { float depth_image[uint(120)][uint(212)]; };
-layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[192][192]; };
+layout(std430, binding = 0) readonly restrict buffer image { float depth_image[uint(240)][uint(424)]; };
+layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[256][256]; };
 
 // Temporal average buffer
-layout(std430, binding = 2) volatile buffer temp { float temporal_buffer[4][192][192]; };
+// layout(std430, binding = 2) volatile buffer temp { float temporal_buffer[4][256][256]; };
 
 // const uint RESX = uint(160*2);
 // const uint RES_Y = uint(90*2);
@@ -22,10 +22,10 @@ layout(std430, binding = 2) volatile buffer temp { float temporal_buffer[4][192]
 // const float CX = (RES_Y-1) / 2;
 // const float CY = (RES_X-1) / 2;
 
-const float FX = 242.381683349609 * 0.5;
+const float FX = 242.381683349609;
 const float FY = FX;
-const float CX = 241.763366699219 * 0.5;
-const float CY = 132.375762939453 * 0.5;
+const float CX = 241.763366699219;
+const float CY = 132.375762939453;
 
 
 const float ZFAR = 7.4;
@@ -34,7 +34,7 @@ const float ZNEAR = 0.05;
 
 // TODO Make these uniforms
 const int EXTENTS = 16;                         // Extents of SDF block, in distance units
-const int DIVISIOINS = 12;                       // Cells per distance unit
+const int DIVISIOINS = 16;                       // Cells per distance unit
 const int HMAP_EXTENTS = EXTENTS*DIVISIOINS;     // Extents of SDF block, in number of cells
 
 const float PENETRATION_DEPTH = 2*DIVISIOINS;
