@@ -13,7 +13,6 @@
         <param name = "pkg_root" value = '$(arg pkg_root)'/>
         <param name = "camera_pitch_offset" value = '$(arg camera_pitch_offset)'/>
 
-
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
 
         <arg name="depth_width"     value="$(arg width)"/>
