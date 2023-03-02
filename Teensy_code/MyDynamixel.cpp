@@ -148,7 +148,7 @@ void MyDynamixel::SyncWrite (uint8_t* id, uint8_t numMotors, enum CONTROL_TABLE 
 	int k = 0;
 	for(int i = 0; i<numMotors*(dataLength+1); i++)
 	{	
-		if (i%5 == 0)
+		if (i%(dataLength+1) == 0)
 		{
 			packet[7+i] = id[j];
 			j = j + 1;
@@ -179,11 +179,11 @@ void MyDynamixel::SyncDisableTorque(uint8_t* id, uint8_t numMotors)
 	uint8_t dataLength = numMotors;
 	uint8_t data[dataLength];
 
-	for(int i = 0,j = 0; i<dataLength && j<numMotors; i++1,j++)
+	for(int i = 0; i<dataLength; i++)
 	{
 		data[i] = 0;
 	}
-	SyncWrite(id, numMotors, TORQUE_ENABLE, data, 1)
+	SyncWrite(id, numMotors, TORQUE_ENABLE, data, 1);
 }
 
 void MyDynamixel::SyncMove (uint8_t* id, double* position, double* speed, uint8_t numMotors)

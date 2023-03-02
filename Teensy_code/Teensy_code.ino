@@ -25,7 +25,7 @@ float T_theta3[6];
 
 
 // Dynamixel
-#include <MyDynamixel.h>
+#include "MyDynamixel.h"
 #define DXL_SERIAL Serial5
 const uint8_t DEPin = 19; // DYNAMIXEL DIR PIN
 MyDynamixel dxl(DXL_SERIAL, 1000000, DEPin);
@@ -216,6 +216,7 @@ void legpath_cb(const my_message::LegPath& msg)
 ros::Subscriber<my_message::LegPath> rosSubPATH("/simple_hexapod/Legs_paths", legpath_cb);
 
 //mode select subscriber
+uint8_t Id[18];
 int mode = -1;
 int startUp = -1;
 void modeSelect_cb(const std_msgs::Int32& msg)
@@ -223,8 +224,15 @@ void modeSelect_cb(const std_msgs::Int32& msg)
   if(msg.data == -1)
   {
     startUp = -1;
-    logdata.data = "Torqu off";
-    // TODO Disable servo torque
+    mode = -1;
+    logdata.data = "Torque off";
+    
+    // Disable servo torque
+    for(int num = 0; num<18; num++)
+    {
+      Id[num] = num;
+    }
+    dxl.SyncDisableTorque(Id, 18);
   }
   else if(msg.data == 0)
   {
@@ -301,7 +309,6 @@ void setup()
 
 double Angle[18];
 double Spd[18];
-uint8_t Id[18];
 char dataStr[100] = "";
 char buff[7];
 long currentmillis = 0;

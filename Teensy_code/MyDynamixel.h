@@ -67,17 +67,19 @@ enum CONTROL_TABLE
 class MyDynamixel
 {
   public:
-    	MyDynamixel(HardwareSerial& port, int rate, int Dir_pin);
-    	void WriteServos (uint8_t id,enum CONTROL_TABLE reg, uint8_t * data, uint8_t dataLength);
-    	void ReadServos (uint8_t id,enum CONTROL_TABLE reg, uint8_t dataLength, uint8_t* returnPack);
-	void MoveServos (uint8_t id, double position, double speed = -10);
-	double PresentPos (uint8_t id);
-	void SyncWrite (uint8_t* id, uint8_t numMotors, enum CONTROL_TABLE reg, uint8_t * data, uint8_t dataLength);
-	void SyncMove (uint8_t* id, double* position, double* speed, uint8_t numMotors);
+    MyDynamixel(HardwareSerial& port, int rate, int Dir_pin);
+    void WriteServos (uint8_t id,enum CONTROL_TABLE reg, uint8_t * data, uint8_t dataLength);
+    void ReadServos (uint8_t id,enum CONTROL_TABLE reg, uint8_t dataLength, uint8_t* returnPack);
+	  void MoveServos (uint8_t id, double position, double speed = -10);
+	  double PresentPos (uint8_t id);
+    void SyncDisableTorque(uint8_t* id, uint8_t numMotors);
+	  void SyncWrite (uint8_t* id, uint8_t numMotors, enum CONTROL_TABLE reg, uint8_t * data, uint8_t dataLength);
+	  void SyncMove (uint8_t* id, double* position, double* speed, uint8_t numMotors);
+  
   private:
-	uint8_t goalMovementBits[4] = {0,0,0,0};
-	HardwareSerial& _port;
-	int dir_pin_;
+	  uint8_t goalMovementBits[4] = {0,0,0,0};
+	  HardwareSerial& _port;
+	  int dir_pin_;
 };
 
 #endif
