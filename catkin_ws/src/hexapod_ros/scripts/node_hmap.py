@@ -89,11 +89,11 @@ def run():
             # Publish downsampled depth and heightmap
             pub_hmap.publish(bridge.cv2_to_imgmsg(perception.hmap_buffer))
             pub_d.publish(bridge.cv2_to_imgmsg(rgbd_in.d))
-            print(rospy.Time.now(), "push hmap")
+            # print(rospy.Time.now(), "push hmap")
 
         rate.sleep()
         td = (rospy.Time.now()-t)/1000000
-        print(td)
+        # print(td)
 
 
 if __name__ == '__main__':

@@ -34,12 +34,12 @@ void IK::set_final_targets(Eigen::Vector3d targets[6], bool is_swinging[6])
 void IK::solve_next_moves(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, double move_speed, uint8_t leg_id)
 {
     // Snap to final target is close enough
-    Eigen::Vector3d delta = this->effector_current_positions[leg_id] - this->final_targets[leg_id];
-    if( delta.dot(delta) < 10*10)
-    {
-      IK::solve_ik(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3, this->final_targets[leg_id], Eigen::Vector3d{move_speed,move_speed,move_speed}, leg_id);
-      return;
-    }
+//    Eigen::Vector3d delta = this->effector_current_positions[leg_id] - this->final_targets[leg_id];
+//    if( delta.dot(delta) < 10*10)
+//    {
+//      IK::solve_ik(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3, this->final_targets[leg_id], Eigen::Vector3d{move_speed,move_speed,move_speed}, leg_id);
+//      return;
+//    }
 
     // Calculate the required movement direction
     Eigen::Vector3d move_dir;   
@@ -54,6 +54,10 @@ void IK::solve_next_moves(double& theta1, double& theta2, double& theta3, double
       move_dir = this->final_targets[leg_id] - this->effector_current_positions[leg_id];
       immediate_target = this->final_targets[leg_id];
     }
+
+//    move_dir = this->final_targets[leg_id] - this->effector_current_positions[leg_id];
+//    immediate_target = this->final_targets[leg_id];
+
     move_dir.normalize();
 
     // if (leg_id == 5)
@@ -72,13 +76,15 @@ Eigen::Vector3d IK::solve_current_position(int leg_id)
     double theta1 = this->dxl->PresentPos(leg_id*3);
     double theta2 = this->dxl->PresentPos(leg_id*3 + 1);
     double theta3 = this->dxl->PresentPos(leg_id*3 + 2);
-//
-//     if (leg_id == 5)
-//     {
-//       char msg[50];
-//       sprintf(msg,"leg %i theta: [%.2f, %.2f, %.2f]", leg_id, theta1, theta2, theta3);
-//       push_log(msg);  
-//     }
+
+//    if (leg_id == 0){
+//      this->theta10 = theta1;
+//      this->theta20 = theta2-HIP_PITCH_OFFSET;
+//      this->theta30 = theta3-KNEE_OFFSET;
+//      char msg[50];
+//      sprintf(msg,"current angle: %lf, %lf, %lf", theta1, theta2-HIP_PITCH_OFFSET, theta3-KNEE_OFFSET);
+//      push_log(msg);
+//    }
 
     this->effector_current_positions[leg_id] = this->solve_fk(theta1, theta2 - HIP_PITCH_OFFSET, theta3 - KNEE_OFFSET); // Offset because I cant design parts correctly
     return this->effector_current_positions[leg_id];
@@ -91,7 +97,7 @@ double clamp(double value, double lower, double upper)
 }
 
 
-double Ch = 0.55;
+double Ch = 0.15;
 double Cs = 0;
 Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target)
 {
@@ -129,6 +135,21 @@ Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d tar
 //     return diff.normalized();
 }
 
+
+// Scale rotation rates to fit into defined range, servos are jittery below certain speeds.
+void IK::scale_rates(double& dt_theta1, double& dt_theta2, double& dt_theta3)
+{
+  double delta_min = dt_theta1 - MIN_SERVO_SPEED;
+  delta_min = min(delta_min, dt_theta2 - MIN_SERVO_SPEED);
+  delta_min = min(delta_min, dt_theta3 - MIN_SERVO_SPEED);
+  if(delta_min < 0)
+  {
+    dt_theta1 = min(dt_theta1 - delta_min, MAX_SERVO_SPEED);
+    dt_theta2 = min(dt_theta2 - delta_min, MAX_SERVO_SPEED);
+    dt_theta3 = min(dt_theta3 - delta_min, MAX_SERVO_SPEED);
+  }
+}
+
 void IK::calc_shared_vars(double& d, double& dmL1, double& c2, double& c, double& L22pL32mc2, double& beta, double& alpha, double x, double y, double z)
 {
     // Horizontal distance
@@ -147,45 +168,46 @@ void IK::calc_shared_vars(double& d, double& dmL1, double& c2, double& c, double
     alpha = std::asin( clamp((L3 * std::sin(beta)) / c, -1.0, 1.0) );
 }
 
-// Scale rotation rates to fit into defined range, servos are jittery below certain speeds.
-void IK::scale_rates(double& dt_theta1, double& dt_theta2, double& dt_theta3)
-{
-  double delta_min = dt_theta1 - MIN_SERVO_SPEED;
-  delta_min = min(delta_min, dt_theta2 - MIN_SERVO_SPEED);
-  delta_min = min(delta_min, dt_theta3 - MIN_SERVO_SPEED);
-  if(delta_min < 0)
-  {
-    dt_theta1 = min(dt_theta1 - delta_min, MAX_SERVO_SPEED);
-    dt_theta2 = min(dt_theta2 - delta_min, MAX_SERVO_SPEED);
-    dt_theta3 = min(dt_theta3 - delta_min, MAX_SERVO_SPEED);
-  }
-}
-
 // Calculate inverse kinematics
 void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, Eigen::Vector3d target, Eigen::Vector3d dt_target, uint8_t leg_id)
 {
     double x = target[0];
     double y = target[1];
     double z = -target[2];
+//    if (leg_id == 0){
+//      char msg[50];
+//      sprintf(msg,"targets: %lf, %lf, %lf", x, y, -z);
+//      push_log(msg);
+//    }
 
     double dt_x = dt_target[0];
     double dt_y = dt_target[1];
-    double dt_z = -dt_target[2];
+    double dt_z = dt_target[2];
 
     //----------------------- Angles -----------------------------
     double d, dmL1, c2, c, L22pL32mc2, beta, alpha;
     IK::calc_shared_vars(d, dmL1, c2, c, L22pL32mc2, beta, alpha, x, y, z);
 
-    theta1 = -atan2(y,x);
-    theta2 = atan2( z, dmL1 ) - alpha + HIP_PITCH_OFFSET; // Offset because I cant design parts correctly
-    theta3 = M_PI - beta + KNEE_OFFSET; // Offset because I cant design parts correctly
+//    theta1 = -std::atan(y/x);
+//    theta2 = M_PI/2.0 - alpha - std::atan( dmL1 / z ) + HIP_PITCH_OFFSET; // Offset because I cant design parts correctly
+//    theta3 = M_PI - beta + KNEE_OFFSET; // Offset because I cant design parts correctly
+
+    theta1 = atan2(y,x);
+
+    double xmL1xC1 = x - L1x*cos(theta1);
+    double ymL1xS1 = y - L1x*sin(theta1);
+    double zmL1z = z - L1z;
+    double C3 = (xmL1xC1*xmL1xC1 + ymL1xS1*ymL1xS1 + zmL1z*zmL1z - L22 - L32)/(2*L2*L3);
+    double S3 = sqrt(1-C3*C3);
+
+    theta2 = atan2(z-L1z, sqrt(xmL1xC1*xmL1xC1 + ymL1xS1*ymL1xS1)) - atan2(L3*S3, L2 + L3*C3) + HIP_PITCH_OFFSET; // Offset because I cant design parts correctly
+    theta3 = atan2(S3, C3) + KNEE_OFFSET; // Offset because I cant design parts correctly
 //
-//     if (leg_id == 5)
-//     {
-//       char msg[50];
-//       sprintf(msg,"leg %i M_PI/2.0 %.2f, alpha %.2f, atan %.2f, offset %.2f, beta %.2f, theta %.2f", leg_id, M_PI/2.0, - alpha, - std::atan( dmL1 / z ), HIP_PITCH_OFFSET, beta, theta2);
-//       push_log(msg);  
-//     }
+//    if (leg_id == 0){
+//      char msg[50];
+//      sprintf(msg,"values: xmLxC1: %lf, xmLxS1: %lf, zmL1z: %lf, C3: %lf", xmL1xC1, ymL1xS1, zmL1z, C3);
+//      push_log(msg);
+//    }
 
     
     //-------------------- Angular rates -------------------------
@@ -194,11 +216,10 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     z = -this->effector_current_positions[leg_id][2];
     IK::calc_shared_vars(d, dmL1, c2, c, L22pL32mc2, beta, alpha, x, y, z);
 
-    double s_beta = sin(beta);
     double dt_d = (x*dt_x + y*dt_y) / d;
     double dt_c = ((-L1 + d)*dt_d + (z*dt_z)) / c;
     double dt_beta = (c*dt_c) / (L2*L3*sqrt(fabs( 4 - L22pL32mc2*L22pL32mc2 / (L22*L32) )));
-    double dt_alpha = L3*(c*cos(beta)*dt_beta - sin(beta)*dt_c) / (sqrt(fabs(-L32*s_beta*s_beta/c2 + 1))*c2);
+    double dt_alpha = L3*(c*cos(beta)*dt_beta - sin(beta)*dt_c) / (sqrt(fabs(-L32*sin(beta)/c2 + 1))*c2);
 
     double L1md = L1 - d;
     double L1md2 = L1md*L1md;
@@ -220,8 +241,8 @@ Eigen::Vector3d IK::solve_fk(double theta1, double theta2, double theta3)
     double C23 = cos(theta2 + theta3);
     double S23 = sin(theta2 + theta3);
 
-    double d = L1 + L2*C2 + L3*C23;
-    return Eigen::Vector3d {C1*d, S1*d, -L3*S23-L2*S2};
+    double d = L1x + L2*C2 + L3*C23;
+    return Eigen::Vector3d {C1*d, S1*d, -(L1z + L3*S23 + L2*S2)};
 }
 
 Eigen::Vector3d IK::robot_to_leg_space(Eigen::Vector3d vector, int leg_id)

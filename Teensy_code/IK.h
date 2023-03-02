@@ -10,9 +10,14 @@
 #include "MyDynamixel.h"
 
 // Leg dimentions
-const double L1 = 53.17;
-const double L2  = 101.88;
-const double L3  = 149.16;
+const double L1 = 65.00;
+const double L1x = 65.00;
+//const double L1z = 4.50;
+const double L1z = 0.0;
+
+const double L2  = 97.00;
+const double L3  = 145.00;
+
 // Used in IK
 const double L22 = L2*L2;
 const double L32 = L3*L3;
@@ -22,7 +27,7 @@ const double MIN_SERVO_SPEED = 5; //RPM
 const double MAX_SERVO_SPEED = 20; //RPM
 const double RPM_OFFSET = 5;
 
-const double HIP_PITCH_OFFSET = 20.0*M_PI/180.0;
+const double HIP_PITCH_OFFSET = 25.0*M_PI/180.0;
 const double KNEE_OFFSET = -HIP_PITCH_OFFSET;
 
 
@@ -69,6 +74,11 @@ class IK
         // Calculate current position
         Eigen::Vector3d solve_current_position(int leg_id);
         Eigen::Vector3d leg_to_robot_space(Eigen::Vector3d vector, int leg_id);
+        Eigen::Vector3d final_targets[6];
+
+//        double theta10;
+//        double theta20;
+//        double theta30;
     private:
         // Scale rotation rates to fit into defined range, servos are jittery below certain speeds.
         void scale_rates(double& dt_theta1, double& dt_theta2, double& dt_theta3);
@@ -82,7 +92,7 @@ class IK
         void calc_shared_vars(double& d, double& dmL1, double& c2, double& c, double& L22pL32mc2, double& beta, double& alpha, double x, double y, double z);
         
 
-        Eigen::Vector3d final_targets[6];
+        
         bool is_swinging[6];
         
 //        const uint8_t DEPin = 19; // DYNAMIXEL DIR PIN

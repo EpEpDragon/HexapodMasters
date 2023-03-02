@@ -199,15 +199,23 @@ void loop()
     { 
 
 
-      sprintf(msg,"move speed: %f", move_speed);
-      push_log(msg);
+//      sprintf(msg,"move speed: %f", move_speed);
+//      push_log(msg);
       ik.set_final_targets(effector_targets, is_swinging);
+//      ik.final_targets[0] = effector_current_positions[0];
       ik.solve_next_moves(theta1[0], theta2[0], theta3[0], dt_theta1[0], dt_theta2[0], dt_theta3[0], move_speed, 0);
       ik.solve_next_moves(theta1[1], theta2[1], theta3[1], dt_theta1[1], dt_theta2[1], dt_theta3[1], move_speed, 1);
       ik.solve_next_moves(theta1[2], theta2[2], theta3[2], dt_theta1[2], dt_theta2[2], dt_theta3[2], move_speed, 2);
       ik.solve_next_moves(theta1[3], theta2[3], theta3[3], dt_theta1[3], dt_theta2[3], dt_theta3[3], move_speed, 3);
       ik.solve_next_moves(theta1[4], theta2[4], theta3[4], dt_theta1[4], dt_theta2[4], dt_theta3[4], move_speed, 4);
       ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], move_speed, 5);
+  
+//      sprintf(msg,"current pos: %lf, %lf, %lf", effector_current_positions[0][0], effector_current_positions[0][1], effector_current_positions[0][2]);
+//      push_log(msg);
+//      sprintf(msg,"angle: %lf, %lf, %lf", theta1[0], theta2[0], theta3[0]);
+//      push_log(msg);
+//      sprintf(msg,"diff: %lf, %lf, %lf", theta1[0]-ik.theta10, theta2[0]-ik.theta20, theta3[0]-ik.theta30);
+//      push_log(msg);
 
       SetAngles(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3);
       push_effector_positions();
@@ -223,7 +231,7 @@ void SetAngles(double* th1, double* th2, double* th3, double* dt_th1,double* dt_
   
   for(int leg_id = 0; leg_id<6; leg_id++)
   {
-    angles[leg_id*3] = -th1[leg_id];
+    angles[leg_id*3] = th1[leg_id];
     angles[leg_id*3+1] = th2[leg_id];
     angles[leg_id*3+2] = th3[leg_id];
 
