@@ -7,7 +7,7 @@ import time
 
 from sys import platform
 import warnings
-
+from simLaunch import READ_CAMERA
 from math import cos, sin
 
 from raylib import (
@@ -70,15 +70,20 @@ def start_interface(walk_machine, view):
         warnings.warn("Not implemented on Windows OS")
     else:
         time.sleep(3)
-        cam_size = wf.get_window_size('Camera')
         margins = wf.get_screen_margins()
         ctrl_x_rel = 370/(wf.get_monitor(0).width - margins[0])
-        centerX = (wf.get_monitor(0).width - margins[0] - cam_size[0])/(wf.get_monitor(0).width - margins[0]) - ctrl_x_rel
-        centerY = (wf.get_monitor(0).height - margins[1] - cam_size[1])/(wf.get_monitor(0).height - margins[1])
-        wf.move_size_window("MuJoCo : MuJoCo Model", -1, 0, 0, centerX, 1)
-        wf.move_size_window("Open3D", -1, centerX, 0, 1-centerX-ctrl_x_rel, centerY)
-        wf.move_size_window("Control Interface", -1, 1-ctrl_x_rel, 0, ctrl_x_rel, 1)
-        wf.move_size_window("Camera", -1, centerX, centerY, is_cv2=True)
+        if READ_CAMERA:
+            cam_size = wf.get_window_size('Camera')
+            centerX = (wf.get_monitor(0).width - margins[0] - cam_size[0])/(wf.get_monitor(0).width - margins[0]) - ctrl_x_rel
+            centerY = (wf.get_monitor(0).height - margins[1] - cam_size[1])/(wf.get_monitor(0).height - margins[1])
+            wf.move_size_window("MuJoCo : MuJoCo Model", -1, 0, 0, centerX, 1)
+            wf.move_size_window("Open3D", -1, centerX, 0, 1-centerX-ctrl_x_rel, centerY)
+            wf.move_size_window("Control Interface", -1, 1-ctrl_x_rel, 0, ctrl_x_rel, 1)
+            wf.move_size_window("Camera", -1, centerX, centerY, is_cv2=True)
+        else:
+            wf.move_size_window("MuJoCo : MuJoCo Model", -1, 0, 0, 1-ctrl_x_rel, 1)
+            wf.move_size_window("Control Interface", -1, 1-ctrl_x_rel, 0, ctrl_x_rel, 1)
+        
         
     control_interface.run()
 
@@ -127,7 +132,7 @@ class ControInterface():
             if is_mouse_button_down(MOUSE_BUTTON_RIGHT):
                 if mouse_in_box(0,0,get_screen_width(),420):
                     self.walk_direction = Vector2(0,0)
-            self.walk_machine.walk_direction = a([self.walk_direction.x, -self.walk_direction.y, 0.0])
+            self.walk_machine.set_walk_direction(a([self.walk_direction.x, -self.walk_direction.y, 0.0]))
             # ----------------------------------------------------------------------------------
 
             # draw

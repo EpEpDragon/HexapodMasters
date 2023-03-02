@@ -20,6 +20,8 @@ import controlInterface
 import motion
 from roboMath import rotate_vec
 
+READ_CAMERA = False
+
 # Camera
 RES_X = 1280
 RES_Y = 720
@@ -59,14 +61,15 @@ if __name__ == '__main__':
     # Point cloud
     # -------------------------------------------------------------------------------------------------------
     # a = np.ndarray((1000, 3),dtype=np.float32)
-    a = np.random.rand(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)
-    lock = Lock()
-    shm = shared_memory.SharedMemory(create=True,size=a.nbytes)
-    points_buffer = np.ndarray(a.shape, dtype=np.float64, buffer=shm.buf)
-    points_buffer[:] = a[:]  # Copy the original data into shared memory
+    if READ_CAMERA:
+        a = np.random.rand(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)
+        lock = Lock()
+        shm = shared_memory.SharedMemory(create=True,size=a.nbytes)
+        points_buffer = np.ndarray(a.shape, dtype=np.float64, buffer=shm.buf)
+        points_buffer[:] = a[:]  # Copy the original data into shared memory
 
-    p1 = Process(target=viz_cloud.start, args=(shm.name,), daemon=True)
-    p1.start()
+        p1 = Process(target=viz_cloud.start, args=(shm.name,), daemon=True)
+        p1.start()
     # -------------------------------------------------------------------------------------------------------
     
     # Start movement handler
@@ -74,42 +77,44 @@ if __name__ == '__main__':
 
     # Camera Stuff
     # -------------------------------------------------------------------------------------------------------
-    gl_ctx = mujoco.GLContext(RES_X, RES_Y)
-    gl_ctx.make_current()
+    if READ_CAMERA:
+        gl_ctx = mujoco.GLContext(RES_X, RES_Y)
+        gl_ctx.make_current()
 
-    scn = mujoco.MjvScene(model, maxgeom=100)
-    
-    cam = mujoco.MjvCamera()
-    cam.type = mujoco.mjtCamera.mjCAMERA_FIXED
-    cam.fixedcamid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'cam')
+        scn = mujoco.MjvScene(model, maxgeom=100)
+        
+        cam = mujoco.MjvCamera()
+        cam.type = mujoco.mjtCamera.mjCAMERA_FIXED
+        cam.fixedcamid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'cam')
 
-    vopt = mujoco.MjvOption()
-    pert = mujoco.MjvPerturb()
+        vopt = mujoco.MjvOption()
+        pert = mujoco.MjvPerturb()
 
-    ctx = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_150)
-    mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, ctx)
+        ctx = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_150)
+        mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, ctx)
 
-    viewport = mujoco.MjrRect(0, 0, RES_X, RES_Y)
+        viewport = mujoco.MjrRect(0, 0, RES_X, RES_Y)
 
-    yfov = model.cam_fovy[cam.fixedcamid]
-    fy = (RES_Y/2) / np.tan(yfov * np.pi / 180 / 2)
-    fx = fy
-    cx = (RES_X-1) / 2.0
-    cy = (RES_Y-1) / 2.0
+        yfov = model.cam_fovy[cam.fixedcamid]
+        fy = (RES_Y/2) / np.tan(yfov * np.pi / 180 / 2)
+        fx = fy
+        cx = (RES_X-1) / 2.0
+        cy = (RES_Y-1) / 2.0
 
-    cam_K = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
+        cam_K = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
 
-    # Get the 3D direction vector for each pixel in the simulated sensor
-    # in the format (x, y, 1)
-    cam_x_over_z, cam_y_over_z = cv2.initInverseRectificationMap(
-            cam_K, # Intrinsics
-            None, # Distortion (0 for GPU rendered images)
-            np.eye(3), # Rectification
-            np.eye(3), # Unity rectification intrinsics (we want direction vector)
-            (RES_X, RES_Y), # Test all pixels in physical sensor
-            m1type=cv2.CV_32FC1)
+        # Get the 3D direction vector for each pixel in the simulated sensor
+        # in the format (x, y, 1)
+        cam_x_over_z, cam_y_over_z = cv2.initInverseRectificationMap(
+                cam_K, # Intrinsics
+                None, # Distortion (0 for GPU rendered images)
+                np.eye(3), # Rectification
+                np.eye(3), # Unity rectification intrinsics (we want direction vector)
+                (RES_X, RES_Y), # Test all pixels in physical sensor
+                m1type=cv2.CV_32FC1)
 
-    sample_list = []
+        sample_list = []
+    # -------------------------------------------------------------------------------------------------------
 
     # Start simulation
     viewer.launch_passive(model, data)
@@ -135,7 +140,7 @@ if __name__ == '__main__':
 
         # Render camera every X timesteps(k)
         # ----------------------------------------------------------------------------------------------------
-        if k % 20 == 0:
+        if READ_CAMERA and k % 20 == 0:
             mujoco.mjv_updateScene(model, data, vopt, pert, cam, mujoco.mjtCatBit.mjCAT_ALL, scn)
             mujoco.mjr_render(viewport, scn, ctx)
             image = np.empty((RES_Y, RES_X, 3), dtype=np.uint8)
@@ -153,7 +158,6 @@ if __name__ == '__main__':
             depth_linear[depth_linear > model.vis.map.zfar - 0.0005] = 0 # Zero out depths farther than the z buffer
             
             # Show the simulated camera image
-            
             if view[0] == 0:
                 cv2.imshow('Camera', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
             elif view[0] == 1:
@@ -170,7 +174,7 @@ if __name__ == '__main__':
             points_buffer[:,0] = temp[:,0]
             points_buffer[:,1] = temp[:,2]
             points_buffer[:,2] = -temp[:,1]
-                        
+
             k = 0
         k += 1
         # ----------------------------------------------------------------------------------------------------
