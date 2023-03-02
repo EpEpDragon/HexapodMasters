@@ -130,6 +130,19 @@ double MyDynamixel::PresentPos (uint8_t id)
 	return position;
 }
 
+//double MyDynamixel::ReadLimit (uint8_t id)
+//{
+//  double position=0;
+//  uint16_t pos=0;
+//  uint8_t retPac[8]={0,0,0,0,0,0,0,0};
+//  
+//  ReadServos (id, A, 2, retPac);
+//  pos = (uint16_t)((retPac[6]& 0xFF) << 8) | (uint16_t)(retPac[5]& 0xFF);
+//  position = ((double)(pos - 512)) * SERVO_STEP;
+//  
+//  return position;
+//}
+
 void MyDynamixel::SyncWrite (uint8_t* id, uint8_t numMotors, enum CONTROL_TABLE reg, uint8_t * data, uint8_t dataLength)
 {
 	uint8_t length = (dataLength+1)*numMotors+4;

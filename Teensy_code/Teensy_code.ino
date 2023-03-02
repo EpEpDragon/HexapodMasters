@@ -191,12 +191,13 @@ void loop()
     prevmillis = currentmillis;
 
     //On Startup
-    if(startUp == 0)
-    { 
       for (int leg_id=0; leg_id<6; leg_id++)
       {
         effector_current_positions[leg_id] = ik.solve_current_position(leg_id);
       }
+    if(startUp == 0)
+    { 
+
 
       sprintf(msg,"move speed: %f", move_speed);
       push_log(msg);

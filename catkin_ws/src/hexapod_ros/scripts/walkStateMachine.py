@@ -11,12 +11,12 @@ import math
 
 REST_Z = 140 # mm
 REST_POS = [ 
-  a([207.846, -120.000, 0]),
-  a([0.000, -240.000, 0]),
-  a([-207.846, -120.000, 0]),
-  a([-207.846, 120.000, 0]),
-  a([-0.000, 240.000, 0]),
-  a([207.846, 120.000, 0]),
+  a([216.506, -125.000, 0]),
+  a([0.000, -250.000, 0]),
+  a([-216.506, -125.000, 0]),
+  a([-216.506, 125.000, 0]),
+  a([-0.000, 250.000, 0]),
+  a([216.506, 125.000, 0]),
 ]
 
 # REST_POS = [a([0.866, 0.500, 0.0])*2, a([0.866, -0.500, 0.0])*2,
@@ -195,9 +195,10 @@ class WalkCycleMachine(StateMachine):
         # for i in range(6):
         #     print(str(i) + ": " + str(self.current_feet_positions[i][0:2].dot(self.current_feet_positions[i][0:2])) + "-" + str(REST_POS[i][0:2].dot(REST_POS[i][0:2])))
     
-    def update_parameters(self, direction, speed):
+    def update_parameters(self, direction, speed, height):
         self._set_walk_direction(direction)
         self._set_speed(speed)
+        self._set_height(height)
         
         # self._update_targets()
         # print(self.speed)
@@ -248,7 +249,7 @@ class WalkCycleMachine(StateMachine):
                 # print("Not swing")
                 # Rotate walk direction to account for pitch angle and add to targets
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
-                self.targets[i][2] += self.height_offsets[i] + effector_offset
+                self.targets[i][2] = self.height_offsets[i] + effector_offset
             # print("leg %i target: %f %f %f" % (i,self.targets[i][0], self.targets[i][1], self.targets[i][2]))
         # print("-----------------")        
     # -------------------------------------------------------------------------------------------
@@ -270,9 +271,8 @@ class WalkCycleMachine(StateMachine):
     def _set_walk_direction(self, value):
         self.walk_direction = value #rotate_vec(value, a([0,1,0]), self.pitch/2)
 
-    def adjust_height(self, value):
-        self.height += value
-        self.height = min(max(self.height,0), HEIGHT_MAX)
+    def _set_height(self, value):
+        self.height = min(max(value,0), HEIGHT_MAX)
     
     def adjust_pitch(self, value):
         self.pitch += value

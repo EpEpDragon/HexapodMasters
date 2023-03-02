@@ -18,7 +18,7 @@ def run():
     def update(command_msg):
         # Append 0 to make direction 3D (x,y,0)
         direction = np.append(np.array(command_msg.walk_dir),0)
-        walk_machine.update_parameters(direction, command_msg.speed)
+        walk_machine.update_parameters(direction, command_msg.speed, command_msg.height)
     rospy.Subscriber('hexapod_command_data', HexapodCommands, update)
 
     effector_targets_pub = rospy.Publisher('effector_targets', EffectorTargets, queue_size=10)

@@ -73,6 +73,13 @@ Eigen::Vector3d IK::solve_current_position(int leg_id)
     double theta2 = this->dxl->PresentPos(leg_id*3 + 1);
     double theta3 = this->dxl->PresentPos(leg_id*3 + 2);
 
+     if (leg_id == 5)
+     {
+       char msg[50];
+       sprintf(msg,"leg %i theta: [%.2f, %.2f, %.2f]", leg_id, theta1, theta2, theta3);
+       push_log(msg);  
+     }
+
     this->effector_current_positions[leg_id] = this->solve_fk(theta1, theta2 - HIP_PITCH_OFFSET, theta3 - KNEE_OFFSET); // Offset because I cant design parts correctly
     return this->effector_current_positions[leg_id];
 }
@@ -134,10 +141,10 @@ void IK::calc_shared_vars(double& d, double& dmL1, double& c2, double& c, double
 
     // Internal knee angle
     L22pL32mc2 = (L22 + L32 - c2);
-    beta = std::acos( clamp( L22pL32mc2 / (2*L2*L3), 0.0, 1.0 ) );
+    beta = std::acos( clamp( L22pL32mc2 / (2*L2*L3), -1.0, 1.0 ) );
 
     // Internal hip pitch angle
-    alpha = std::asin( clamp((L3 * std::sin(beta)) / c, 0.0, 1.0) );
+    alpha = std::asin( clamp((L3 * std::sin(beta)) / c, -1.0, 1.0) );
 }
 
 // Scale rotation rates to fit into defined range, servos are jittery below certain speeds.
@@ -172,6 +179,13 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     theta1 = -std::atan(y/x);
     theta2 = M_PI/2 - alpha - std::atan( dmL1 / z ) + HIP_PITCH_OFFSET; // Offset because I cant design parts correctly
     theta3 = M_PI - beta + KNEE_OFFSET; // Offset because I cant design parts correctly
+
+     if (leg_id == 5)
+     {
+       char msg[50];
+       sprintf(msg,"leg %i theta target: [%.2f, %.2f, %.2f]", leg_id, theta1, theta2, theta3);
+       push_log(msg);  
+     }
     
     //-------------------- Angular rates -------------------------
     x = this->effector_current_positions[leg_id][0];
