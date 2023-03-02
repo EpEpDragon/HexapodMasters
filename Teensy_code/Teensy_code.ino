@@ -348,30 +348,31 @@ void loop()
   currentmillis = millis();
 
   if(currentmillis - prevmillis >= 100)
-  {  
-    for (int leg_id=0; leg_id<6; leg_id++)
-    {
-      effector_current_positions[leg_id] = ik.solve_current_position(leg_id);
-    }
-    ik.set_final_targets(effector_targets);
-    prevmillis = currentmillis;
-    ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], 50, 5);
+  {
     char msg[50];
-    sprintf(msg,"leg %i speeds: [%.4f, %.4f, %.4f]", 5, dt_theta1[5], dt_theta2[5], dt_theta3[5]);
-    push_log(msg);  
-
+    sprintf(msg,"dt %ld", currentmillis - prevmillis);
+//    push_log(msg);
+    prevmillis = currentmillis;
+    
+//    char msg[50];
+//    sprintf(msg,"leg %i speeds: [%.4f, %.4f, %.4f]", 5, dt_theta1[5], dt_theta2[5], dt_theta3[5]);
+//    push_log(msg);  
 
     //On Startup
     if(startUp == 0)
     { 
-      // static long startUp_startTime = millis();
+      for (int leg_id=0; leg_id<6; leg_id++)
+      {
+        effector_current_positions[leg_id] = ik.solve_current_position(leg_id);
+      }
+
       ik.set_final_targets(effector_targets);
-      ik.solve_next_moves(theta1[0], theta2[0], theta3[0], dt_theta1[0], dt_theta2[0], dt_theta3[0], 50, 0);
-      ik.solve_next_moves(theta1[1], theta2[1], theta3[1], dt_theta1[1], dt_theta2[1], dt_theta3[1], 50, 1);
-      ik.solve_next_moves(theta1[2], theta2[2], theta3[2], dt_theta1[2], dt_theta2[2], dt_theta3[2], 50, 2);
-      ik.solve_next_moves(theta1[3], theta2[3], theta3[3], dt_theta1[3], dt_theta2[3], dt_theta3[3], 50, 3);
-      ik.solve_next_moves(theta1[4], theta2[4], theta3[4], dt_theta1[4], dt_theta2[4], dt_theta3[4], 50, 4);
-      ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], 50, 5);
+      ik.solve_next_moves(theta1[0], theta2[0], theta3[0], dt_theta1[0], dt_theta2[0], dt_theta3[0], 70, 0);
+      ik.solve_next_moves(theta1[1], theta2[1], theta3[1], dt_theta1[1], dt_theta2[1], dt_theta3[1], 70, 1);
+      ik.solve_next_moves(theta1[2], theta2[2], theta3[2], dt_theta1[2], dt_theta2[2], dt_theta3[2], 70, 2);
+      ik.solve_next_moves(theta1[3], theta2[3], theta3[3], dt_theta1[3], dt_theta2[3], dt_theta3[3], 70, 3);
+      ik.solve_next_moves(theta1[4], theta2[4], theta3[4], dt_theta1[4], dt_theta2[4], dt_theta3[4], 70, 4);
+      ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], 70, 5);
 
       char msg[50];
       for(int leg_id=5; leg_id<6; leg_id++)
@@ -382,84 +383,16 @@ void loop()
       SetAngles(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3);
       push_effector_positions();
     }
-
     //Teleop demo Mode
     if(mode == 1 && startUp == 1)
     {
-//      stepStartFlag = 0;
-//      static elapsedMillis kinematicModeStartTimer;
-//
-//      if(kinematicModeStartFlag == 0)
-//      {
-//        kinematicModeStartFlag = 1;
-//        kinematicModeStartTimer = 0;
-//      }
-//
-//      if(kinematicModeStartTimer <= 1000)
-//      {
-//        InKin.IK(&T_theta1[0],&T_theta2[0],&T_theta3[0],283.71+tx,   0.0+ty,    -140-tz,0,1000,troll,tpitch,tyaw,0);
-//        InKin.IK(&T_theta1[1],&T_theta2[1],&T_theta3[1],141.855+tx,  -245.7+ty, -140-tz,1,1000,troll,tpitch,-tyaw,0);
-//        InKin.IK(&T_theta1[2],&T_theta2[2],&T_theta3[2],-141.855+tx, -245.7+ty, -140-tz,2,1000,troll,tpitch,tyaw,0);
-//        InKin.IK(&T_theta1[3],&T_theta2[3],&T_theta3[3],-283.71+tx,  0.0+ty,    -140-tz,3,1000,troll,tpitch,-tyaw,0);
-//        InKin.IK(&T_theta1[4],&T_theta2[4],&T_theta3[4],-141.855+tx, 245.7+ty,  -140-tz,4,1000,troll,tpitch,tyaw,0);
-//        InKin.IK(&T_theta1[5],&T_theta2[5],&T_theta3[5],141.855+tx,  245.7+ty,  -140-tz,5,1000,troll,tpitch,-tyaw,0);
-//        if(ConstrainCheck01(T_theta1,T_theta2,T_theta3))
-//        {
-//          SetAngles(T_theta1,T_theta2,T_theta3,0,0,0);
-//        }
-//      }
-//      else
-//      {
-//        InKin.IK(&T_theta1[0],&T_theta2[0],&T_theta3[0],283.71+tx,   0.0+ty,    -140-tz,0,0,troll,tpitch,tyaw,0);
-//        InKin.IK(&T_theta1[1],&T_theta2[1],&T_theta3[1],141.855+tx,  -245.7+ty, -140-tz,1,0,troll,tpitch,-tyaw,0);
-//        InKin.IK(&T_theta1[2],&T_theta2[2],&T_theta3[2],-141.855+tx, -245.7+ty, -140-tz,2,0,troll,tpitch,tyaw,0);
-//        InKin.IK(&T_theta1[3],&T_theta2[3],&T_theta3[3],-283.71+tx,  0.0+ty,    -140-tz,3,0,troll,tpitch,-tyaw,0);
-//        InKin.IK(&T_theta1[4],&T_theta2[4],&T_theta3[4],-141.855+tx, 245.7+ty,  -140-tz,4,0,troll,tpitch,tyaw,0);
-//        InKin.IK(&T_theta1[5],&T_theta2[5],&T_theta3[5],141.855+tx,  245.7+ty,  -140-tz,5,0,troll,tpitch,-tyaw,0);
-//        if(ConstrainCheck01(T_theta1,T_theta2,T_theta3))
-//        {
-//          SetAngles(T_theta1,T_theta2,T_theta3,0,0,0);
-//        }
-//      }
-    }
 
+    }
     //SetAngle Mode
     else if(mode == 2 && startUp == 1)
     {
-//      stepStartFlag = 0;
-//      kinematicModeStartFlag = 0;
-//      
-//      A_theta1[0] = 0;
-//      A_theta2[0] = 0;
-//      A_theta3[0] = -0;
-//
-//      float px = 0, py = 0, pz = 0;
-//      
-//      FK03_inbody(px,py,pz, A_theta1[0],A_theta2[0],A_theta3[0],0);
-//      InKin.IK(&A_theta1[0],&A_theta2[0],&A_theta3[0],px,   py,    pz,0,0,0,0,0,0);
-//
-//      FK03_inbody(px,py,pz, A_theta1[1],A_theta2[1],A_theta3[1],1);
-//      InKin.IK(&A_theta1[1],&A_theta2[1],&A_theta3[1],px,   py,    pz,1,0,0,0,0,0);
-//
-//      FK03_inbody(px,py,pz, A_theta1[2],A_theta2[2],A_theta3[2],2);
-//      InKin.IK(&A_theta1[2],&A_theta2[2],&A_theta3[2],px,   py,    pz,2,0,0,0,0,0);
-//
-//      FK03_inbody(px,py,pz, A_theta1[3],A_theta2[3],A_theta3[3],3);
-//      InKin.IK(&A_theta1[3],&A_theta2[3],&A_theta3[3],px,   py,    pz,3,0,0,0,0,0);
-//
-//      FK03_inbody(px,py,pz, A_theta1[4],A_theta2[4],A_theta3[4],4);
-//      InKin.IK(&A_theta1[4],&A_theta2[4],&A_theta3[4],px,   py,    pz,4,0,0,0,0,0);
-//
-//      FK03_inbody(px,py,pz, A_theta1[5],A_theta2[5],A_theta3[5],5);
-//      InKin.IK(&A_theta1[5],&A_theta2[5],&A_theta3[5],px,   py,    pz,5,0,0,0,0,0);
-//
-//      if(ConstrainCheck01(A_theta1,A_theta2,A_theta3))
-//      {
-//        SetAngles(A_theta1,A_theta2,A_theta3,20,20,20);
-//      }
-//      //mode = 2;
+
     }
-    
     //SetNextpathPoint Mode
     else if(mode == 3 && startSetPath == 1 && startUp == 1)
     {

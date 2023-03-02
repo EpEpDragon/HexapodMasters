@@ -18,7 +18,7 @@ const double L22 = L2*L2;
 const double L32 = L3*L3;
 
 const double RAD_TO_RPM = 9.549297;
-const double MIN_SERVO_SPEED = 0.15; //RPM
+const double MIN_SERVO_SPEED = 5; //RPM
 const double MAX_SERVO_SPEED = 20; //RPM
 const double RPM_OFFSET = 5;
 
@@ -66,6 +66,8 @@ class IK
         Eigen::Vector3d solve_current_position(int leg_id);
         Eigen::Vector3d leg_to_robot_space(Eigen::Vector3d vector, int leg_id);
     private:
+        // Scale rotation rates to fit into defined range, servos are jittery below certain speeds.
+        void scale_rates(double& dt_theta1, double& dt_theta2, double& dt_theta3);
         // Calculate the required servo angles to achieve the given coordintate IN LEG SPACE
         void solve_ik(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, Eigen::Vector3d target, Eigen::Vector3d dt_target, uint8_t leg_id);
         // Calculate leg position for given angles IN LEG SPACE

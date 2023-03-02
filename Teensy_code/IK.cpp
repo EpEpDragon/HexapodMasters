@@ -41,7 +41,7 @@ void IK::solve_next_moves(double& theta1, double& theta2, double& theta3, double
     }
     // Calculate the required movement direction
     Eigen::Vector3d move_dir = IK::solve_move_vector(this->effector_current_positions[leg_id], this->final_targets[leg_id]);   
-    Eigen::Vector3d immediate_target = this->final_targets[leg_id]; //this->effector_current_positions[leg_id] + move_dir*5;
+    Eigen::Vector3d immediate_target = this->final_targets[leg_id];//this->effector_current_positions[leg_id] + move_dir * (move_speed * 0.1);
     
 //    char msg[50];
 //    sprintf(msg,"leg %i move_dir: [%.2f, %.2f, %.2f]", leg_id, move_dir[0], move_dir[1], move_dir[2]);
@@ -89,6 +89,23 @@ void IK::calc_shared_vars(double& d, double& dmL1, double& c2, double& c, double
     alpha = std::asin( clamp((L3 * std::sin(beta)) / c, 0.0, 1.0) );
 }
 
+// Scale rotation rates to fit into defined range, servos are jittery below certain speeds.
+void IK::scale_rates(double& dt_theta1, double& dt_theta2, double& dt_theta3)
+{
+  double delta_min = dt_theta1 - MIN_SERVO_SPEED;
+  delta_min = min(delta_min, dt_theta2 - MIN_SERVO_SPEED);
+  delta_min = min(delta_min, dt_theta3 - MIN_SERVO_SPEED);
+  if(delta_min < 0)
+  {
+    dt_theta1 = min(dt_theta1 - delta_min, MAX_SERVO_SPEED);
+    dt_theta2 = min(dt_theta2 - delta_min, MAX_SERVO_SPEED);
+    dt_theta3 = min(dt_theta3 - delta_min, MAX_SERVO_SPEED);
+  }
+//  char msg[50];
+//  sprintf(msg,"leg %i speeds: [%.4f, %.4f, %.4f]", leg_id, dt_theta1[leg_id], dt_theta2[leg_id], dt_theta3[leg_id]);
+//  push_log(msg);  
+}
+
 // Calculate inverse kinematics
 void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, Eigen::Vector3d target, Eigen::Vector3d dt_target, uint8_t leg_id)
 {
@@ -105,8 +122,8 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     IK::calc_shared_vars(d, dmL1, c2, c, L22pL32mc2, beta, alpha, x, y, z);
 
     theta1 = -std::atan(y/x);
-    theta3 = M_PI - beta;
     theta2 = M_PI/2 - alpha - std::atan( dmL1 / z );
+    theta3 = M_PI - beta;
     
     //-------------------- Angular rates -------------------------
     x = this->effector_current_positions[leg_id][0];
@@ -116,28 +133,30 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
 
     double dt_d = (x*dt_x + y*dt_y) / d;
     double dt_c = ((-L1 + d)*dt_d + (z*dt_z)) / c;
-    double dt_beta = (c*dt_c) / (L2*L3*sqrt(fabs( 4 - L22pL32mc2*L22pL32mc2 / (L22*L32) )))
+    double dt_beta = (c*dt_c) / (L2*L3*sqrt(fabs( 4 - L22pL32mc2*L22pL32mc2 / (L22*L32) )));
     double dt_alpha = L3*(c*cos(beta)*dt_beta - sin(beta)*dt_c) / (sqrt(fabs(-L32*sin(beta)/c2 + 1))*c2);
-    
-    dt_theta1 =  clamp( fabs((-x*dt_y + y*dt_x) / (x*x + y*y)) * RAD_TO_RPM, MIN_SERVO_SPEED, MAX_SERVO_SPEED );
 
     double L1md = L1 - d;
     double L1md2 = L1md*L1md;
     double z2 = z*z;
 
-    dt_theta2 = clamp( fabs(-(((L1md)*dt_z + z*dt_d)*alpha + (L1md2 + z2)*atan(L1md/z)*dt_alpha) / (L1md2 + z2)) * RAD_TO_RPM, MIN_SERVO_SPEED, MAX_SERVO_SPEED );
-    dt_theta3 = clamp( fabs(-dt_beta) * RAD_TO_RPM, MIN_SERVO_SPEED, MAX_SERVO_SPEED );
+    dt_theta1 = fabs((-x*dt_y + y*dt_x) / (x*x + y*y)) * RAD_TO_RPM;
+    dt_theta2 = fabs(-(((L1md)*dt_z + z*dt_d)*alpha + (L1md2 + z2)*atan(L1md/z)*dt_alpha) / (L1md2 + z2)) * RAD_TO_RPM;
+    dt_theta3 = fabs(-dt_beta) * RAD_TO_RPM;
+    scale_rates(dt_theta1, dt_theta2, dt_theta3);//
 
-    char msg[50];
-    if (leg_id==5)
-    {
-      sprintf(msg,"leg %i pos: [%.4f, %.4f, %.4f]", 5, x, y, z);
-      push_log(msg);  
-      sprintf(msg,"leg %i move_vec: [%.4f, %.4f, %.4f]", 5, dt_target[0], dt_target[1], dt_target[2]);
-      push_log(msg);  
-      sprintf(msg,"leg %i beta: %.2f, dt_beta: %.2f, c: %.2f dt_c %.2f]", 5, beta, dt_beta, c, dt_c);
-      push_log(msg);  
-    }
+    
+//
+//    char msg[50];
+//    if (leg_id==5)
+//    {
+//      sprintf(msg,"leg %i pos: [%.4f, %.4f, %.4f]", 5, x, y, z);
+//      push_log(msg);  
+//      sprintf(msg,"leg %i move_vec: [%.4f, %.4f, %.4f]", 5, dt_target[0], dt_target[1], dt_target[2]);
+//      push_log(msg);  
+//      sprintf(msg,"leg %i beta: %.2f, dt_beta: %.2f, c: %.2f dt_c %.2f]", 5, beta, dt_beta, c, dt_c);
+//      push_log(msg);  
+//    }
 
 //    char msg[50];
 //    sprintf(msg,"leg %i speeds: [%f, %f, %f]", leg_id, dt_theta1, dt_theta2, dt_theta3);
