@@ -205,7 +205,7 @@ class WalkCycleMachine(StateMachine):
             # Vertical offsett based on heightmap
 
             effector_offset = -self.height #- self.perception.get_height_at_point(self.targets[i])
-            self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
+            self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
             print(self.walk_direction)
             self.targets[i][2] = self.height_offsets[i] + effector_offset
         #     if self.is_swinging[i]:

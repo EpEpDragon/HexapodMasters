@@ -435,7 +435,7 @@ void SetAngles(double* th1, double* th2, double* th3, double spd1,double spd2, d
   
   for(int leg_id = 0; leg_id<6; leg_id++)
   {
-    angles[leg_id*3] = th1[leg_id];
+    angles[leg_id*3] = -th1[leg_id];
     angles[leg_id*3+1] = th2[leg_id];
     angles[leg_id*3+2] = th3[leg_id];
 
