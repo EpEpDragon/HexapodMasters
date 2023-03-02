@@ -12,7 +12,7 @@ void IK::set_final_targets(Eigen::Vector3d targets[6], bool is_swinging[6])
     for (int i=0; i<6; i++)
     {
         this->final_targets[i] = this->robot_to_leg_space(targets[i], i);
-        this->is_swinging = is_swinging[6];
+        this->is_swinging[i] = is_swinging[i];
     }
 }
 
@@ -46,13 +46,15 @@ void IK::solve_next_moves(double& theta1, double& theta2, double& theta3, double
     Eigen::Vector3d immediate_target;
     if(this->is_swinging[leg_id])
     {
-        move_dir = IK::solve_move_vector(this->effector_current_positions[leg_id], this->final_targets[leg_id]);
-        immediate_target = this->effector_current_positions[leg_id] + move_dir;
+      move_dir = IK::solve_move_vector(this->effector_current_positions[leg_id], this->final_targets[leg_id]);
+      immediate_target = this->effector_current_positions[leg_id] + move_dir;
     }
     else
     {
-        immediate_target = this->final_targets[leg_id];
+      move_dir = this->final_targets[leg_id] - this->effector_current_positions[leg_id];
+      immediate_target = this->final_targets[leg_id];
     }
+    move_dir.normalize();
 
     // if (leg_id == 5)
     // {
@@ -61,7 +63,7 @@ void IK::solve_next_moves(double& theta1, double& theta2, double& theta3, double
     //   push_log(msg);  
     // }
 
-    IK::solve_ik(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3, immediate_target, move_dir*(move_speed*0.05), leg_id);
+    IK::solve_ik(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3, immediate_target, move_dir*move_speed, leg_id);
 }
 
 
@@ -71,7 +73,7 @@ Eigen::Vector3d IK::solve_current_position(int leg_id)
     double theta2 = this->dxl->PresentPos(leg_id*3 + 1);
     double theta3 = this->dxl->PresentPos(leg_id*3 + 2);
 
-    this->effector_current_positions[leg_id] = this->solve_fk(theta1, theta2, theta3);
+    this->effector_current_positions[leg_id] = this->solve_fk(theta1, theta2 - HIP_PITCH_OFFSET, theta3 - KNEE_OFFSET); // Offset because I cant design parts correctly
     return this->effector_current_positions[leg_id];
 }
 
@@ -82,7 +84,7 @@ double clamp(double value, double lower, double upper)
 }
 
 
-double Ch = 0;
+double Ch = 0.55;
 double Cs = 0;
 Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target)
 {
@@ -109,13 +111,13 @@ Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d tar
     // Return move vector with vectical calculated slope and length while maintaining original horizontal direction
     Eigen::Vector3d move_vector = Eigen::Vector3d {-delta[0], -delta[1], dist_h * -slope};
     double leng = sqrt(move_vector.dot(move_vector));
-    if (leng < 20)
+    if (leng < 40)
     {
       return move_vector;
     }
     
     // Scale down if longer
-    return move_vector * (20 / leng);
+    return move_vector * (40 / leng);
 //     Eigen::Vector3d diff = target - start;
 //     return diff.normalized();
 }
@@ -168,8 +170,8 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     IK::calc_shared_vars(d, dmL1, c2, c, L22pL32mc2, beta, alpha, x, y, z);
 
     theta1 = -std::atan(y/x);
-    theta2 = M_PI/2 - alpha - std::atan( dmL1 / z );
-    theta3 = M_PI - beta;
+    theta2 = M_PI/2 - alpha - std::atan( dmL1 / z ) + HIP_PITCH_OFFSET; // Offset because I cant design parts correctly
+    theta3 = M_PI - beta + KNEE_OFFSET; // Offset because I cant design parts correctly
     
     //-------------------- Angular rates -------------------------
     x = this->effector_current_positions[leg_id][0];

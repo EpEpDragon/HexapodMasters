@@ -22,6 +22,10 @@ const double MIN_SERVO_SPEED = 5; //RPM
 const double MAX_SERVO_SPEED = 20; //RPM
 const double RPM_OFFSET = 5;
 
+const double HIP_PITCH_OFFSET = 15*M_PI/180;
+const double KNEE_OFFSET = -HIP_PITCH_OFFSET;
+
+
 // The position of the base servo in robot space
 const Eigen::Vector3d LEG_OFFSETS[6] {
     {108.721, -62.770, 0},
@@ -59,7 +63,7 @@ class IK
         IK(MyDynamixel* dxl, void (*push_log)(char*));
 //        void test/();
         // Set and translate targets to leg coordintate space
-        void set_final_targets(Eigen::Vector3d targets[6]);
+        void set_final_targets(Eigen::Vector3d targets[6], bool is_swinging[6]);
         // Calculate the next servo angles for the leg of the provided id
         void solve_next_moves(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, double move_speed, uint8_t leg_id);
         // Calculate current position

@@ -150,7 +150,6 @@ class WalkCycleMachine(StateMachine):
                 self.is_swinging[id-5] = False
             else:
                 print("Active leg not found!")
-            
             # Check inversion required
             if has_direction:
                 if self._is_long(id):
@@ -192,7 +191,7 @@ class WalkCycleMachine(StateMachine):
     # -------------------------------------------------------------------------------------------
     def tick(self):
         self._update_targets()
-        self.walk()
+        self.walk()        
         # for i in range(6):
         #     print(str(i) + ": " + str(self.current_feet_positions[i][0:2].dot(self.current_feet_positions[i][0:2])) + "-" + str(REST_POS[i][0:2].dot(REST_POS[i][0:2])))
     
@@ -251,21 +250,7 @@ class WalkCycleMachine(StateMachine):
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
                 self.targets[i][2] += self.height_offsets[i] + effector_offset
             # print("leg %i target: %f %f %f" % (i,self.targets[i][0], self.targets[i][1], self.targets[i][2]))
-        # print("-----------------")
-
-
-
-    def _square_step(self, diff, i, dt):
-        # if self.is_swinging[i]:
-            if (abs(diff[0:2]) < PLACE_TOLERANCE).all():
-                self.foot_pos_pre_yaw[i][2] = self.foot_pos_pre_yaw[i][2] + math.copysign(1,diff[2])*self.speed*dt
-                return True
-            if abs(diff[2] - self.step_height) > PLACE_TOLERANCE:
-                self.foot_pos_pre_yaw[i][2] = self.foot_pos_pre_yaw[i][2] + math.copysign(1,diff[2] - self.step_height)*self.speed*dt
-                return False
-            self.foot_pos_pre_yaw[i][0:2] = self.foot_pos_pre_yaw[i][0:2] + normalize(diff[0:2])*self.speed*dt
-            return True
-        
+        # print("-----------------")        
     # -------------------------------------------------------------------------------------------
 
     def _is_long(self, id):

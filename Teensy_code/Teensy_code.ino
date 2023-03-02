@@ -18,19 +18,6 @@ double dt_theta1[6];
 double dt_theta2[6];
 double dt_theta3[6];
 
-
-//Joint Angle Variables for SetAngle Mode
-float A_theta1[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-float A_theta2[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-float A_theta3[6]={-1.5, -1.5, -1.5, -1.5, -1.5, -1.5};
-
-
-//Joint Angle Variables for Teleop demo Mode
-float T_theta1[6];
-float T_theta2[6];
-double T_theta3[6];
-
-
 // Dynamixel
 #include "MyDynamixel.h"
 #define DXL_SERIAL Serial5
@@ -54,6 +41,7 @@ MyDynamixel dxl(DXL_SERIAL, 1000000, DEPin);
 #include <my_message/thetaMessage.h>
 
 #include <hexapod_ros/EffectorTargets.h>
+#include <hexapod_ros/HexapodCommands.h>
 
 ros::NodeHandle nh;
 
@@ -61,9 +49,6 @@ ros::NodeHandle nh;
 std_msgs::String logdata;
 ros::Publisher pub_log("LOGDATA", &logdata);
 
-//Feet step
-std_msgs::Float32 FeetOnFloor;
-ros::Publisher pub_FeetOnFloorFlag("/FeetOnFloorFlag", &FeetOnFloor);
 
 //Current position publish
 Eigen::Vector3d effector_current_positions[6];
@@ -97,95 +82,6 @@ void push_log(char* message)
 
 // ** ROS callback & subscriber **
 
-//Change angle of joints subscriber
-void angle_command_cb( const my_message::thetaMessage& msg)
-{
-  A_theta1[0] = msg.th1_1;
-  A_theta1[1] = msg.th1_2;
-  A_theta1[2] = msg.th1_3;
-  A_theta1[3] = msg.th1_4;
-  A_theta1[4] = msg.th1_5;
-  A_theta1[5] = msg.th1_6;
-
-  A_theta2[0] = msg.th2_1;
-  A_theta2[1] = msg.th2_2;
-  A_theta2[2] = msg.th2_3;
-  A_theta2[3] = msg.th2_4;
-  A_theta2[4] = msg.th2_5;
-  A_theta2[5] = msg.th2_6;
-
-  A_theta3[0] = msg.th3_1;
-  A_theta3[1] = msg.th3_2;
-  A_theta3[2] = msg.th3_3;
-  A_theta3[3] = msg.th3_4;
-  A_theta3[4] = msg.th3_5;
-  A_theta3[5] = msg.th3_6;
-  
-}
-ros::Subscriber<my_message::thetaMessage> rosSub("/simple_hexapod/Th_position_controller/command", angle_command_cb);
-
-
-//Sub to teleop_keyboard for demo stuff
-int tx=0,ty=0,tz=0;
-float troll=0,tpitch=0,tyaw=0;
-void teleop_cb(const geometry_msgs::Twist& msg)
-{
-  //lean x direction
-  if (msg.linear.x > 0 && msg.linear.x <= 0.5)
-  {
-    tx = tx + 1;
-  }
-  else if (msg.linear.x < 0 && msg.linear.x >= -0.5)
-  {
-    tx = tx - 1;
-  }
-  //lean y direction
-  if (msg.linear.y > 0 && msg.linear.y <= 0.5)
-  {
-    ty = ty + 1;
-  }
-  else if (msg.linear.y < 0 && msg.linear.y >= -0.5)
-  {
-    ty = ty - 1;
-  }
-  //Change height
-  if (msg.linear.z > 0)
-  {
-    tz = tz + 1;
-  }
-  else if (msg.linear.z < 0)
-  {
-    tz = tz - 1;
-  }
-  //Yaw movement
-  if (msg.angular.z > 0)
-  {
-    tyaw = tyaw + 0.25;
-  }
-  else if (msg.angular.z < 0)
-  {
-    tyaw = tyaw - 0.25;
-  }
-  //Roll movement
-  if (msg.linear.x > 0.5)
-  {
-    troll = troll + 0.25;
-  }
-  else if (msg.linear.x < -0.5)
-  {
-    troll = troll - 0.25;
-  }
-  //Pitch movement
-  if (msg.linear.y > 0.5)
-  {
-    tpitch = tpitch + 0.25;
-  }
-  else if (msg.linear.y < -0.5)
-  {
-    tpitch = tpitch - 0.25;
-  }
-}
-ros::Subscriber<geometry_msgs::Twist> rosSubTeleop("/cmd_vel", teleop_cb);
 
 // Get effector targets from message
 Eigen::Vector3d effector_targets[6];
@@ -195,56 +91,18 @@ void targets_cb(const hexapod_ros::EffectorTargets& msg)
   for (int i=0; i<6; i++)
   {
     effector_targets[i] = (Eigen::Vector3f {msg.targets[i].data}).cast<double>();
+    is_swinging[i] = msg.swinging[i];
   }
-  is_swinging = msg.is_swinging;
 }
 ros::Subscriber<hexapod_ros::EffectorTargets> rosSubEffectorTargets("effector_targets", targets_cb);
 
-//Leg Path subsciber
-#define Pathsize 7
-float XPath[6][Pathsize*2-2];
-float YPath[6][Pathsize*2-2];
-float ZPath[6][Pathsize*2-2];
-float TurnPath[Pathsize*2-2];
-float dt=0;
-int startSetPath = 0;
-int standBegin = 0;
-void legpath_cb(const my_message::LegPath& msg)
+
+double move_speed = 0;
+void commands_cb(const hexapod_ros::HexapodCommands& msg)
 {
-
-  for (int col=0;col<(Pathsize*2-2);col++)
-  {
-    XPath[0][col]=msg.PathL0x[col];
-    XPath[1][col]=msg.PathL1x[col];
-    XPath[2][col]=msg.PathL2x[col];
-    XPath[3][col]=msg.PathL3x[col];
-    XPath[4][col]=msg.PathL4x[col];
-    XPath[5][col]=msg.PathL5x[col];
-
-    YPath[0][col]=msg.PathL0y[col];
-    YPath[1][col]=msg.PathL1y[col];
-    YPath[2][col]=msg.PathL2y[col];
-    YPath[3][col]=msg.PathL3y[col];
-    YPath[4][col]=msg.PathL4y[col];
-    YPath[5][col]=msg.PathL5y[col];
-
-    ZPath[0][col]=msg.PathL0z[col];
-    ZPath[1][col]=msg.PathL1z[col];
-    ZPath[2][col]=msg.PathL2z[col];
-    ZPath[3][col]=msg.PathL3z[col];
-    ZPath[4][col]=msg.PathL4z[col];
-    ZPath[5][col]=msg.PathL5z[col];
-
-    TurnPath[col]=msg.PathAng[col];
-
-    dt = msg.DT;
-  }
-
-  startSetPath = 1;
-  standBegin = 1; 
-
+  move_speed = msg.speed;
 }
-ros::Subscriber<my_message::LegPath> rosSubPATH("/simple_hexapod/Legs_paths", legpath_cb);
+ros::Subscriber<hexapod_ros::HexapodCommands> rosSubCommands("hexapod_command_data", commands_cb);
 
 //mode select subscriber
 uint8_t IDS[18] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
@@ -277,15 +135,6 @@ void modeSelect_cb(const std_msgs::Int32& msg)
 }
 ros::Subscriber<std_msgs::Int32> rosSubModeSelect("hexapod_mode", modeSelect_cb);
 
-//Pitch roll input subscriber
-float pitchInput = 0.0;
-float rollInput = 0.0;
-void PitchRollInput_cb(const geometry_msgs::Vector3& msg)
-{
-    pitchInput = msg.x;
-    rollInput = msg.y;
-}
-ros::Subscriber<geometry_msgs::Vector3> rosSubPitchRollInput("/RollPitch_input", PitchRollInput_cb);
 
 void setup() 
 {
@@ -294,29 +143,13 @@ void setup()
  digitalWrite(LED_BUILTIN, HIGH);
 
   // ROS setup
-  nh.getHardware()->setBaud(115200);      // set baud rate to 115200
-  nh.initNode();                             // init ROS
-  // Effector target subscriber
+  nh.getHardware()->setBaud(115200);
+  nh.initNode();
   nh.subscribe(rosSubEffectorTargets);
-  //angle subscriber
-  nh.subscribe(rosSub);
-  //teleop_keyboard subscriber
-  nh.subscribe(rosSubTeleop);
-  //Leg Path subsciber
-  nh.subscribe(rosSubPATH);
-  //mode select subscriber
+  nh.subscribe(rosSubCommands);
   nh.subscribe(rosSubModeSelect);
-  //Pitch roll input subscriber
-  nh.subscribe(rosSubPitchRollInput);
-  //data log publisher
   nh.advertise(pub_log);
-  //Feet step
-  nh.advertise(pub_FeetOnFloorFlag);
-  // Current position
   nh.advertise(pub_effector_positions);
-  //broadcaster.init(nh);       // set up broadcaster fot tf
-  //nh.advertise(pub_eye);   // advertise eye topic
- 
 }
 
 char dataStr[100] = "";
@@ -356,10 +189,6 @@ void loop()
     sprintf(msg,"dt %ld", currentmillis - prevmillis);
 //    push_log(msg);
     prevmillis = currentmillis;
-    
-//    char msg[50];
-//    sprintf(msg,"leg %i speeds: [%.4f, %.4f, %.4f]", 5, dt_theta1[5], dt_theta2[5], dt_theta3[5]);
-//    push_log(msg);
 
     //On Startup
     if(startUp == 0)
@@ -369,31 +198,18 @@ void loop()
         effector_current_positions[leg_id] = ik.solve_current_position(leg_id);
       }
 
-      ik.set_final_targets(effector_targets);
-      ik.solve_next_moves(theta1[0], theta2[0], theta3[0], dt_theta1[0], dt_theta2[0], dt_theta3[0], 70, 0);
-      ik.solve_next_moves(theta1[1], theta2[1], theta3[1], dt_theta1[1], dt_theta2[1], dt_theta3[1], 70, 1);
-      ik.solve_next_moves(theta1[2], theta2[2], theta3[2], dt_theta1[2], dt_theta2[2], dt_theta3[2], 70, 2);
-      ik.solve_next_moves(theta1[3], theta2[3], theta3[3], dt_theta1[3], dt_theta2[3], dt_theta3[3], 70, 3);
-      ik.solve_next_moves(theta1[4], theta2[4], theta3[4], dt_theta1[4], dt_theta2[4], dt_theta3[4], 70, 4);
-      ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], 70, 5);
+      sprintf(msg,"move speed: %f", move_speed);
+      push_log(msg);
+      ik.set_final_targets(effector_targets, is_swinging);
+      ik.solve_next_moves(theta1[0], theta2[0], theta3[0], dt_theta1[0], dt_theta2[0], dt_theta3[0], move_speed, 0);
+      ik.solve_next_moves(theta1[1], theta2[1], theta3[1], dt_theta1[1], dt_theta2[1], dt_theta3[1], move_speed, 1);
+      ik.solve_next_moves(theta1[2], theta2[2], theta3[2], dt_theta1[2], dt_theta2[2], dt_theta3[2], move_speed, 2);
+      ik.solve_next_moves(theta1[3], theta2[3], theta3[3], dt_theta1[3], dt_theta2[3], dt_theta3[3], move_speed, 3);
+      ik.solve_next_moves(theta1[4], theta2[4], theta3[4], dt_theta1[4], dt_theta2[4], dt_theta3[4], move_speed, 4);
+      ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], move_speed, 5);
 
       SetAngles(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3);
       push_effector_positions();
-    }
-    //Teleop demo Mode
-    if(mode == 1 && startUp == 1)
-    {
-
-    }
-    //SetAngle Mode
-    else if(mode == 2 && startUp == 1)
-    {
-
-    }
-    //SetNextpathPoint Mode
-    else if(mode == 3 && startSetPath == 1 && startUp == 1)
-    {
-
     }
   }
 }
@@ -413,11 +229,7 @@ void SetAngles(double* th1, double* th2, double* th3, double* dt_th1,double* dt_
     speeds[leg_id*3] = dt_th1[leg_id];
     speeds[leg_id*3+1] = dt_th2[leg_id];
     speeds[leg_id*3+2] = dt_th3[leg_id];
-//    speeds[leg_id*3] = 1;
-//    speeds[leg_id*3+1] = 1;
-//    speeds[leg_id*3+2] = 1;
   }
-  
   dxl.SyncMove(IDS, angles, speeds, 18);
 }
 
