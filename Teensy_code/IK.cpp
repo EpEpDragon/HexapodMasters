@@ -33,21 +33,24 @@ void IK::set_final_targets(Eigen::Vector3d targets[6])
 void IK::solve_next_moves(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, double move_speed, uint8_t leg_id)
 {
     // Snap to final target is close enough
-    Eigen::Vector3d delta = this->effector_current_positions[leg_id] - this->final_targets[leg_id];
-    if( delta.dot(delta) < 10*10)
-    {
-      IK::solve_ik(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3, this->final_targets[leg_id], Eigen::Vector3d{move_speed,move_speed,move_speed}, leg_id);
-      return;
-    }
+//    Eigen::Vector3d delta = this->effector_current_positions[leg_id] - this->final_targets[leg_id];
+//    if( delta.dot(delta) < 10*10)
+//    {
+//      IK::solve_ik(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3, this->final_targets[leg_id], Eigen::Vector3d{move_speed,move_speed,move_speed}, leg_id);
+//      return;
+//    }
     // Calculate the required movement direction
     Eigen::Vector3d move_dir = IK::solve_move_vector(this->effector_current_positions[leg_id], this->final_targets[leg_id]);   
-    Eigen::Vector3d immediate_target = this->final_targets[leg_id];//this->effector_current_positions[leg_id] + move_dir * (move_speed * 0.1);
-    
-//    char msg[50];
-//    sprintf(msg,"leg %i move_dir: [%.2f, %.2f, %.2f]", leg_id, move_dir[0], move_dir[1], move_dir[2]);
-//    push_log(msg);
+    Eigen::Vector3d immediate_target = this->effector_current_positions[leg_id] + move_dir;//this->final_targets[leg_id];
 
-    IK::solve_ik(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3, immediate_target, move_dir*move_speed, leg_id);
+    if (leg_id == 5)
+    {
+      char msg[50];
+      sprintf(msg,"leg %i move_dir: [%.2f, %.2f, %.2f]", leg_id, move_dir[0], move_dir[1], move_dir[2]);
+      push_log(msg);  
+    }
+
+    IK::solve_ik(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3, immediate_target, move_dir*(move_speed*0.05), leg_id);
 }
 
 Eigen::Vector3d IK::solve_current_position(int leg_id)
@@ -65,35 +68,55 @@ double clamp(double value, double lower, double upper)
     return std::max(lower, std::min(value, upper));
 }
 
-double Ch = 0.8;
-double Cs = 0.06;
-
-Eighen::Vector3d morph_to_slope(Eigen::Vector3d, double slope, double magnitude)
-{
-
-}
+double Ch = 0;
+double Cs = 0;
 
 Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target)
 {
     // Horizontal and vertical distance for vector field function
-    Eigen::Vector3d delta = target-start;
-    double dist_h = sqrt(delta[0:2].dot(delta[0:2]));
-    double dist_v = delta[3];
+    Eigen::Vector3d delta = start-target;
+    Eigen::Vector2d vec_h = Eigen::Vector2d {delta[0], delta[1]};
+    
+    double dist_h = sqrt(vec_h.dot(vec_h));
+    double dist_v = delta[2];
+
+//    char msg[50];
+//    sprintf(msg,"leg %i delta: [%.2f, %.2f, %.2f] dist_h: %.2f dist_v: %.2f", 5, delta[0], delta[1], delta[2], dist_h, dist_v);
+//    push_log(msg);  
 
     // Sigmoid to fix starting points below target
-    double sig = (0.6*(x - shift)) / (1 + fabs(x - shift)) - 0.59;
+    double sig = (0.6*(dist_h - (-11.0))) / (1 + fabs(dist_h - (-11.0))) - 0.6;
     
     // Components of parabole derivative
     double a = -fabs(Ch/dist_h) - fabs(sig);
     double b = dist_v/dist_h - a*dist_h;
+    
+//    sprintf(msg,"leg %i a: %.2f, b: %.2f", 5, a, b);
+//    push_log(msg);
+    
+    double slope = 2*a*dist_h + b;
+//    if (dist_v != 0)
+//    {
+//      slope -= Cs*(dist_h/fabs(dist_v));
+//    }
 
-    double slope = 2*a*dist_h + b - Cs*(dist_h/fabs(dist_h));
-
+//    sprintf(msg,"leg %i slope: %.2f", 5, slope);
+//    push_log(msg); 
+    
     // Return move vector with vectical calculated slope and length while maintaining original horizontal direction
-    return Eigen::Vector3d {delta[0], delta[1], dist_h / slope} * (20 / sqrt(move_vector.dot(move_vector)));
+    Eigen::Vector3d move_vector = Eigen::Vector3d {-delta[0], -delta[1], dist_h * -slope};
+    double leng = sqrt(move_vector.dot(move_vector));
+    if (leng < 20)
+    {
+      return move_vector;
+    }
+    
+    // Scale down if longer
+    return move_vector * (20 / leng);
+    
 
-    // Eigen::Vector3d diff = target - start;
-    // return diff.normalized();
+//     Eigen::Vector3d diff = target - start;
+//     return diff.normalized();
 }
 
 void IK::calc_shared_vars(double& d, double& dmL1, double& c2, double& c, double& L22pL32mc2, double& beta, double& alpha, double x, double y, double z)

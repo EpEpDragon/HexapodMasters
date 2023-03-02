@@ -374,12 +374,6 @@ void loop()
       ik.solve_next_moves(theta1[4], theta2[4], theta3[4], dt_theta1[4], dt_theta2[4], dt_theta3[4], 70, 4);
       ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], 70, 5);
 
-      char msg[50];
-      for(int leg_id=5; leg_id<6; leg_id++)
-      {
-        sprintf(msg,"leg %i speeds: [%.4f, %.4f, %.4f]", leg_id, dt_theta1[leg_id], dt_theta2[leg_id], dt_theta3[leg_id]);
-        push_log(msg);  
-      }     
       SetAngles(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3);
       push_effector_positions();
     }
