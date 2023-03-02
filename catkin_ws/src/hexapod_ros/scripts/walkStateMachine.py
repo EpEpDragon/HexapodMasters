@@ -78,17 +78,16 @@ class WalkCycleMachine(StateMachine):
         # Foot position feedback
         self.current_feet_positions = list(REST_POS)
 
-
+        rospy.Subscriber("effector_current_positions", EffectorTargets, self.effector_pos_readback)
         super(WalkCycleMachine, self).__init__()
 
     # Receive current feet positions
     def effector_pos_readback(self, msg):
         i = 0
         for vector in msg.targets:
-            self.current_feet_positions[i](np.array(vector.data[0], vector.data[1], vector.data[2]))
+            self.current_feet_positions[i] = np.array([vector.data[0], vector.data[1], vector.data[2]])
             i += 1
             print("read %i" % i)
-    rospy.Subscriber("effector_current_positions", EffectorTargets, effector_pos_readback)
 
     # Enter actions
     # -------------------------------------------------------------------------------------------

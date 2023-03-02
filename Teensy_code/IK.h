@@ -37,7 +37,15 @@ const Eigen::Quaterniond LEG_INV_QUATS[6] {
     {-0.707, 0.000, 0.000, 0.707},
     {-0.966, 0.000, 0.000, 0.259}
 };
-//#define DXL_SERIAL Serial5
+
+const Eigen::Quaterniond LEG_QUATS[6] {
+    {0.966, 0.000, 0.000, -0.259},
+    {0.707, 0.000, 0.000, -0.707},
+    {0.259, 0.000, 0.000, -0.966},
+    {-0.259, 0.000, 0.000, -0.966},
+    {-0.707, 0.000, 0.000, -0.707},
+    {-0.966, 0.000, 0.000, -0.259}
+};
 
 class IK
 {
@@ -50,6 +58,7 @@ class IK
         void solve_next_angles(double& theta1, double& theta2, double& theta3, uint8_t leg_id);
         // Calculate current position
         Eigen::Vector3d solve_current_position(int leg_id);
+        Eigen::Vector3d leg_to_robot_space(Eigen::Vector3d vector, int leg_id);
     private:
         // Calculate the required servo angles to achieve the given coordintate IN LEG SPACE
         void solve_ik(double& theta1, double& theta2, double& theta3, Eigen::Vector3d target);
@@ -57,7 +66,9 @@ class IK
         Eigen::Vector3d solve_fk(double theta1, double theta2, double theta3);
         // Calculate the movement vector required to move to the target
         Eigen::Vector3d solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target);
+        Eigen::Vector3d robot_to_leg_space(Eigen::Vector3d vector, int leg_id);
         
+
         Eigen::Vector3d final_targets[6];
         
 //        const uint8_t DEPin = 19; // DYNAMIXEL DIR PIN

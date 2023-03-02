@@ -11,10 +11,9 @@ void IK::set_final_targets(Eigen::Vector3d targets[6])
 {
     for (int i=0; i<6; i++)
     {
-        this->final_targets[i] = LEG_INV_QUATS[i] * (targets[i] - LEG_OFFSETS[i]);
+        this->final_targets[i] = this->robot_to_leg_space(targets[i], i);
     }
 }
-
 
 void IK::test()
 {
@@ -75,7 +74,7 @@ Eigen::Vector3d IK::solve_current_position(int leg_id)
     double theta2 = this->dxl->PresentPos(leg_id*3 + 1);
     double theta3 = this->dxl->PresentPos(leg_id*3 + 2);
 
-    this->effector_current_positions[leg_id] = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
+    this->effector_current_positions[leg_id] = this->solve_fk(theta1, theta2, theta3);
     return this->effector_current_positions[leg_id];
 }
 
@@ -119,4 +118,14 @@ Eigen::Vector3d IK::solve_fk(double theta1, double theta2, double theta3)
 
     double d = L1 + L2*C2 + L3*C23;
     return Eigen::Vector3d {C1*d, S1*d, -L3*S23-L2*S2};
+}
+
+Eigen::Vector3d robot_to_leg_space(Eigen::Vector3d vector, int leg_id)
+{
+    return LEG_INV_QUATS[leg_id] * (vector - LEG_OFFSETS[leg_id]);
+}
+
+Eigen::Vector3d leg_to_robot_space(Eigen::Vector3d vector, int leg_id)
+{
+    return (LEG_QUATS[leg_id] * vector) + LEG_OFFSETS[leg_id];
 }
