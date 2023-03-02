@@ -15,6 +15,9 @@ InverseKinematics InKin;
 double theta1[6];
 double theta2[6];
 double theta3[6];
+double dt_theta1[6];
+double dt_theta2[6];
+double dt_theta3[6];
 
 
 //Joint Angle Variables for SetAngle Mode
@@ -359,14 +362,14 @@ void loop()
       
       // static long startUp_startTime = millis();
       ik.set_final_targets(effector_targets);
-      ik.solve_next_angles(theta1[0], theta2[0], theta3[0], 0);
-      ik.solve_next_angles(theta1[1], theta2[1], theta3[1], 1);
-      ik.solve_next_angles(theta1[2], theta2[2], theta3[2], 2);
-      ik.solve_next_angles(theta1[3], theta2[3], theta3[3], 3);
-      ik.solve_next_angles(theta1[4], theta2[4], theta3[4], 4);
-      ik.solve_next_angles(theta1[5], theta2[5], theta3[5], 5);
+      ik.solve_next_moves(theta1[0], theta2[0], theta3[0], dt_theta1[0], dt_theta2[0], dt_theta3[0], 5, 0);
+      ik.solve_next_moves(theta1[1], theta2[1], theta3[1], dt_theta1[1], dt_theta2[1], dt_theta3[1], 5, 1);
+      ik.solve_next_moves(theta1[2], theta2[2], theta3[2], dt_theta1[2], dt_theta2[2], dt_theta3[2], 5, 2);
+      ik.solve_next_moves(theta1[3], theta2[3], theta3[3], dt_theta1[3], dt_theta2[3], dt_theta3[3], 5, 3);
+      ik.solve_next_moves(theta1[4], theta2[4], theta3[4], dt_theta1[4], dt_theta2[4], dt_theta3[4], 5, 4);
+      ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], 5, 5);
       
-      SetAngles(theta1,theta2,theta3,5,5,5);
+      SetAngles(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3);
       push_effector_positions();
     }
 
@@ -456,7 +459,7 @@ void loop()
 }
 
 
-void SetAngles(double* th1, double* th2, double* th3, double spd1,double spd2, double spd3)
+void SetAngles(double* th1, double* th2, double* th3, double* dt_th1,double* dt_th2, double* dt_th3)
 {
   double angles[18];
   double speeds[18];
@@ -467,9 +470,9 @@ void SetAngles(double* th1, double* th2, double* th3, double spd1,double spd2, d
     angles[leg_id*3+1] = th2[leg_id];
     angles[leg_id*3+2] = th3[leg_id];
 
-    speeds[leg_id*3] = spd1;
-    speeds[leg_id*3+1] = spd2;
-    speeds[leg_id*3+2] = spd3;
+    speeds[leg_id*3] = -dt_th1[leg_id];
+    speeds[leg_id*3+1] = dt_th2[leg_id];
+    speeds[leg_id*3+2] = dt_th3[leg_id];
   }
   
   dxl.SyncMove(IDS, angles, speeds, 18);

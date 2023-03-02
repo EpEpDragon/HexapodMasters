@@ -30,42 +30,20 @@ void IK::test()
 }
 
 
-void IK::solve_next_angles(double& theta1, double& theta2, double& theta3, uint8_t leg_id)
+void IK::solve_next_moves(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, double move_speed, uint8_t leg_id)
 {
-    // Get servo angles in leg
-    // double curr_theta1 = this->dxl->PresentPos(leg_id*3);
-    // double curr_theta2 = this->dxl->PresentPos(leg_id*3 + 1);
-    // double curr_theta3 = this->dxl->PresentPos(leg_id*3 + 2);
-    
-    // // Calculate current pos through forward kinematics
-    // Eigen::Vector3d present_pos = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
-//
-//    char msg[50];
-//    sprintf(msg, "present: %.2f, %.2f, %.2f, target: %.2f, %.2f, %.2f", present_pos[0], present_pos[1], present_pos[2], final_targets[0][0], final_targets[0][1], final_targets[0][2]);
-//    this->push_log(msg);
-
     // Snap to final target is close enough
     Eigen::Vector3d delta = this->effector_current_positions[leg_id] - this->final_targets[leg_id];
     if( delta.dot(delta) < 10*10)
     {
-      IK::solve_ik(theta1, theta2, theta3, this->final_targets[leg_id]);
-      char msg[50];
-      sprintf(msg, "leg: %i at target", leg_id);
-      this->push_log(msg);
+      IK::solve_ik(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3, this->final_targets[leg_id], Eigen::Vector3d{move_speed,move_speed,move_speed});
       return;
     }
     // Calculate the required movement direction
-    Eigen::Vector3d move_dir = IK::solve_move_vector(this->effector_current_positions[leg_id], this->final_targets[leg_id]);
-    
-    
-    // char msg[50];
-    // sprintf(msg, "pos: %.2f, %.2f, %.2f", move_dir[0], move_dir[1], move_dir[2]);
-//    this->push_log(msg);
-    
+    Eigen::Vector3d move_dir = IK::solve_move_vector(this->effector_current_positions[leg_id], this->final_targets[leg_id]);   
     Eigen::Vector3d immediate_target = this->final_targets[leg_id];//this->effector_current_positions[leg_id] + move_dir;
 
-    IK::solve_ik(theta1, theta2, theta3, immediate_target);
-    //this->solve_ik(theta1, theta2, theta3, this->final_targets[leg_id]);
+    IK::solve_ik(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3, immediate_target, move_dir*move_speed);
 }
 
 Eigen::Vector3d IK::solve_current_position(int leg_id)
@@ -81,7 +59,7 @@ Eigen::Vector3d IK::solve_current_position(int leg_id)
  Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target)
 {
     Eigen::Vector3d diff = target - start;
-    return diff;
+    return diff.normalized();
 }
 
 // Calculate inverse kinematics
@@ -102,7 +80,7 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     double dmL1 = d-L1;
     // c squared from pythagoras
     double c2 = (z*z + dmL1*dmL1);
-    double c = sqrt(c);
+    double c = sqrt(c2);
     // Beta from cosine rule
     double L22pL32mc2 = (L22 + L32 - c2);
     double beta = std::acos( L22pL32mc2 / (2*L2*L3) );
@@ -113,22 +91,22 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     theta2 = M_PI/2 - alpha - std::atan( dmL1 / z );
     
     //-------------------- Angular rates -------------------------
+    double dt_d = 2*(x*dt_x + y*dt_y);
+    
     double dt_c = ((-L1 + d)*dt_d + (z*dt_z)) / c;
     
-    double dt_d = 2*(x*dt_x + y*dt_y);
-
     double dt_beta = (2*L2*L3*c*dt_c) / sqrt(-L22*L32*L22pL32mc2*L22pL32mc2 + 4);
     
     double dt_alpha = L3*(c*cos(beta)*dt_beta - sin(beta)*dt_c) / (sqrt(-L32*sin(beta)/c2 + 1)*c2);
     
-    dt_theta1 = (-x*dt_y + y*dt_x) / (x*x + y*y)
+    dt_theta1 = abs((-x*dt_y + y*dt_x) / (x*x + y*y));
 
     double L1md = L1 - d;
     double L1md2 = L1md*L1md;
     double z2 = z*z;
-    dt_theta2 = -(((L1md)*dt_z + z*dt_d)*alpha + (L1md2 + z2)*atan(L1md/z)*dt_alpha) / (L1md2 + z2)
+    dt_theta2 = abs(-(((L1md)*dt_z + z*dt_d)*alpha + (L1md2 + z2)*atan(L1md/z)*dt_alpha) / (L1md2 + z2));
 
-    dt_theta3 = -dt_beta;
+    dt_theta3 = abs(-dt_beta);
 }
 
 // Calculate forward kinematics

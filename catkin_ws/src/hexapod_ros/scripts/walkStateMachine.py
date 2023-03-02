@@ -53,12 +53,18 @@ def normalize(v):
 
 class WalkCycleMachine(StateMachine):
     "A walk cycle machine"
-    rest = State("rest", initial=True, enter="deactivate_all")
-    stepping = State("stepping", enter="find_is_swinging")
+    rest = State("rest", initial=True)
+    stepping = State("stepping")
 
-    walk = rest.to(stepping, cond="should_adjust") | stepping.to(rest, cond="step_finished") #| rest.to.itself() | stepping.to.itself()
+    walk = (
+        rest.to(stepping, cond="should_adjust") 
+        | stepping.to(rest, cond="step_finished") 
+        | rest.to.itself()
+        | stepping.to.itself()
+    )
 
     def __init__(self, perception):
+        self.previous_state = WalkCycleMachine.rest
         self.is_swinging = np.full(6, False) # List defining if a foot is is_swinging or swinging
         self.speed = 0.5
         self.yaw_rate = deg2rad(25)
@@ -74,6 +80,7 @@ class WalkCycleMachine(StateMachine):
         self.targets = list(REST_POS)
         self.perception = perception
         self.step_height = 0.3
+        
 
         # Foot position feedback
         self.current_feet_positions = list(REST_POS)
@@ -88,64 +95,70 @@ class WalkCycleMachine(StateMachine):
             self.current_feet_positions[i] = np.array([vector.data[0], vector.data[1], vector.data[2]])
             i += 1
 
+    def deactivate_all(self):
+            self.is_swinging[0] = False
+            self.is_swinging[1] = False
+            self.is_swinging[2] = False
+            self.is_swinging[3] = False
+            self.is_swinging[4] = False
+            self.is_swinging[5] = False
     # Enter actions
     # -------------------------------------------------------------------------------------------
-    def deactivate_all(self):
-        self.is_swinging[0] = False
-        self.is_swinging[1] = False
-        self.is_swinging[2] = False
-        self.is_swinging[3] = False
-        self.is_swinging[4] = False
-        self.is_swinging[5] = False
-
-    def find_is_swinging(self):
-        # print("step_enter")
-        
-
-        has_direction = not (self.walk_direction == 0).all()
-        if not has_direction and not self.centering_yaw.any():
+    def on_enter_rest(self):
+        if self.previous_state != WalkCycleMachine.rest:
+            # print(str(rospy.get_time()) + ": Rest")
             self.deactivate_all()
-            return
-        
-        if not has_direction:
-            angle = 0
-        else:
-            angle = find_angle(self.walk_direction)
-        
-        self.angle = angle
-        id = -1
-        # Select leg in walking sextant
-        if deg2rad(0) >= angle and angle > deg2rad(-60):
-            id = 0
-        elif deg2rad(-60) >= angle and angle > deg2rad(-120):
-            id = 1
-        elif deg2rad(-120) >= angle and angle > deg2rad(-180):
-            id = 2
-        elif deg2rad(120) <= angle and angle < deg2rad(180):
-            id = 3
-        elif deg2rad(60) <= angle and angle < deg2rad(120):
-            id = 4
-        elif deg2rad(0) <= angle and angle < 60:
-            id = 5
-        
-        # Select active legs based on leg in walking sextant
-        if id != -1:
-            self.is_swinging[id] = True
-            self.is_swinging[id-1] = False
-            self.is_swinging[id-2] = True
-            self.is_swinging[id-3] = False
-            self.is_swinging[id-4] = True            
-            self.is_swinging[id-5] = False
-        else:
-            print("Active leg not found!")
-        
-        # Check inversion required
-        if has_direction:
-            if self._is_long(id):
-                self.is_swinging = np.invert(self.is_swinging)
-        else:
-            if not (self.is_swinging == self.centering_yaw).all():
-                self.is_swinging = np.invert(self.is_swinging)
+            self.previous_state = WalkCycleMachine.rest
+
+    def on_enter_stepping(self):
+        if self.previous_state != WalkCycleMachine.stepping:
+            # print(str(rospy.get_time()) + ": Step")
+            has_direction = not (self.walk_direction == 0).all()
+            if not has_direction and not self.centering_yaw.any():
+                self.deactivate_all()
+                self.previous_state = WalkCycleMachine.stepping
+                return
+            
+            if not has_direction:
+                angle = 0
+            else:
+                angle = find_angle(self.walk_direction)
+            
+            self.angle = angle
+            id = -1
+            # Select leg in walking sextant
+            if deg2rad(0) >= angle and angle > deg2rad(-60):
+                id = 0
+            elif deg2rad(-60) >= angle and angle > deg2rad(-120):
+                id = 1
+            elif deg2rad(-120) >= angle and angle > deg2rad(-180):
+                id = 2
+            elif deg2rad(120) <= angle and angle < deg2rad(180):
+                id = 3
+            elif deg2rad(60) <= angle and angle < deg2rad(120):
+                id = 4
+            elif deg2rad(0) <= angle and angle < 60:
+                id = 5
+            
+            # Select active legs based on leg in walking sextant
+            if id != -1:
+                self.is_swinging[id] = True
+                self.is_swinging[id-1] = False
+                self.is_swinging[id-2] = True
+                self.is_swinging[id-3] = False
+                self.is_swinging[id-4] = True            
+                self.is_swinging[id-5] = False
+            else:
+                print("Active leg not found!")
+            
+            # Check inversion required
+            if has_direction:
+                if self._is_long(id):
+                    self.is_swinging = np.invert(self.is_swinging)
+            else:
+                if not (self.is_swinging == self.centering_yaw).all():
+                    self.is_swinging = np.invert(self.is_swinging)
+            self.previous_state = WalkCycleMachine.stepping
     # -------------------------------------------------------------------------------------------
 
     # Conditions
@@ -161,7 +174,7 @@ class WalkCycleMachine(StateMachine):
                     return False
                 else:
                     self.centering_yaw[i] = False
-        print("Step finished")
+        # print("Step finished")
         return True
 
     def should_adjust(self):
@@ -180,7 +193,8 @@ class WalkCycleMachine(StateMachine):
     def tick(self):
         self._update_targets()
         self.walk()
-        # print(str(self.current_feet_positions[0][0:1].dot(self.current_feet_positions[0][0:1])) + "-" + str(REST_POS[0][0:1].dot(REST_POS[0][0:1])))
+        # for i in range(6):
+        #     print(str(i) + ": " + str(self.current_feet_positions[i][0:2].dot(self.current_feet_positions[i][0:2])) + "-" + str(REST_POS[i][0:2].dot(REST_POS[i][0:2])))
     
     def update_parameters(self, direction, speed):
         self._set_walk_direction(direction)
@@ -256,11 +270,12 @@ class WalkCycleMachine(StateMachine):
 
     def _is_long(self, id):
         """Is the leg extended?"""
-        print(id)
-        if self.current_feet_positions[id][0:1].dot(self.current_feet_positions[id][0:1]) - REST_POS[id][0:1].dot(REST_POS[id][0:1]) > 0:
-            print("invert")
+        # print(id)
+        # print(self.current_feet_positions[id][0:1].dot(self.current_feet_positions[id][0:1]) - REST_POS[id][0:1].dot(REST_POS[id][0:1]))
+        if self.current_feet_positions[id][0:2].dot(self.current_feet_positions[id][0:2]) - REST_POS[id][0:2].dot(REST_POS[id][0:2]) > 0:
+            # print("invert")
             return True
-        print("no invert")
+        # print("no invert")
         return False
 
     def _set_speed(self, value):
