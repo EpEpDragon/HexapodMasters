@@ -158,8 +158,10 @@ class WalkCycleMachine(StateMachine):
     def update(self, direction, speed):
         self._set_walk_direction(direction)
         self._set_speed(speed)
-
+        
         self._update_targets()
+        print(self.speed)
+        print(self.walk_direction)
 
         # Cycle state machine
         self.walk()
