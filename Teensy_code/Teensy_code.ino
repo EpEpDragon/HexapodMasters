@@ -233,9 +233,12 @@ void modeSelect_cb(const std_msgs::Int32& msg)
   }
   else
   {
-    logdata.data = "Mode selected";
+    logdata.data = "Other Mode";
     mode = msg.data;
   }
+
+  // LOG PUBLISH
+  pub_log.publish(&logdata);
 }
 ros::Subscriber<std_msgs::Int32> rosSubModeSelect("hexapod_mode", modeSelect_cb);
 
@@ -324,8 +327,6 @@ void loop()
   if(currentmillis - prevmillis >= 10)
   {
     prevmillis = currentmillis;
-
-    pub_log.publish(&logdata);
 
     //On Startup
     if(startUp == 0)
