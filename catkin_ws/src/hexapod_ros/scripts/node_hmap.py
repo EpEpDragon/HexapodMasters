@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 import rospy
-from hexapod_ros.msg import DMatrixFlat, RGBMatrixFlat
-
 
 from rospy.numpy_msg import numpy_msg
 from sensor_msgs.msg import Image
@@ -73,14 +71,6 @@ def run():
     pub_hmap = rospy.Publisher('hmap_data', Image, queue_size=10)
     
     rgbd_in = RGBDListener('/camera/color/image_raw', '/camera/aligned_depth_to_color/image_raw')
-<<<<<<< HEAD
-    # img_rgb, img_d, img_hmap = _init_rgbd_display()
-          
-    rospy.loginfo("Feed found!")
-    # plt.show()
-
-=======
->>>>>>> 5f62c52b92dc45f598c208e70ab34947050fcf24
 
     rate = rospy.Rate(15)
     # Camera tilt angle
