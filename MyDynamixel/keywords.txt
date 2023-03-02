@@ -1,0 +1,7 @@
+MyDynamixel	KEYWORD1
+WriteServos	KEYWORD2
+ReadServos	KEYWORD2
+MoveServos	KEYWORD2
+PresentPos	KEYWORD2
+SyncWrite	KEYWORD2
+SyncMove	KEYWORD2
