@@ -17,6 +17,7 @@ const double L3  = 149.16;
 const double L22 = L2*L2;
 const double L32 = L3*L3;
 
+const double RAD_TO_RPM = 9.549297;
 
 // The position of the base servo in robot space
 const Eigen::Vector3d LEG_OFFSETS[6] {
@@ -46,6 +47,8 @@ const Eigen::Quaterniond LEG_QUATS[6] {
     {-0.707, 0.000, 0.000, -0.707},
     {-0.966, 0.000, 0.000, -0.259}
 };
+
+double clamp(double value, double lower, double upper);
 
 class IK
 {
