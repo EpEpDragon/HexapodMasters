@@ -87,6 +87,7 @@ class WalkCycleMachine(StateMachine):
         for vector in msg.targets:
             self.current_feet_positions[i](np.array(vector.data[0], vector.data[1], vector.data[2]))
             i += 1
+            print("read %i" % i)
     rospy.Subscriber("effector_current_positions", EffectorTargets, effector_pos_readback)
 
     # Enter actions
@@ -205,30 +206,30 @@ class WalkCycleMachine(StateMachine):
             # Vertical offsett based on heightmap
 
             effector_offset = -self.height #- self.perception.get_height_at_point(self.targets[i])
-            self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
+            # self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
             print(self.walk_direction)
-            self.targets[i][2] = self.height_offsets[i] + effector_offset
-        #     if self.is_swinging[i]:
-        #         print("Swing")                
-        #         diff = self.foot_pos_pre_yaw[i] - self.targets[i]
-        #         dist = sqrt(diff.dot(diff))
-        #         self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
-        #         self.targets[i][2] = self.height_offsets[i] + effector_offset + 40
+            # self.targets[i][2] = self.height_offsets[i] + effector_offset
+            if self.is_swinging[i]:
+                # print("Swing")                
+                # diff = self.foot_pos_pre_yaw[i] - self.targets[i]
+                # dist = sqrt(diff.dot(diff))
+                self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
+                self.targets[i][2] = self.height_offsets[i] + effector_offset + 40
                 
-        #         # If not walking means rotationg in place, thus set foot height based on rotation
-        #         # if (self.walk_direction == 0).all() and self.centering_yaw[i]:
-        #         #     self.targets[i][2] += self.height_offsets[i] + effector_offset - min(abs(self.current_yaw_local[i])*3, 0.7)
-        #         # else:
-        #         #     self.targets[i][2] += self.height_offsets[i] +  effector_offset - min(dist, 0.7)
+                # If not walking means rotationg in place, thus set foot height based on rotation
+                # if (self.walk_direction == 0).all() and self.centering_yaw[i]:
+                #     self.targets[i][2] += self.height_offsets[i] + effector_offset - min(abs(self.current_yaw_local[i])*3, 0.7)
+                # else:
+                #     self.targets[i][2] += self.height_offsets[i] +  effector_offset - min(dist, 0.7)
 
-        #         if self.centering_yaw[i]:
-        #             self.target_yaw_local[i] = 0.0
-        #     else:
-        #         print("Not swing")
-        #         # Rotate walk direction to account for pitch angle and add to targets
-        #         self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
-        #         self.targets[i][2] += self.height_offsets[i] + effector_offset
-        #     print("leg %i target: %f %f %f" % (i,self.targets[i][0], self.targets[i][1], self.targets[i][2]))
+                if self.centering_yaw[i]:
+                    self.target_yaw_local[i] = 0.0
+            else:
+                # print("Not swing")
+                # Rotate walk direction to account for pitch angle and add to targets
+                self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
+                self.targets[i][2] += self.height_offsets[i] + effector_offset
+            # print("leg %i target: %f %f %f" % (i,self.targets[i][0], self.targets[i][1], self.targets[i][2]))
         # print("-----------------")
 
 
