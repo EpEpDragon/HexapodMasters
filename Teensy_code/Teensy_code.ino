@@ -362,14 +362,14 @@ void loop()
       
       // static long startUp_startTime = millis();
       ik.set_final_targets(effector_targets);
-      ik.solve_next_moves(theta1[0], theta2[0], theta3[0], dt_theta1[0], dt_theta2[0], dt_theta3[0], 5, 0);
-      ik.solve_next_moves(theta1[1], theta2[1], theta3[1], dt_theta1[1], dt_theta2[1], dt_theta3[1], 5, 1);
-      ik.solve_next_moves(theta1[2], theta2[2], theta3[2], dt_theta1[2], dt_theta2[2], dt_theta3[2], 5, 2);
-      ik.solve_next_moves(theta1[3], theta2[3], theta3[3], dt_theta1[3], dt_theta2[3], dt_theta3[3], 5, 3);
-      ik.solve_next_moves(theta1[4], theta2[4], theta3[4], dt_theta1[4], dt_theta2[4], dt_theta3[4], 5, 4);
-      ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], 5, 5);
+      ik.solve_next_moves(theta1[0], theta2[0], theta3[0], dt_theta1[0], dt_theta2[0], dt_theta3[0], 1, 0);
+      ik.solve_next_moves(theta1[1], theta2[1], theta3[1], dt_theta1[1], dt_theta2[1], dt_theta3[1], 1, 1);
+      ik.solve_next_moves(theta1[2], theta2[2], theta3[2], dt_theta1[2], dt_theta2[2], dt_theta3[2], 1, 2);
+      ik.solve_next_moves(theta1[3], theta2[3], theta3[3], dt_theta1[3], dt_theta2[3], dt_theta3[3], 1, 3);
+      ik.solve_next_moves(theta1[4], theta2[4], theta3[4], dt_theta1[4], dt_theta2[4], dt_theta3[4], 1, 4);
+      ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], 1, 5);
       
-      SetAngles(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3);
+      //SetAngles(theta1, theta2, theta3, dt_theta1, dt_theta2, dt_theta3);
       push_effector_positions();
     }
 

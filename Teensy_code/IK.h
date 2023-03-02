@@ -51,7 +51,7 @@ class IK
 {
     public:
         IK(MyDynamixel* dxl, void (*push_log)(char*));
-        void test();
+//        void test/();
         // Set and translate targets to leg coordintate space
         void set_final_targets(Eigen::Vector3d targets[6]);
         // Calculate the next servo angles for the leg of the provided id
@@ -61,7 +61,7 @@ class IK
         Eigen::Vector3d leg_to_robot_space(Eigen::Vector3d vector, int leg_id);
     private:
         // Calculate the required servo angles to achieve the given coordintate IN LEG SPACE
-        void solve_ik(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, Eigen::Vector3d target, Eigen::Vector3d dt_target, u_int8_t leg_id);
+        void solve_ik(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, Eigen::Vector3d target, Eigen::Vector3d dt_target, uint8_t leg_id);
         // Calculate leg position for given angles IN LEG SPACE
         Eigen::Vector3d solve_fk(double theta1, double theta2, double theta3);
         // Calculate the movement vector required to move to the target
