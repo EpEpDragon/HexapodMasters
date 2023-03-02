@@ -22,7 +22,7 @@ const double MIN_SERVO_SPEED = 5; //RPM
 const double MAX_SERVO_SPEED = 20; //RPM
 const double RPM_OFFSET = 5;
 
-const double HIP_PITCH_OFFSET = 15.0*M_PI/180.0;
+const double HIP_PITCH_OFFSET = 20.0*M_PI/180.0;
 const double KNEE_OFFSET = -HIP_PITCH_OFFSET;
 
 

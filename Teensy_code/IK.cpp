@@ -72,13 +72,13 @@ Eigen::Vector3d IK::solve_current_position(int leg_id)
     double theta1 = this->dxl->PresentPos(leg_id*3);
     double theta2 = this->dxl->PresentPos(leg_id*3 + 1);
     double theta3 = this->dxl->PresentPos(leg_id*3 + 2);
-
-     if (leg_id == 5)
-     {
-       char msg[50];
-       sprintf(msg,"leg %i theta: [%.2f, %.2f, %.2f]", leg_id, theta1, theta2, theta3);
-       push_log(msg);  
-     }
+//
+//     if (leg_id == 5)
+//     {
+//       char msg[50];
+//       sprintf(msg,"leg %i theta: [%.2f, %.2f, %.2f]", leg_id, theta1, theta2, theta3);
+//       push_log(msg);  
+//     }
 
     this->effector_current_positions[leg_id] = this->solve_fk(theta1, theta2 - HIP_PITCH_OFFSET, theta3 - KNEE_OFFSET); // Offset because I cant design parts correctly
     return this->effector_current_positions[leg_id];
@@ -177,15 +177,15 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     IK::calc_shared_vars(d, dmL1, c2, c, L22pL32mc2, beta, alpha, x, y, z);
 
     theta1 = -atan2(y,x);
-    theta2 = M_PI/2.0 - alpha - atan2( dmL1, z ) + HIP_PITCH_OFFSET; // Offset because I cant design parts correctly
+    theta2 = atan2( z, dmL1 ) - alpha + HIP_PITCH_OFFSET; // Offset because I cant design parts correctly
     theta3 = M_PI - beta + KNEE_OFFSET; // Offset because I cant design parts correctly
-
-     if (leg_id == 5)
-     {
-       char msg[50];
-       sprintf(msg,"leg %i M_PI/2.0 %.2f, alpha %.2f, atan %.2f, offset %.2f, beta %.2f, theta %.2f", leg_id, M_PI/2.0, - alpha, - std::atan( dmL1 / z ), HIP_PITCH_OFFSET, beta, theta2);
-       push_log(msg);  
-     }
+//
+//     if (leg_id == 5)
+//     {
+//       char msg[50];
+//       sprintf(msg,"leg %i M_PI/2.0 %.2f, alpha %.2f, atan %.2f, offset %.2f, beta %.2f, theta %.2f", leg_id, M_PI/2.0, - alpha, - std::atan( dmL1 / z ), HIP_PITCH_OFFSET, beta, theta2);
+//       push_log(msg);  
+//     }
 
     
     //-------------------- Angular rates -------------------------
