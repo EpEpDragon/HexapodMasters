@@ -41,7 +41,7 @@ void IK::solve_next_moves(double& theta1, double& theta2, double& theta3, double
     }
     // Calculate the required movement direction
     Eigen::Vector3d move_dir = IK::solve_move_vector(this->effector_current_positions[leg_id], this->final_targets[leg_id]);   
-    Eigen::Vector3d immediate_target = this->final_targets[leg_id];//this->effector_current_positions[leg_id] + move_dir;
+    Eigen::Vector3d immediate_target = this->final_targets[leg_id]; //this->effector_current_positions[leg_id] + move_dir*5;
     
 //    char msg[50];
 //    sprintf(msg,"leg %i move_dir: [%.2f, %.2f, %.2f]", leg_id, move_dir[0], move_dir[1], move_dir[2]);
@@ -119,14 +119,25 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     double dt_beta = (2*L2*L3*c*dt_c) / sqrt(fabs(-L22*L32*L22pL32mc2*L22pL32mc2 + 4));
     double dt_alpha = L3*(c*cos(beta)*dt_beta - sin(beta)*dt_c) / (sqrt(fabs(-L32*sin(beta)/c2 + 1))*c2);
     
-    dt_theta1 = fabs((-x*dt_y + y*dt_x) / (x*x + y*y)) * RAD_TO_RPM;
+    dt_theta1 =  clamp( fabs((-x*dt_y + y*dt_x) / (x*x + y*y)) * RAD_TO_RPM, MIN_SERVO_SPEED, MAX_SERVO_SPEED );
 
     double L1md = L1 - d;
     double L1md2 = L1md*L1md;
     double z2 = z*z;
 
-    dt_theta2 = fabs(-(((L1md)*dt_z + z*dt_d)*alpha + (L1md2 + z2)*atan(L1md/z)*dt_alpha) / (L1md2 + z2)) * RAD_TO_RPM;
-    dt_theta3 = fabs(-dt_beta) * RAD_TO_RPM;
+    dt_theta2 = clamp( fabs(-(((L1md)*dt_z + z*dt_d)*alpha + (L1md2 + z2)*atan(L1md/z)*dt_alpha) / (L1md2 + z2)) * RAD_TO_RPM, MIN_SERVO_SPEED, MAX_SERVO_SPEED );
+    dt_theta3 = clamp( fabs(-dt_beta) * RAD_TO_RPM, MIN_SERVO_SPEED, MAX_SERVO_SPEED );
+
+    char msg[50];
+    if (leg_id==5)
+    {
+      sprintf(msg,"leg %i pos: [%.4f, %.4f, %.4f]", 5, x, y, z);
+      push_log(msg);  
+      sprintf(msg,"leg %i move_vec: [%.4f, %.4f, %.4f]", 5, dt_target[0], dt_target[1], dt_target[2]);
+      push_log(msg);  
+      sprintf(msg,"leg %i beta: %.2f, dt_beta: %.2f, c: %.2f dt_c %.2f]", 5, beta, dt_beta, c, dt_c);
+      push_log(msg);  
+    }
 
 //    char msg[50];
 //    sprintf(msg,"leg %i speeds: [%f, %f, %f]", leg_id, dt_theta1, dt_theta2, dt_theta3);

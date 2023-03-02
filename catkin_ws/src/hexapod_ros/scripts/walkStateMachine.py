@@ -235,7 +235,7 @@ class WalkCycleMachine(StateMachine):
                 # diff = self.foot_pos_pre_yaw[i] - self.targets[i]
                 # dist = sqrt(diff.dot(diff))
                 self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
-                self.targets[i][2] = self.height_offsets[i] + effector_offset + 40
+                self.targets[i][2] = self.height_offsets[i] + effector_offset
                 
                 # If not walking means rotationg in place, thus set foot height based on rotation
                 # if (self.walk_direction == 0).all() and self.centering_yaw[i]:

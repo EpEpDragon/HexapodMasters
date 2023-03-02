@@ -18,6 +18,9 @@ const double L22 = L2*L2;
 const double L32 = L3*L3;
 
 const double RAD_TO_RPM = 9.549297;
+const double MIN_SERVO_SPEED = 0.15; //RPM
+const double MAX_SERVO_SPEED = 20; //RPM
+const double RPM_OFFSET = 5;
 
 // The position of the base servo in robot space
 const Eigen::Vector3d LEG_OFFSETS[6] {

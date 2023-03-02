@@ -10,10 +10,6 @@
 InverseKinematics InKin;
 
 //Some variables
-
-const double MIN_SERVO_SPEED = 0.15;
-const double MAX_SERVO_SPEED = 20;
-
 //Joint Angle Variables for SetNextpathPoint Mode
 double theta1[6];
 double theta2[6];
@@ -351,29 +347,34 @@ void loop()
   nh.spinOnce();
   currentmillis = millis();
 
-  if(currentmillis - prevmillis >= 10)
+  if(currentmillis - prevmillis >= 100)
   {  
+    for (int leg_id=0; leg_id<6; leg_id++)
+    {
+      effector_current_positions[leg_id] = ik.solve_current_position(leg_id);
+    }
+    ik.set_final_targets(effector_targets);
     prevmillis = currentmillis;
+    ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], 50, 5);
+    char msg[50];
+    sprintf(msg,"leg %i speeds: [%.4f, %.4f, %.4f]", 5, dt_theta1[5], dt_theta2[5], dt_theta3[5]);
+    push_log(msg);  
+
 
     //On Startup
     if(startUp == 0)
-    {
-      for (int leg_id=0; leg_id<6; leg_id++)
-      {
-        effector_current_positions[leg_id] = ik.solve_current_position(leg_id);
-      }
-      
+    { 
       // static long startUp_startTime = millis();
       ik.set_final_targets(effector_targets);
-      ik.solve_next_moves(theta1[0], theta2[0], theta3[0], dt_theta1[0], dt_theta2[0], dt_theta3[0], 20, 0);
-      ik.solve_next_moves(theta1[1], theta2[1], theta3[1], dt_theta1[1], dt_theta2[1], dt_theta3[1], 20, 1);
-      ik.solve_next_moves(theta1[2], theta2[2], theta3[2], dt_theta1[2], dt_theta2[2], dt_theta3[2], 20, 2);
-      ik.solve_next_moves(theta1[3], theta2[3], theta3[3], dt_theta1[3], dt_theta2[3], dt_theta3[3], 20, 3);
-      ik.solve_next_moves(theta1[4], theta2[4], theta3[4], dt_theta1[4], dt_theta2[4], dt_theta3[4], 20, 4);
-      ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], 20, 5);
+      ik.solve_next_moves(theta1[0], theta2[0], theta3[0], dt_theta1[0], dt_theta2[0], dt_theta3[0], 50, 0);
+      ik.solve_next_moves(theta1[1], theta2[1], theta3[1], dt_theta1[1], dt_theta2[1], dt_theta3[1], 50, 1);
+      ik.solve_next_moves(theta1[2], theta2[2], theta3[2], dt_theta1[2], dt_theta2[2], dt_theta3[2], 50, 2);
+      ik.solve_next_moves(theta1[3], theta2[3], theta3[3], dt_theta1[3], dt_theta2[3], dt_theta3[3], 50, 3);
+      ik.solve_next_moves(theta1[4], theta2[4], theta3[4], dt_theta1[4], dt_theta2[4], dt_theta3[4], 50, 4);
+      ik.solve_next_moves(theta1[5], theta2[5], theta3[5], dt_theta1[5], dt_theta2[5], dt_theta3[5], 50, 5);
 
       char msg[50];
-      for(int leg_id=0; leg_id<6; leg_id++)
+      for(int leg_id=5; leg_id<6; leg_id++)
       {
         sprintf(msg,"leg %i speeds: [%.4f, %.4f, %.4f]", leg_id, dt_theta1[leg_id], dt_theta2[leg_id], dt_theta3[leg_id]);
         push_log(msg);  
@@ -479,9 +480,12 @@ void SetAngles(double* th1, double* th2, double* th3, double* dt_th1,double* dt_
     angles[leg_id*3+1] = th2[leg_id];
     angles[leg_id*3+2] = th3[leg_id];
 
-    speeds[leg_id*3] = clamp(dt_th1[leg_id], MIN_SERVO_SPEED, MAX_SERVO_SPEED) + 5;
-    speeds[leg_id*3+1] = clamp(dt_th2[leg_id], MIN_SERVO_SPEED, MAX_SERVO_SPEED) + 5;
-    speeds[leg_id*3+2] = clamp(dt_th3[leg_id], MIN_SERVO_SPEED, MAX_SERVO_SPEED) + 5;
+    speeds[leg_id*3] = dt_th1[leg_id];
+    speeds[leg_id*3+1] = dt_th2[leg_id];
+    speeds[leg_id*3+2] = dt_th3[leg_id];
+//    speeds[leg_id*3] = 1;
+//    speeds[leg_id*3+1] = 1;
+//    speeds[leg_id*3+2] = 1;
   }
   
   dxl.SyncMove(IDS, angles, speeds, 18);
