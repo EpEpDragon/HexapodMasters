@@ -217,7 +217,7 @@ ros::Subscriber<my_message::LegPath> rosSubPATH("/simple_hexapod/Legs_paths", le
 //mode select subscriber
 int mode = -1;
 int startUp = -1;
-void modeSelect_cb(const std_msgs::Float32& msg)
+void modeSelect_cb(const std_msgs::Int32& msg)
 {
   if(msg.data == -1)
   {
@@ -228,7 +228,7 @@ void modeSelect_cb(const std_msgs::Float32& msg)
     mode = msg.data;
   }
 }
-ros::Subscriber<std_msgs::Float32> rosSubModeSelect("/mode_selected", modeSelect_cb);
+ros::Subscriber<std_msgs::Float32> rosSubModeSelect("hexapod_mode", modeSelect_cb);
 
 //Pitch roll input subscriber
 float pitchInput = 0.0;
