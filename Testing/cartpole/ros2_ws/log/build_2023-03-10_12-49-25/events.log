@@ -1,0 +1,277 @@
+[0.000000] (-) TimerEvent: {}
+[0.001452] (-) JobUnselected: {'identifier': 'pub_lr'}
+[0.001847] (-) JobUnselected: {'identifier': 'py_pubsub'}
+[0.001922] (-) JobUnselected: {'identifier': 'sim_ros2_interface'}
+[0.002127] (interfaces) JobQueued: {'identifier': 'interfaces', 'dependencies': OrderedDict()}
+[0.002186] (interfaces) JobStarted: {'identifier': 'interfaces'}
+[0.011488] (interfaces) JobProgress: {'identifier': 'interfaces', 'progress': 'cmake'}
+[0.011695] (interfaces) Command: {'cmd': ['/usr/bin/cmake', '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/src/interfaces', '-DCMAKE_INSTALL_PREFIX=/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces'], 'cwd': '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/interfaces', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('LANGUAGE', 'en_ZA:en'), ('USER', 'epep'), ('XDG_SEAT', 'seat0'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/epep'), ('OLDPWD', '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/src'), ('DESKTOP_SESSION', 'cinnamon'), ('ROS_PYTHON_VERSION', '3'), ('GTK_MODULES', 'gail:atk-bridge'), ('XDG_SEAT_PATH', '/org/freedesktop/DisplayManager/Seat0'), ('CINNAMON_VERSION', '5.6.7'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('INSIDE_NEMO_PYTHON', ''), ('QT_QPA_PLATFORMTHEME', 'qt5ct'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'epep'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm-256color'), ('GTK_OVERLAY_SCROLLING', '1'), ('XDG_SESSION_ID', 'c2'), ('COPPELIASIM_ROOT_DIR', '/home/epep/ProgramsTar/CoppeliaSim_V4_4_0_rev0'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/epep/.local/bin:/opt/ros/humble/bin:/home/epep/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('SESSION_MANAGER', 'local/epep-System-Product-Name:@/tmp/.ICE-unix/1214,unix/epep-System-Product-Name:/tmp/.ICE-unix/1214'), ('GDM_LANG', 'en_ZA'), ('GTK3_MODULES', 'xapp-gtk3-module'), ('XDG_SESSION_PATH', '/org/freedesktop/DisplayManager/Session0'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/cb549c09_2f76_44bf_b548_94c0c623ceb1'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'X-Cinnamon'), ('XDG_SESSION_DESKTOP', 'cinnamon'), ('XAUTHORITY', '/home/epep/.Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('GNOME_TERMINAL_SERVICE', ':1.86'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('XDG_GREETER_DATA_DIR', '/var/lib/lightdm-data/epep'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('SHELL', '/bin/bash'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'cinnamon'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('XDG_VTNR', '7'), ('PWD', '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/interfaces'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-cinnamon:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/cinnamon:/usr/share/gnome:/home/epep/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[0.060115] (interfaces) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.3.0\n'}
+[0.099616] (-) TimerEvent: {}
+[0.140642] (interfaces) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.3.0\n'}
+[0.147551] (interfaces) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[0.199848] (-) TimerEvent: {}
+[0.224446] (interfaces) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[0.233767] (interfaces) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[0.233986] (interfaces) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[0.234426] (interfaces) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[0.237694] (interfaces) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[0.299970] (-) TimerEvent: {}
+[0.312938] (interfaces) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[0.322124] (interfaces) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[0.322429] (interfaces) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[0.322903] (interfaces) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[0.325017] (interfaces) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.3 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[0.400220] (-) TimerEvent: {}
+[0.500581] (-) TimerEvent: {}
+[0.541065] (interfaces) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3.10 (found version "3.10.6") found components: Interpreter \n'}
+[0.600676] (-) TimerEvent: {}
+[0.661305] (interfaces) StdoutLine: {'line': b'-- Found ament_lint_auto: 0.12.5 (/opt/ros/humble/share/ament_lint_auto/cmake)\n'}
+[0.700846] (-) TimerEvent: {}
+[0.764291] (interfaces) StdoutLine: {'line': b'-- Found rosidl_default_generators: 1.2.0 (/opt/ros/humble/share/rosidl_default_generators/cmake)\n'}
+[0.770729] (interfaces) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[0.785505] (interfaces) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.4 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[0.800989] (-) TimerEvent: {}
+[0.840877] (interfaces) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[0.901146] (-) TimerEvent: {}
+[1.001563] (-) TimerEvent: {}
+[1.102063] (-) TimerEvent: {}
+[1.162100] (interfaces) StdoutLine: {'line': b'-- Found ament_cmake_ros: 0.10.0 (/opt/ros/humble/share/ament_cmake_ros/cmake)\n'}
+[1.202176] (-) TimerEvent: {}
+[1.302522] (-) TimerEvent: {}
+[1.402938] (-) TimerEvent: {}
+[1.496531] (interfaces) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[1.503118] (-) TimerEvent: {}
+[1.603491] (-) TimerEvent: {}
+[1.703906] (-) TimerEvent: {}
+[1.804328] (-) TimerEvent: {}
+[1.862996] (interfaces) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[1.904462] (-) TimerEvent: {}
+[1.911341] (interfaces) StdoutLine: {'line': b'-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.10.6", minimum required is "3.6") \n'}
+[1.914118] (interfaces) StdoutLine: {'line': b'-- Found python_cmake_module: 0.10.0 (/opt/ros/humble/share/python_cmake_module/cmake)\n'}
+[1.958033] (interfaces) StdoutLine: {'line': b'-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.10.so (found suitable version "3.10.6", minimum required is "3.5") \n'}
+[1.958464] (interfaces) StdoutLine: {'line': b'-- Using PYTHON_EXECUTABLE: /usr/bin/python3\n'}
+[1.958744] (interfaces) StdoutLine: {'line': b'-- Using PYTHON_INCLUDE_DIRS: /usr/include/python3.10\n'}
+[1.959006] (interfaces) StdoutLine: {'line': b'-- Using PYTHON_LIBRARIES: /usr/lib/x86_64-linux-gnu/libpython3.10.so\n'}
+[1.988163] (interfaces) StdoutLine: {'line': b'-- Found PythonExtra: .so  \n'}
+[2.004596] (-) TimerEvent: {}
+[2.059288] (interfaces) StdoutLine: {'line': b"-- Added test 'lint_cmake' to check CMake code style\n"}
+[2.062286] (interfaces) StdoutLine: {'line': b"-- Added test 'xmllint' to check XML markup files\n"}
+[2.074567] (interfaces) StdoutLine: {'line': b'-- Configuring done\n'}
+[2.104719] (-) TimerEvent: {}
+[2.119016] (interfaces) StdoutLine: {'line': b'-- Generating done\n'}
+[2.121622] (interfaces) StdoutLine: {'line': b'-- Build files have been written to: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/interfaces\n'}
+[2.127783] (interfaces) CommandEnded: {'returncode': 0}
+[2.128446] (interfaces) JobProgress: {'identifier': 'interfaces', 'progress': 'build'}
+[2.129428] (interfaces) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/interfaces', '--', '-j12', '-l12'], 'cwd': '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/interfaces', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('LANGUAGE', 'en_ZA:en'), ('USER', 'epep'), ('XDG_SEAT', 'seat0'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/epep'), ('OLDPWD', '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/src'), ('DESKTOP_SESSION', 'cinnamon'), ('ROS_PYTHON_VERSION', '3'), ('GTK_MODULES', 'gail:atk-bridge'), ('XDG_SEAT_PATH', '/org/freedesktop/DisplayManager/Seat0'), ('CINNAMON_VERSION', '5.6.7'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('INSIDE_NEMO_PYTHON', ''), ('QT_QPA_PLATFORMTHEME', 'qt5ct'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'epep'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm-256color'), ('GTK_OVERLAY_SCROLLING', '1'), ('XDG_SESSION_ID', 'c2'), ('COPPELIASIM_ROOT_DIR', '/home/epep/ProgramsTar/CoppeliaSim_V4_4_0_rev0'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/epep/.local/bin:/opt/ros/humble/bin:/home/epep/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('SESSION_MANAGER', 'local/epep-System-Product-Name:@/tmp/.ICE-unix/1214,unix/epep-System-Product-Name:/tmp/.ICE-unix/1214'), ('GDM_LANG', 'en_ZA'), ('GTK3_MODULES', 'xapp-gtk3-module'), ('XDG_SESSION_PATH', '/org/freedesktop/DisplayManager/Session0'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/cb549c09_2f76_44bf_b548_94c0c623ceb1'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'X-Cinnamon'), ('XDG_SESSION_DESKTOP', 'cinnamon'), ('XAUTHORITY', '/home/epep/.Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('GNOME_TERMINAL_SERVICE', ':1.86'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('XDG_GREETER_DATA_DIR', '/var/lib/lightdm-data/epep'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('SHELL', '/bin/bash'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'cinnamon'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('XDG_VTNR', '7'), ('PWD', '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/interfaces'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-cinnamon:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/cinnamon:/usr/share/gnome:/home/epep/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[2.191129] (interfaces) StdoutLine: {'line': b'[  3%] \x1b[34m\x1b[1mGenerating C code for ROS interfaces\x1b[0m\n'}
+[2.194479] (interfaces) StdoutLine: {'line': b'[  6%] \x1b[34m\x1b[1mGenerating C++ code for ROS interfaces\x1b[0m\n'}
+[2.201534] (interfaces) StdoutLine: {'line': b'[  6%] Built target ament_cmake_python_copy_interfaces\n'}
+[2.204820] (-) TimerEvent: {}
+[2.305141] (-) TimerEvent: {}
+[2.405638] (-) TimerEvent: {}
+[2.456830] (interfaces) StdoutLine: {'line': b'[  6%] Built target interfaces__cpp\n'}
+[2.466172] (interfaces) StdoutLine: {'line': b'[  9%] \x1b[34m\x1b[1mGenerating C++ introspection for ROS interfaces\x1b[0m\n'}
+[2.466489] (interfaces) StdoutLine: {'line': b'[ 12%] \x1b[34m\x1b[1mGenerating C++ type support for eProsima Fast-RTPS\x1b[0m\n'}
+[2.467791] (interfaces) StdoutLine: {'line': b'running egg_info\n'}
+[2.468486] (interfaces) StdoutLine: {'line': b'creating interfaces.egg-info\n'}
+[2.468731] (interfaces) StdoutLine: {'line': b'writing interfaces.egg-info/PKG-INFO\n'}
+[2.468911] (interfaces) StdoutLine: {'line': b'writing dependency_links to interfaces.egg-info/dependency_links.txt\n'}
+[2.469056] (interfaces) StdoutLine: {'line': b'writing top-level names to interfaces.egg-info/top_level.txt\n'}
+[2.469274] (interfaces) StdoutLine: {'line': b"writing manifest file 'interfaces.egg-info/SOURCES.txt'\n"}
+[2.469704] (interfaces) StdoutLine: {'line': b'[ 16%] \x1b[34m\x1b[1mGenerating C++ type support dispatch for ROS interfaces\x1b[0m\n'}
+[2.471303] (interfaces) StdoutLine: {'line': b"reading manifest file 'interfaces.egg-info/SOURCES.txt'\n"}
+[2.471935] (interfaces) StdoutLine: {'line': b"writing manifest file 'interfaces.egg-info/SOURCES.txt'\n"}
+[2.481697] (interfaces) StdoutLine: {'line': b'[ 19%] \x1b[32mBuilding C object CMakeFiles/interfaces__rosidl_generator_c.dir/rosidl_generator_c/interfaces/msg/detail/cart_data__functions.c.o\x1b[0m\n'}
+[2.502408] (interfaces) StdoutLine: {'line': b'[ 19%] Built target ament_cmake_python_build_interfaces_egg\n'}
+[2.505761] (-) TimerEvent: {}
+[2.529705] (interfaces) StdoutLine: {'line': b'[ 22%] \x1b[32m\x1b[1mLinking C shared library libinterfaces__rosidl_generator_c.so\x1b[0m\n'}
+[2.559339] (interfaces) StdoutLine: {'line': b'[ 22%] Built target interfaces__rosidl_generator_c\n'}
+[2.567241] (interfaces) StdoutLine: {'line': b'[ 29%] \x1b[34m\x1b[1mGenerating C introspection for ROS interfaces\x1b[0m\n'}
+[2.567553] (interfaces) StdoutLine: {'line': b'[ 29%] \x1b[34m\x1b[1mGenerating C type support for eProsima Fast-RTPS\x1b[0m\n'}
+[2.567749] (interfaces) StdoutLine: {'line': b'[ 32%] \x1b[34m\x1b[1mGenerating C type support dispatch for ROS interfaces\x1b[0m\n'}
+[2.605856] (-) TimerEvent: {}
+[2.706169] (-) TimerEvent: {}
+[2.706608] (interfaces) StdoutLine: {'line': b'[ 35%] \x1b[32mBuilding CXX object CMakeFiles/interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/interfaces/msg/cart_data__type_support.cpp.o\x1b[0m\n'}
+[2.726170] (interfaces) StdoutLine: {'line': b'[ 38%] \x1b[32mBuilding CXX object CMakeFiles/interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/interfaces/msg/detail/cart_data__type_support.cpp.o\x1b[0m\n'}
+[2.753666] (interfaces) StdoutLine: {'line': b'[ 41%] \x1b[32mBuilding CXX object CMakeFiles/interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/interfaces/msg/detail/dds_fastrtps/cart_data__type_support.cpp.o\x1b[0m\n'}
+[2.804644] (interfaces) StdoutLine: {'line': b'[ 45%] \x1b[32mBuilding CXX object CMakeFiles/interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/interfaces/msg/cart_data__type_support.cpp.o\x1b[0m\n'}
+[2.806249] (-) TimerEvent: {}
+[2.831147] (interfaces) StdoutLine: {'line': b'[ 48%] \x1b[32mBuilding C object CMakeFiles/interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/interfaces/msg/detail/cart_data__type_support.c.o\x1b[0m\n'}
+[2.832368] (interfaces) StdoutLine: {'line': b'[ 51%] \x1b[32mBuilding CXX object CMakeFiles/interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/interfaces/msg/detail/cart_data__type_support_c.cpp.o\x1b[0m\n'}
+[2.834388] (interfaces) StdoutLine: {'line': b'[ 54%] \x1b[32m\x1b[1mLinking CXX shared library libinterfaces__rosidl_typesupport_c.so\x1b[0m\n'}
+[2.861761] (interfaces) StdoutLine: {'line': b'[ 58%] \x1b[32m\x1b[1mLinking C shared library libinterfaces__rosidl_typesupport_introspection_c.so\x1b[0m\n'}
+[2.893914] (interfaces) StdoutLine: {'line': b'[ 58%] Built target interfaces__rosidl_typesupport_introspection_c\n'}
+[2.898436] (interfaces) StdoutLine: {'line': b'[ 58%] Built target interfaces__rosidl_typesupport_c\n'}
+[2.906381] (-) TimerEvent: {}
+[2.978899] (interfaces) StdoutLine: {'line': b'[ 61%] \x1b[32m\x1b[1mLinking CXX shared library libinterfaces__rosidl_typesupport_cpp.so\x1b[0m\n'}
+[3.006500] (-) TimerEvent: {}
+[3.014222] (interfaces) StdoutLine: {'line': b'[ 61%] Built target interfaces__rosidl_typesupport_cpp\n'}
+[3.094856] (interfaces) StdoutLine: {'line': b'[ 64%] \x1b[32m\x1b[1mLinking CXX shared library libinterfaces__rosidl_typesupport_introspection_cpp.so\x1b[0m\n'}
+[3.106621] (-) TimerEvent: {}
+[3.136688] (interfaces) StdoutLine: {'line': b'[ 67%] \x1b[32m\x1b[1mLinking CXX shared library libinterfaces__rosidl_typesupport_fastrtps_cpp.so\x1b[0m\n'}
+[3.153926] (interfaces) StdoutLine: {'line': b'[ 67%] Built target interfaces__rosidl_typesupport_introspection_cpp\n'}
+[3.159068] (interfaces) StdoutLine: {'line': b'[ 70%] \x1b[32m\x1b[1mLinking CXX shared library libinterfaces__rosidl_typesupport_fastrtps_c.so\x1b[0m\n'}
+[3.206895] (-) TimerEvent: {}
+[3.235248] (interfaces) StdoutLine: {'line': b'[ 70%] Built target interfaces__rosidl_typesupport_fastrtps_cpp\n'}
+[3.241561] (interfaces) StdoutLine: {'line': b'[ 70%] Built target interfaces__rosidl_typesupport_fastrtps_c\n'}
+[3.256541] (interfaces) StdoutLine: {'line': b'[ 70%] Built target interfaces\n'}
+[3.271070] (interfaces) StdoutLine: {'line': b'[ 74%] \x1b[34m\x1b[1mGenerating Python code for ROS interfaces\x1b[0m\n'}
+[3.306976] (-) TimerEvent: {}
+[3.407276] (-) TimerEvent: {}
+[3.507687] (-) TimerEvent: {}
+[3.579618] (interfaces) StdoutLine: {'line': b'[ 74%] Built target interfaces__py\n'}
+[3.607853] (-) TimerEvent: {}
+[3.612960] (interfaces) StdoutLine: {'line': b'[ 77%] \x1b[32mBuilding C object CMakeFiles/interfaces__rosidl_generator_py.dir/rosidl_generator_py/interfaces/msg/_cart_data_s.c.o\x1b[0m\n'}
+[3.707995] (-) TimerEvent: {}
+[3.711056] (interfaces) StdoutLine: {'line': b'[ 80%] \x1b[32m\x1b[1mLinking C shared library rosidl_generator_py/interfaces/libinterfaces__rosidl_generator_py.so\x1b[0m\n'}
+[3.774872] (interfaces) StdoutLine: {'line': b'[ 80%] Built target interfaces__rosidl_generator_py\n'}
+[3.796687] (interfaces) StdoutLine: {'line': b'[ 83%] \x1b[32mBuilding C object CMakeFiles/interfaces__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/interfaces/_interfaces_s.ep.rosidl_typesupport_c.c.o\x1b[0m\n'}
+[3.802139] (interfaces) StdoutLine: {'line': b'[ 87%] \x1b[32mBuilding C object CMakeFiles/interfaces__rosidl_typesupport_fastrtps_c__pyext.dir/rosidl_generator_py/interfaces/_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c.o\x1b[0m\n'}
+[3.803954] (interfaces) StdoutLine: {'line': b'[ 90%] \x1b[32mBuilding C object CMakeFiles/interfaces__rosidl_typesupport_introspection_c__pyext.dir/rosidl_generator_py/interfaces/_interfaces_s.ep.rosidl_typesupport_introspection_c.c.o\x1b[0m\n'}
+[3.808087] (-) TimerEvent: {}
+[3.884441] (interfaces) StdoutLine: {'line': b'[ 93%] \x1b[32m\x1b[1mLinking C shared library rosidl_generator_py/interfaces/interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so\x1b[0m\n'}
+[3.896298] (interfaces) StdoutLine: {'line': b'[100%] \x1b[32m\x1b[1mLinking C shared library rosidl_generator_py/interfaces/interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so\x1b[0m\n'}
+[3.896725] (interfaces) StdoutLine: {'line': b'[100%] \x1b[32m\x1b[1mLinking C shared library rosidl_generator_py/interfaces/interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so\x1b[0m\n'}
+[3.908248] (-) TimerEvent: {}
+[3.920316] (interfaces) StdoutLine: {'line': b'[100%] Built target interfaces__rosidl_typesupport_c__pyext\n'}
+[3.933646] (interfaces) StdoutLine: {'line': b'[100%] Built target interfaces__rosidl_typesupport_fastrtps_c__pyext\n'}
+[3.934039] (interfaces) StdoutLine: {'line': b'[100%] Built target interfaces__rosidl_typesupport_introspection_c__pyext\n'}
+[3.945531] (interfaces) CommandEnded: {'returncode': 0}
+[3.987892] (interfaces) JobProgress: {'identifier': 'interfaces', 'progress': 'install'}
+[3.995134] (interfaces) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/interfaces'], 'cwd': '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/interfaces', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('LANGUAGE', 'en_ZA:en'), ('USER', 'epep'), ('XDG_SEAT', 'seat0'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/epep'), ('OLDPWD', '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/src'), ('DESKTOP_SESSION', 'cinnamon'), ('ROS_PYTHON_VERSION', '3'), ('GTK_MODULES', 'gail:atk-bridge'), ('XDG_SEAT_PATH', '/org/freedesktop/DisplayManager/Seat0'), ('CINNAMON_VERSION', '5.6.7'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('INSIDE_NEMO_PYTHON', ''), ('QT_QPA_PLATFORMTHEME', 'qt5ct'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'epep'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm-256color'), ('GTK_OVERLAY_SCROLLING', '1'), ('XDG_SESSION_ID', 'c2'), ('COPPELIASIM_ROOT_DIR', '/home/epep/ProgramsTar/CoppeliaSim_V4_4_0_rev0'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/epep/.local/bin:/opt/ros/humble/bin:/home/epep/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('SESSION_MANAGER', 'local/epep-System-Product-Name:@/tmp/.ICE-unix/1214,unix/epep-System-Product-Name:/tmp/.ICE-unix/1214'), ('GDM_LANG', 'en_ZA'), ('GTK3_MODULES', 'xapp-gtk3-module'), ('XDG_SESSION_PATH', '/org/freedesktop/DisplayManager/Session0'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/cb549c09_2f76_44bf_b548_94c0c623ceb1'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'X-Cinnamon'), ('XDG_SESSION_DESKTOP', 'cinnamon'), ('XAUTHORITY', '/home/epep/.Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('GNOME_TERMINAL_SERVICE', ':1.86'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('XDG_GREETER_DATA_DIR', '/var/lib/lightdm-data/epep'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('SHELL', '/bin/bash'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'cinnamon'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('XDG_VTNR', '7'), ('PWD', '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/build/interfaces'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-cinnamon:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/cinnamon:/usr/share/gnome:/home/epep/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[4.001753] (interfaces) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[4.001927] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/ament_index/resource_index/rosidl_interfaces/interfaces\n'}
+[4.002077] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces\n'}
+[4.002193] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg\n'}
+[4.002292] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail\n'}
+[4.002387] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__functions.c\n'}
+[4.002479] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__functions.h\n'}
+[4.002595] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__struct.h\n'}
+[4.002700] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__type_support.h\n'}
+[4.002790] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/cart_data.h\n'}
+[4.002875] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/rosidl_generator_c__visibility_control.h\n'}
+[4.002990] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/environment/library_path.sh\n'}
+[4.003116] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/environment/library_path.dsv\n'}
+[4.003294] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_generator_c.so\n'}
+[4.003590] (interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_generator_c.so" to ""\n'}
+[4.003693] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces\n'}
+[4.003778] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg\n'}
+[4.003852] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/rosidl_typesupport_fastrtps_c__visibility_control.h\n'}
+[4.003953] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail\n'}
+[4.004030] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__rosidl_typesupport_fastrtps_c.h\n'}
+[4.004120] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_typesupport_fastrtps_c.so\n'}
+[4.004319] (interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_typesupport_fastrtps_c.so" to ""\n'}
+[4.004415] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces\n'}
+[4.004499] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg\n'}
+[4.004569] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/rosidl_typesupport_introspection_c__visibility_control.h\n'}
+[4.004681] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail\n'}
+[4.004777] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__rosidl_typesupport_introspection_c.h\n'}
+[4.004886] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__type_support.c\n'}
+[4.004977] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_typesupport_introspection_c.so\n'}
+[4.005260] (interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_typesupport_introspection_c.so" to ""\n'}
+[4.005353] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_typesupport_c.so\n'}
+[4.005597] (interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_typesupport_c.so" to ""\n'}
+[4.005682] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces\n'}
+[4.005784] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg\n'}
+[4.005884] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/cart_data.hpp\n'}
+[4.005957] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail\n'}
+[4.006059] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__struct.hpp\n'}
+[4.006131] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__builder.hpp\n'}
+[4.006206] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__traits.hpp\n'}
+[4.006314] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces\n'}
+[4.006393] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg\n'}
+[4.006468] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h\n'}
+[4.006542] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail\n'}
+[4.006640] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__rosidl_typesupport_fastrtps_cpp.hpp\n'}
+[4.006711] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/dds_fastrtps\n'}
+[4.006786] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_typesupport_fastrtps_cpp.so\n'}
+[4.006871] (interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_typesupport_fastrtps_cpp.so" to ""\n'}
+[4.006974] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces\n'}
+[4.007049] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg\n'}
+[4.007154] (interfaces) StdoutLine: {'line': b'-- Up-to-date: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail\n'}
+[4.007228] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__rosidl_typesupport_introspection_cpp.hpp\n'}
+[4.007304] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/include/interfaces/interfaces/msg/detail/cart_data__type_support.cpp\n'}
+[4.007399] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_typesupport_introspection_cpp.so\n'}
+[4.007516] (interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_typesupport_introspection_cpp.so" to ""\n'}
+[4.007610] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_typesupport_cpp.so\n'}
+[4.007869] (interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_typesupport_cpp.so" to ""\n'}
+[4.007965] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/environment/pythonpath.sh\n'}
+[4.008057] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/environment/pythonpath.dsv\n'}
+[4.008164] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces-0.0.0-py3.10.egg-info\n'}
+[4.008237] (-) TimerEvent: {}
+[4.008337] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces-0.0.0-py3.10.egg-info/PKG-INFO\n'}
+[4.008437] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces-0.0.0-py3.10.egg-info/dependency_links.txt\n'}
+[4.008535] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces-0.0.0-py3.10.egg-info/SOURCES.txt\n'}
+[4.008633] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces-0.0.0-py3.10.egg-info/top_level.txt\n'}
+[4.008726] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces\n'}
+[4.009044] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/msg\n'}
+[4.009153] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/msg/_cart_data.py\n'}
+[4.009227] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/msg/__init__.py\n'}
+[4.009316] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/msg/_cart_data_s.c\n'}
+[4.009390] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so\n'}
+[4.009466] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/_interfaces_s.ep.rosidl_typesupport_c.c\n'}
+[4.009576] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so\n'}
+[4.009653] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/__init__.py\n'}
+[4.009728] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so\n'}
+[4.009831] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/_interfaces_s.ep.rosidl_typesupport_introspection_c.c\n'}
+[4.009910] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c\n'}
+[4.010005] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/libinterfaces__rosidl_generator_py.so\n'}
+[4.045290] (interfaces) StdoutLine: {'line': b"Listing '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces'...\n"}
+[4.045468] (interfaces) StdoutLine: {'line': b"Compiling '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/__init__.py'...\n"}
+[4.045545] (interfaces) StdoutLine: {'line': b"Listing '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/msg'...\n"}
+[4.045617] (interfaces) StdoutLine: {'line': b"Compiling '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/msg/__init__.py'...\n"}
+[4.045689] (interfaces) StdoutLine: {'line': b"Compiling '/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/msg/_cart_data.py'...\n"}
+[4.051131] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so\n'}
+[4.051383] (interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so" to ""\n'}
+[4.051523] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so\n'}
+[4.051733] (interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so" to ""\n'}
+[4.051915] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so\n'}
+[4.052203] (interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/local/lib/python3.10/dist-packages/interfaces/interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so" to ""\n'}
+[4.052308] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_generator_py.so\n'}
+[4.052577] (interfaces) StdoutLine: {'line': b'-- Set runtime path of "/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/lib/libinterfaces__rosidl_generator_py.so" to ""\n'}
+[4.052688] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/msg/CartData.idl\n'}
+[4.052845] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/msg/CartData.msg\n'}
+[4.053000] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/ament_index/resource_index/package_run_dependencies/interfaces\n'}
+[4.053162] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/ament_index/resource_index/parent_prefix_path/interfaces\n'}
+[4.053296] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/environment/ament_prefix_path.sh\n'}
+[4.053422] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/environment/ament_prefix_path.dsv\n'}
+[4.053546] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/environment/path.sh\n'}
+[4.053666] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/environment/path.dsv\n'}
+[4.053786] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/local_setup.bash\n'}
+[4.053905] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/local_setup.sh\n'}
+[4.054040] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/local_setup.zsh\n'}
+[4.054154] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/local_setup.dsv\n'}
+[4.054274] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/package.dsv\n'}
+[4.054433] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/ament_index/resource_index/packages/interfaces\n'}
+[4.054602] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/export_interfaces__rosidl_generator_cExport.cmake\n'}
+[4.054731] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/export_interfaces__rosidl_generator_cExport-noconfig.cmake\n'}
+[4.054875] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/export_interfaces__rosidl_typesupport_fastrtps_cExport.cmake\n'}
+[4.055003] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/export_interfaces__rosidl_typesupport_fastrtps_cExport-noconfig.cmake\n'}
+[4.055140] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/interfaces__rosidl_typesupport_introspection_cExport.cmake\n'}
+[4.055275] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/interfaces__rosidl_typesupport_introspection_cExport-noconfig.cmake\n'}
+[4.055415] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/interfaces__rosidl_typesupport_cExport.cmake\n'}
+[4.055546] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/interfaces__rosidl_typesupport_cExport-noconfig.cmake\n'}
+[4.055687] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/export_interfaces__rosidl_generator_cppExport.cmake\n'}
+[4.055824] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/export_interfaces__rosidl_typesupport_fastrtps_cppExport.cmake\n'}
+[4.055954] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/export_interfaces__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake\n'}
+[4.056094] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/interfaces__rosidl_typesupport_introspection_cppExport.cmake\n'}
+[4.056225] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/interfaces__rosidl_typesupport_introspection_cppExport-noconfig.cmake\n'}
+[4.056362] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/interfaces__rosidl_typesupport_cppExport.cmake\n'}
+[4.056490] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/interfaces__rosidl_typesupport_cppExport-noconfig.cmake\n'}
+[4.056631] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/export_interfaces__rosidl_generator_pyExport.cmake\n'}
+[4.056765] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/export_interfaces__rosidl_generator_pyExport-noconfig.cmake\n'}
+[4.056905] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/rosidl_cmake-extras.cmake\n'}
+[4.057031] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/ament_cmake_export_include_directories-extras.cmake\n'}
+[4.057159] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/ament_cmake_export_libraries-extras.cmake\n'}
+[4.057287] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/ament_cmake_export_targets-extras.cmake\n'}
+[4.057415] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake\n'}
+[4.057541] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/ament_cmake_export_dependencies-extras.cmake\n'}
+[4.057671] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake\n'}
+[4.057795] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/interfacesConfig.cmake\n'}
+[4.057906] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/cmake/interfacesConfig-version.cmake\n'}
+[4.058015] (interfaces) StdoutLine: {'line': b'-- Installing: /home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/install/interfaces/share/interfaces/package.xml\n'}
+[4.060106] (interfaces) CommandEnded: {'returncode': 0}
+[4.108364] (-) TimerEvent: {}
+[4.154617] (interfaces) JobEnded: {'identifier': 'interfaces', 'rc': 0}
+[4.155218] (-) EventReactorShutdown: {}
