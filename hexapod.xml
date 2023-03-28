@@ -1,0 +1,157 @@
+<mujoco>
+  <compiler angle="degree" coordinate="local"/>
+
+  <asset>
+    <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>
+    <texture builtin="flat" height="1278" mark="cross" markrgb="1 1 1" name="texgeom" random="0.01" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" type="cube" width="127"/>
+    <texture builtin="checker" height="100" name="texplane" rgb1="0 0 0" rgb2="0.8 0.8 0.8" type="2d" width="100"/>
+    <material name="MatPlane" reflectance="0.5" shininess="1" specular="1" texrepeat="60 60" texture="texplane"/>
+    <material name="geom" texture="texgeom" texuniform="true"/>
+  </asset>
+
+  <!-- Model Classes -->
+  <default>
+    <default class="body">
+      <geom  type="box" condim="1" density="500"/>
+      <joint type="hinge" damping="300" armature=".01" limited="true"/>
+      <default class="yaw">
+        <joint axis="0 0 1" range="-50 50"/>
+        <geom fromto="0.03 0 0 0.1 0 0" size="0.1"/>
+      </default>
+      <default class="pitch">
+        <joint axis="0 1 0" range="-20 60"/>
+        <geom fromto="0.03 0 0 1 0 0" size="0.1"/>
+      </default>
+      <default class="knee">
+          <joint axis="0 1 0" range="-60 50"/>
+          <geom fromto="0.03 0 0 0.9 0 0" size="0.05"/>
+        </default>
+    </default>
+
+    <position kp="10000"/>
+
+  </default>
+
+  <!-- Model Layout -->
+  <worldbody>
+    <light diffuse="0.5 0.5 0.5" pos="0 0 3" dir="0 0 -1"/>
+    <!-- Floor -->
+    <geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 0" rgba="0.8 0.9 0.8 1" size="40 40 40" type="plane"/>
+
+    <body name="torso" childclass="body" pos="0 0 1">
+      <!-- Body -->
+      <joint type="free" limited="false"/>
+      <geom type="cylinder" size="0.7 0.15" rgba="0.9 0.9 0.5 1"/> 
+      
+      <!-- Front Left Leg -->
+      <body pos="0.6062 0.35 0" euler="0 0 30" childclass="yaw" name="front_left_leg">
+        <joint name="front_left_yaw"/>
+        <geom/>
+        <body pos="0.1 0 -0.1" childclass="pitch">
+          <joint name="front_left_pitch"/>
+          <geom/>
+          <body pos="1 0 0" childclass="knee">
+            <joint name="front_left_knee"/>
+            <geom/>
+          </body>  
+        </body>
+      </body>
+
+      <!-- Front Right Leg -->
+      <body pos="0.6062 -0.35 0" euler="0 0 -30" childclass="yaw" name="front_right_leg">
+        <joint name="front_right_yaw"/>
+        <geom/>
+        <body pos="0.1 0 -0.1" childclass="pitch">
+          <joint name="front_right_pitch"/>
+          <geom/>
+          <body pos="1 0 0" childclass="knee">
+            <joint name="front_right_knee"/>
+            <geom/>
+          </body>  
+        </body>
+      </body>
+
+      <!-- Mid Left Leg -->
+      <body pos="0 0.7 0" euler="0 0 90" childclass="yaw" name="mid_left_leg">
+        <joint name="mid_left_yaw"/>
+        <geom/>
+        <body pos="0.1 0 -0.1" childclass="pitch">
+          <joint name="mid_left_pitch"/>
+          <geom/>
+          <body pos="1 0 0" childclass="knee">
+            <joint name="mid_left_knee"/>
+            <geom/>
+          </body>  
+        </body>
+      </body>
+
+      <!-- Mid Right Leg -->
+      <body pos="0 -0.7 0" euler="0 0 -90" childclass="yaw" name="mid_right_leg">
+        <joint name="mid_right_yaw"/>
+        <geom/>
+        <body pos="0.1 0 -0.1" childclass="pitch">
+          <joint name="mid_right_pitch"/>
+          <geom/>
+          <body pos="1 0 0" childclass="knee">
+            <joint name="mid_right_knee"/>
+            <geom/>
+          </body>  
+        </body>
+      </body>
+
+      <!-- Bottom Left Leg -->
+      <body pos="-0.6062 0.35 0" euler="0 0 150" childclass="yaw" name="back_left_leg">
+        <joint name="back_left_yaw"/>
+        <geom/>
+        <body pos="0.1 0 -0.1" childclass="pitch">
+          <joint name="back_left_pitch"/>
+          <geom/>
+          <body pos="1 0 0" childclass="knee">
+            <joint name="back_left_knee"/>
+            <geom/>
+          </body>  
+        </body>
+      </body>
+
+      <!-- Bottom Right Leg -->
+      <body pos="-0.6062 -0.35 0" euler="0 0 -150" childclass="yaw" name="back_right_leg">
+        <joint name="back_right_yaw"/>
+        <geom/>
+        <body pos="0.1 0 -0.1" childclass="pitch">
+          <joint name="back_right_pitch"/>
+          <geom/>
+          <body pos="1 0 0" childclass="knee">
+            <joint name="back_right_knee"/>
+            <geom/>
+          </body>  
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <position joint="front_left_yaw" name="front_left_yaw"/>
+    <position joint="front_left_pitch" name="front_left_pitch"/>
+    <position joint="front_left_knee" name="front_left_knee"/>
+
+    <position joint="front_right_yaw" name="front_right_yaw"/>
+    <position joint="front_right_pitch" name="front_right_pitch"/>
+    <position joint="front_right_knee" name="front_right_knee"/>
+
+    <position joint="mid_left_yaw" name="mid_left_yaw"/>
+    <position joint="mid_left_pitch" name="mid_left_pitch"/>
+    <position joint="mid_left_knee" name="mid_left_knee"/>
+
+    <position joint="mid_right_yaw" name="mid_right_yaw"/>
+    <position joint="mid_right_pitch" name="mid_right_pitch"/>
+    <position joint="mid_right_knee" name="mid_right_knee"/>
+
+    <position joint="back_left_yaw" name="back_left_yaw"/>
+    <position joint="back_left_pitch" name="back_left_pitch"/>
+    <position joint="back_left_knee" name="back_left_knee"/>
+
+    <position joint="back_right_yaw" name="back_right_yaw"/>
+    <position joint="back_right_pitch" name="back_right_pitch"/>
+    <position joint="back_right_knee" name="back_right_knee"/>
+  </actuator>
+</mujoco>
