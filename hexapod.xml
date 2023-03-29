@@ -15,21 +15,22 @@
       <geom  type="box" condim="1" density="500"/>
       <joint type="hinge" damping="300" armature=".01" limited="true"/>
       <default class="yaw">
-        <joint axis="0 0 1" range="-50 50"/>
+        <joint axis="0 0 1" range="-45 45"/>
+        <position ctrlrange="-0.785 0.785"/>
         <geom fromto="0.03 0 0 0.1 0 0" size="0.1"/>
       </default>
       <default class="pitch">
-        <joint axis="0 1 0" range="-20 60"/>
+        <joint axis="0 1 0" range="-45 60"/>
+        <position ctrlrange="-0.785 1.0472"/>
         <geom fromto="0.03 0 0 1 0 0" size="0.1"/>
       </default>
       <default class="knee">
-          <joint axis="0 1 0" range="-60 50"/>
+          <joint axis="0 1 0" range="-60 45"/>
+          <position ctrlrange="-1.0472 0.785"/>
           <geom fromto="0.03 0 0 0.9 0 0" size="0.05"/>
         </default>
     </default>
-
-    <position kp="10000"/>
-
+    <position ctrllimited="true" kp="100000"/>
   </default>
 
   <!-- Model Layout -->
@@ -130,28 +131,28 @@
   </worldbody>
 
   <actuator>
-    <position joint="front_left_yaw" name="front_left_yaw"/>
-    <position joint="front_left_pitch" name="front_left_pitch"/>
-    <position joint="front_left_knee" name="front_left_knee"/>
+    <position joint="front_left_yaw" class="yaw" name="front_left_yaw"/>
+    <position joint="front_left_pitch" class="pitch" name="front_left_pitch"/>
+    <position joint="front_left_knee" class="knee" name="front_left_knee"/>
 
-    <position joint="front_right_yaw" name="front_right_yaw"/>
-    <position joint="front_right_pitch" name="front_right_pitch"/>
-    <position joint="front_right_knee" name="front_right_knee"/>
+    <position joint="front_right_yaw" class="yaw" name="front_right_yaw"/>
+    <position joint="front_right_pitch" class="pitch" name="front_right_pitch"/>
+    <position joint="front_right_knee" class="knee" name="front_right_knee"/>
 
-    <position joint="mid_left_yaw" name="mid_left_yaw"/>
-    <position joint="mid_left_pitch" name="mid_left_pitch"/>
-    <position joint="mid_left_knee" name="mid_left_knee"/>
+    <position joint="mid_left_yaw" class="yaw" name="mid_left_yaw"/>
+    <position joint="mid_left_pitch" class="pitch" name="mid_left_pitch"/>
+    <position joint="mid_left_knee" class="knee" name="mid_left_knee"/>
 
-    <position joint="mid_right_yaw" name="mid_right_yaw"/>
-    <position joint="mid_right_pitch" name="mid_right_pitch"/>
-    <position joint="mid_right_knee" name="mid_right_knee"/>
+    <position joint="mid_right_yaw" class="yaw"name="mid_right_yaw"/>
+    <position joint="mid_right_pitch" class="pitch" name="mid_right_pitch"/>
+    <position joint="mid_right_knee" class="knee" name="mid_right_knee"/>
 
-    <position joint="back_left_yaw" name="back_left_yaw"/>
-    <position joint="back_left_pitch" name="back_left_pitch"/>
-    <position joint="back_left_knee" name="back_left_knee"/>
+    <position joint="back_left_yaw" class="yaw" name="back_left_yaw"/>
+    <position joint="back_left_pitch" class="pitch" name="back_left_pitch"/>
+    <position joint="back_left_knee" class="knee" name="back_left_knee"/>
 
-    <position joint="back_right_yaw" name="back_right_yaw"/>
-    <position joint="back_right_pitch" name="back_right_pitch"/>
-    <position joint="back_right_knee" name="back_right_knee"/>
+    <position joint="back_right_yaw" class="yaw" name="back_right_yaw"/>
+    <position joint="back_right_pitch" class="pitch"name="back_right_pitch"/>
+    <position joint="back_right_knee" class="knee" name="back_right_knee"/>
   </actuator>
 </mujoco>
