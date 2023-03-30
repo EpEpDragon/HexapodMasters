@@ -20,13 +20,13 @@
         <geom fromto="0.03 0 0 0.1 0 0" size="0.1"/>
       </default>
       <default class="pitch">
-        <joint axis="0 1 0" range="-45 60"/>
-        <position ctrlrange="-0.785 1.0472"/>
+        <joint axis="0 1 0" range="-50 60"/>
+        <position ctrlrange="-0.872 1.0472"/>
         <geom fromto="0.03 0 0 1 0 0" size="0.1"/>
       </default>
       <default class="knee">
-          <joint axis="0 1 0" range="-60 45"/>
-          <position ctrlrange="-1.0472 0.785"/>
+          <joint axis="0 1 0" range="-90 120"/>
+          <position ctrlrange="-1.5708 2.0944"/>
           <geom fromto="0.03 0 0 0.9 0 0" size="0.05"/>
         </default>
     </default>

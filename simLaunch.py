@@ -3,38 +3,45 @@ from mujoco import viewer
 import time
 
 from math import sin, cos, tan, pi
+from numpy import deg2rad
+
+import keyboard
+from activeWindow import get_active_window_title
+
+import motion
+
+
+def input(event):
+    # print(get_active_window_title())
+    window = get_active_window_title()
+    if str(window) == "b'MuJoCo : MuJoCo Model'":
+        if event.scan_code == keyboard.key_to_scan_codes("p")[0]:
+            motion.stand(movement_handler)
 
 
 if __name__ == '__main__':
+    keyboard.on_press(input)
+
     model = mujoco.MjModel.from_xml_path("hexapod.xml")
     data = mujoco.MjData(model)
     timestep = model.opt.timestep
     error = 0.0 # Timestep error integrator
 
+    movement_handler = motion.MovementHandler(data.ctrl, data.qpos)
+
     viewer.launch_passive(model, data)
     start_time = time.perf_counter()
-
+    dt = 0.0
     while True:
         step_start = time.perf_counter()
 
-        # Move test
-        angle = sin(data.time)*(pi/8)+pi/8
-        angle2 = sin(data.time*3)*(pi/8)+pi/8
-        data.ctrl[1] = angle
-        data.ctrl[2] = angle2
-        data.ctrl[4] = angle
-        data.ctrl[5] = angle2
-        data.ctrl[7] = angle
-        data.ctrl[8] = angle2
-        data.ctrl[10] = angle
-        data.ctrl[11] = angle2
-        data.ctrl[13] = angle
-        data.ctrl[14] = angle2
-        data.ctrl[16] = angle
-        data.ctrl[17] = angle2
+        # Move actuators
+        movement_handler.updateMoves(dt)
 
         # Step by integrating timestep error to simulation in (approximatley) real time
         mujoco.mj_step(model, data)
         step_elapse = time.perf_counter() - step_start
         time.sleep(max(min(timestep - step_elapse - error, 1), 0))  # Delay remaining timestep - error
-        error += time.perf_counter() - step_start - timestep        # Integrate error
+        dt = time.perf_counter() - step_start
+        error +=  dt - timestep        # Integrate error
+        # print(dt)
