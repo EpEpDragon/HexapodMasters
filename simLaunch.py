@@ -15,20 +15,26 @@ def input(event):
     # print(get_active_window_title())
     window = get_active_window_title()
     if str(window) == "b'MuJoCo : MuJoCo Model'":
-        if event.scan_code == keyboard.key_to_scan_codes("p")[0]:
-            motion.stand(movement_handler)
+        if event.scan_code == keyboard.key_to_scan_codes("1")[0]:
+            # motion.stand(movement_handler)
+            movement_handler.moveFoot(1.5,0,0,0,3)
+            movement_handler.moveFoot(1.5,0,0,1,3)
+            movement_handler.moveFoot(1.5,0,0,2,3)
+            movement_handler.moveFoot(1.5,0,0,3,3)
+            movement_handler.moveFoot(1.5,0,0,4,3)
+            movement_handler.moveFoot(1.5,0,0,5,3)
+
 
 
 if __name__ == '__main__':
     keyboard.on_press(input)
-    print(rad2deg(motion.solveIK(1,0,0)))
     model = mujoco.MjModel.from_xml_path("hexapod.xml")
     data = mujoco.MjData(model)
     timestep = model.opt.timestep
     error = 0.0 # Timestep error integrator
 
     movement_handler = motion.MovementHandler(data.ctrl, data.qpos)
-
+    
     viewer.launch_passive(model, data)
     start_time = time.perf_counter()
     dt = 0.0
