@@ -4,6 +4,7 @@ import time
 
 from math import sin, cos, tan, pi
 from numpy import deg2rad, rad2deg
+from numpy import array as nparr
 
 import keyboard
 from activeWindow import get_active_window_title
@@ -17,12 +18,21 @@ def input(event):
     if str(window) == "b'MuJoCo : MuJoCo Model'":
         if event.scan_code == keyboard.key_to_scan_codes("1")[0]:
             # motion.stand(movement_handler)
-            movement_handler.moveFoot(1.5,0,0,0,3)
-            movement_handler.moveFoot(1.5,0,0,1,3)
-            movement_handler.moveFoot(1.5,0,0,2,3)
-            movement_handler.moveFoot(1.5,0,0,3,3)
-            movement_handler.moveFoot(1.5,0,0,4,3)
-            movement_handler.moveFoot(1.5,0,0,5,3)
+            target = nparr([1.5,0,0])
+            movement_handler.moveFoot(target,0,3)
+            movement_handler.moveFoot(target,1,3)
+            movement_handler.moveFoot(target,2,3)
+            movement_handler.moveFoot(target,3,3)
+            movement_handler.moveFoot(target,4,3)
+            movement_handler.moveFoot(target,5,3)
+        if event.scan_code == keyboard.key_to_scan_codes("2")[0]:
+            target = nparr([1.5,0,1])
+            movement_handler.moveFoot(target,0,3)
+            movement_handler.moveFoot(target,1,3)
+            movement_handler.moveFoot(target,2,3)
+            movement_handler.moveFoot(target,3,3)
+            movement_handler.moveFoot(target,4,3)
+            movement_handler.moveFoot(target,5,3)
 
 
 
