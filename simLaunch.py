@@ -3,7 +3,7 @@ from mujoco import viewer
 import time
 
 from math import sin, cos, tan, pi
-from numpy import deg2rad
+from numpy import deg2rad, rad2deg
 
 import keyboard
 from activeWindow import get_active_window_title
@@ -21,7 +21,7 @@ def input(event):
 
 if __name__ == '__main__':
     keyboard.on_press(input)
-
+    print(rad2deg(motion.solveIK(1,0,0)))
     model = mujoco.MjModel.from_xml_path("hexapod.xml")
     data = mujoco.MjData(model)
     timestep = model.opt.timestep

@@ -1,9 +1,17 @@
-from math import sin, cos, tan, pi, copysign
-from numpy import deg2rad
+from math import sin, asin, cos, acos, tan, atan, pi
+from math import copysign
+from math import sqrt
+
+from numpy import deg2rad, array
 from typing import NamedTuple
 from collections import deque
 
 NUM_ACTUATORS = 18
+
+UPPER_LEG = 1
+UPPER_LEG_2 = UPPER_LEG*UPPER_LEG
+LOWER_LEG = 0.9
+LOWER_LEG_2 = LOWER_LEG*LOWER_LEG
 
 class Movement(NamedTuple):
     target: float
@@ -12,6 +20,25 @@ class Movement(NamedTuple):
 
 def lerp(a,b,t):
     return a + (b-a)*t
+
+
+def solveIK(x,y,z) -> list[float]:
+    # Root to target distance squared
+    dist2 = x*x + y*y + z*z
+    
+    # Yaw angle
+    yaw = atan(y/x)
+    
+    # Knee angle
+    knee = acos((UPPER_LEG_2 + LOWER_LEG_2 - dist2) / (2*UPPER_LEG*LOWER_LEG))
+    
+    # Pitch angle
+    full_pitch = acos((z*z) / dist2)
+    s_knee = sin(knee)
+    inner_pitch = asin((s_knee*s_knee*LOWER_LEG)/dist2)
+    pitch = full_pitch - inner_pitch
+
+    return [yaw, pitch, knee]
 
 
 class MovementHandler:
@@ -36,6 +63,7 @@ class MovementHandler:
     
     def addMovementT(self, target, id, time):
         self.movements[id].append(Movement(target, abs(self.qpos[id + self.qpos_start_id] - target)/time))
+        
 
 
 def stand(movement_handler):

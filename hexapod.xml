@@ -54,7 +54,7 @@
           <body pos="1 0 0" childclass="knee">
             <joint name="front_left_knee"/>
             <geom/>
-          </body>  
+          </body>
         </body>
       </body>
 
