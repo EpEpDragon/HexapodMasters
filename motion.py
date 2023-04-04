@@ -7,6 +7,7 @@ from numpy import array as nparr
 from typing import NamedTuple
 from collections import deque
 
+from dataclasses import dataclass
 NUM_ACTUATORS = 6
 
 UPPER_LEG = 1
@@ -14,9 +15,12 @@ UPPER_LEG_2 = UPPER_LEG*UPPER_LEG
 LOWER_LEG = 1
 LOWER_LEG_2 = LOWER_LEG*LOWER_LEG
 
-class Movement(NamedTuple):
-    target: nparr
-    vel: nparr
+@dataclass
+class Movement:
+    target : nparr
+    duration : float
+    start : nparr = nparr([0,0])
+    t : float = 0.0
     next = None
 
 def lerp(a,b,t):
@@ -57,25 +61,33 @@ class MovementHandler:
         curr_yaw = self.ctrl[id*3]
         curr_pitch = self.ctrl[id*3 + 1]
         curr_knee = self.ctrl[id*3 + 2]
-        return nparr([cos(curr_pitch),sin(curr_yaw),sin(curr_pitch)])*UPPER_LEG + nparr([cos(curr_pitch+curr_knee),sin(curr_yaw),sin(curr_pitch+curr_knee)])*LOWER_LEG
+
+        knee_rel = nparr([cos(curr_pitch)*cos(curr_yaw), cos(curr_pitch)*sin(curr_yaw), sin(curr_pitch)])*UPPER_LEG
+        foot_rel = nparr([cos(curr_pitch+curr_knee)*cos(curr_yaw), cos(curr_pitch+curr_knee)*sin(curr_yaw), sin(curr_pitch+curr_knee)])*LOWER_LEG
+        return  knee_rel + foot_rel
         
     def updateMoves(self, dt):
          for id in range(NUM_ACTUATORS):
             if len(self.movements[id]) == 0:
                 continue
 
-            curr_pos = self.find_foot_pos(id)
-            curr_target = curr_pos + self.movements[id][0].vel * dt
+            curr_target = lerp(self.movements[id][0].start, self.movements[id][0].target, self.movements[id][0].t)
             print(curr_target)
+            if max(abs(curr_target - self.movements[id][0].target)) < 0.01:
+                self.movements[id].popleft()
+                if len(self.movements[id]) != 0:
+                    self.movements[id][0].start = self.find_foot_pos(id)
+                continue
 
             [yaw,pitch,knee] = solveIK(curr_target[0], curr_target[1], curr_target[2])
             
             self.ctrl[id*3] = yaw
             self.ctrl[id*3 + 1] = pitch
             self.ctrl[id*3 + 2] = knee
+            self.movements[id][0].t += dt/self.movements[id][0].duration
             # self.ctrl[id] = self.ctrl[id] + copysign(self.movements[id][0].speed, self.movements[id][0].target - self.qpos[id + self.qpos_start_id]) * dt
-            if max(abs(curr_target - self.movements[id][0].target)) < 0.01:
-                self.movements[id].popleft()
+            # if self.movements[id][0].t > 1:
+            #     self.movements[id].popleft()
 
     def addMovementS(self, target, id, speed):
         self.movements[id].append(Movement(target, speed))
@@ -84,25 +96,12 @@ class MovementHandler:
         self.movements[id].append(Movement(target, abs(self.qpos[id + self.qpos_start_id] - target)/time))
     
     def moveFoot(self, target, id, time):
-        # [yaw,pitch,knee] = solveIK(x, y, z-self.height)
         curr_pos = self.find_foot_pos(id)
-        diff = target - self.find_foot_pos(id)
-        # dist = sqrt(diff.dot(diff))
-        self.movements[id].append(Movement(target, (diff/time)))
-        # print("Move foot %d: %f %f %f" % (foot_id, rad2deg(yaw),rad2deg(pitch), rad2deg(knee)))
-        
-        # leg1 = nparr([cos(pitch),sin(yaw),sin(pitch)])
-        # leg1 *= UPPER_LEG
-        # print(leg1)
-        # leg2 = nparr([cos(pitch+knee),sin(yaw),sin(pitch+knee)])
-        # leg2 *= LOWER_LEG
-        # print(leg2)
-        # foot = leg1+leg2
-        # print(foot)
-
-        # self.addMovementT(yaw,foot_id*3,time)
-        # self.addMovementT(pitch,foot_id*3 + 1,time)
-        # self.addMovementT(knee,foot_id*3 + 2,time)
+        # diff = target - self.find_foot_pos(id)
+        if len(self.movements[id]) == 0:
+            self.movements[id].append(Movement(target, time, curr_pos))
+        else:
+            self.movements[id].append(Movement(target, time))
 
     def setHeight(self, h):
         self.height = h
