@@ -10,6 +10,7 @@ import keyboard
 from activeWindow import get_active_window_title
 
 import motion
+from motion import MoveType
 
 DT = 0.002
 
@@ -19,29 +20,31 @@ def input(event):
     if str(window) == "b'MuJoCo : MuJoCo Model'":
         if event.scan_code == keyboard.key_to_scan_codes("1")[0]:
             # motion.stand(movement_handler)
-            target = nparr([1.5,0,0])
-            movement_handler.moveFoot(target,0,3)
-            movement_handler.moveFoot(target,1,3)
-            movement_handler.moveFoot(target,2,3)
-            movement_handler.moveFoot(target,3,3)
-            movement_handler.moveFoot(target,4,3)
-            movement_handler.moveFoot(target,5,3)
+            target = nparr([1.5,0,0.01])
+            movement_handler.moveFoot(target,0,3, MoveType.LINEAR)
+            movement_handler.moveFoot(target,1,3, MoveType.LINEAR)
+            movement_handler.moveFoot(target,2,3, MoveType.LINEAR)
+            movement_handler.moveFoot(target,3,3, MoveType.LINEAR)
+            movement_handler.moveFoot(target,4,3, MoveType.LINEAR)
+            movement_handler.moveFoot(target,5,3, MoveType.LINEAR)
         if event.scan_code == keyboard.key_to_scan_codes("2")[0]:
             target = nparr([1.5,0,1])
-            movement_handler.moveFoot(target,0,3)
-            movement_handler.moveFoot(target,1,3)
-            movement_handler.moveFoot(target,2,3)
-            movement_handler.moveFoot(target,3,3)
-            movement_handler.moveFoot(target,4,3)
-            movement_handler.moveFoot(target,5,3)
+            movement_handler.moveFoot(target,0,3, MoveType.LINEAR)
+            movement_handler.moveFoot(target,1,3, MoveType.LINEAR)
+            movement_handler.moveFoot(target,2,3, MoveType.LINEAR)
+            movement_handler.moveFoot(target,3,3, MoveType.LINEAR)
+            movement_handler.moveFoot(target,4,3, MoveType.LINEAR)
+            movement_handler.moveFoot(target,5,3, MoveType.LINEAR)
         if event.scan_code == keyboard.key_to_scan_codes("3")[0]:
-            movement_handler.moveFoot(nparr([1.8,0,-0.6]), 0,3)
-            movement_handler.moveFoot(nparr([1.7,-0.5,-0.4]), 0,1.5)
-            movement_handler.moveFoot(nparr([1.8,0,-0.6]), 0,1.5)
-            movement_handler.moveFoot(nparr([1.8,0.5,-0.4]), 0,1.5)
-            movement_handler.moveFoot(nparr([1.7,0,-0.6]), 0,1.5)            
-            movement_handler.moveFoot(nparr([1.5,0,1]), 0,3)
-        # if event.scan_code == keyboard.key_to_scan_codes("4")[0]:
+            movement_handler.moveFoot(nparr([1.8,0,-0.6]), 0,3, MoveType.LINEAR)
+            movement_handler.moveFoot(nparr([1.7,-0.5,-0.4]), 0,1.5, MoveType.LINEAR)
+            movement_handler.moveFoot(nparr([1.8,0,-0.6]), 0,1.5, MoveType.LINEAR)
+            movement_handler.moveFoot(nparr([1.8,0.5,-0.4]), 0,1.5, MoveType.LINEAR)
+            movement_handler.moveFoot(nparr([1.7,0,-0.6]), 0,1.5, MoveType.LINEAR)
+            movement_handler.moveFoot(nparr([1.5,0,1]), 0,3, MoveType.LINEAR)
+        if event.scan_code == keyboard.key_to_scan_codes("4")[0]:
+            movement_handler.moveFoot(nparr([1.8,0,-0.6]), 0,3, MoveType.LINEAR)
+            movement_handler.moveFoot(nparr([1.7,-0.5,-0.4]), 0,1.5, MoveType.LINEAR)
             
         # if event.scan_code == keyboard.key_to_scan_codes("5")[0]:
             

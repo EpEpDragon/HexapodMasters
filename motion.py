@@ -1,5 +1,4 @@
 from math import sin, asin, cos, acos, tan, atan, pi
-from math import copysign
 from math import sqrt
 
 from numpy import deg2rad, rad2deg
@@ -8,6 +7,8 @@ from typing import NamedTuple
 from collections import deque
 
 from dataclasses import dataclass
+from enum import Enum
+
 NUM_ACTUATORS = 6
 
 UPPER_LEG = 1
@@ -15,16 +16,25 @@ UPPER_LEG_2 = UPPER_LEG*UPPER_LEG
 LOWER_LEG = 1
 LOWER_LEG_2 = LOWER_LEG*LOWER_LEG
 
+class MoveType(Enum):
+    LINEAR = 1
+    SPHERICAL = 2
+
 @dataclass
 class Movement:
     target : nparr
     duration : float
+    type : MoveType
     start : nparr = nparr([0,0])
     t : float = 0.0
     next = None
 
 def lerp(a,b,t):
     return a + (b-a)*t
+
+def slerp(a,b,t):
+    ang = acos(a.dot(b)/sqrt(a.dot(a)*b.dot(b)))
+    return (sin((1-t)*ang)/sin(ang))*a + (sin(t*ang)/sin(ang))*b
 
 # TODO Try make IK this work wothout sqrt
 def solveIK(x,y,z) -> list[float]:
@@ -70,21 +80,30 @@ class MovementHandler:
          for id in range(NUM_ACTUATORS):
             if len(self.movements[id]) == 0:
                 continue
+                
+            # Interpolate foot position
+            match self.movements[id][0].type:
+                case MoveType.LINEAR:
+                    curr_target = lerp(self.movements[id][0].start, self.movements[id][0].target, self.movements[id][0].t)
+                case MoveType.SPHERICAL:
+                    c = self.movements[id][0].start + (self.movements[id][0].target - self.movements[id][0].start)/2
+                    curr_target = c + slerp(self.movements[id][0].start - c, self.movements[id][0].target - c, self.movements[id][0].t)
 
-            curr_target = lerp(self.movements[id][0].start, self.movements[id][0].target, self.movements[id][0].t)
-            print(curr_target)
+            # Solve IK
+            [yaw,pitch,knee] = solveIK(curr_target[0], curr_target[1], curr_target[2])
+            
+            # Apply actuator commands
+            self.ctrl[id*3] = yaw
+            self.ctrl[id*3 + 1] = pitch
+            self.ctrl[id*3 + 2] = knee
+            self.movements[id][0].t += dt/self.movements[id][0].duration
+
+            # Check finish condition
             if max(abs(curr_target - self.movements[id][0].target)) < 0.01:
                 self.movements[id].popleft()
                 if len(self.movements[id]) != 0:
                     self.movements[id][0].start = self.find_foot_pos(id)
                 continue
-
-            [yaw,pitch,knee] = solveIK(curr_target[0], curr_target[1], curr_target[2])
-            
-            self.ctrl[id*3] = yaw
-            self.ctrl[id*3 + 1] = pitch
-            self.ctrl[id*3 + 2] = knee
-            self.movements[id][0].t += dt/self.movements[id][0].duration
             # self.ctrl[id] = self.ctrl[id] + copysign(self.movements[id][0].speed, self.movements[id][0].target - self.qpos[id + self.qpos_start_id]) * dt
             # if self.movements[id][0].t > 1:
             #     self.movements[id].popleft()
@@ -95,13 +114,13 @@ class MovementHandler:
     def addMovementT(self, target, id, time):
         self.movements[id].append(Movement(target, abs(self.qpos[id + self.qpos_start_id] - target)/time))
     
-    def moveFoot(self, target, id, time):
+    def moveFoot(self, target, id, time, type):
         curr_pos = self.find_foot_pos(id)
         # diff = target - self.find_foot_pos(id)
         if len(self.movements[id]) == 0:
-            self.movements[id].append(Movement(target, time, curr_pos))
+            self.movements[id].append(Movement(target, time, type, curr_pos))
         else:
-            self.movements[id].append(Movement(target, time))
+            self.movements[id].append(Movement(target, time, type))
 
     def setHeight(self, h):
         self.height = h
