@@ -2,9 +2,11 @@ from math import sin, asin, cos, acos, tan, atan, pi
 from math import sqrt
 
 from numpy import deg2rad, rad2deg
-from numpy import array as nparr
-from typing import NamedTuple
+import numpy as np
 from collections import deque
+
+import quaternion
+from quaternion import from_vector_part, as_vector_part
 
 from dataclasses import dataclass
 from enum import Enum
@@ -16,16 +18,23 @@ UPPER_LEG_2 = UPPER_LEG*UPPER_LEG
 LOWER_LEG = 1
 LOWER_LEG_2 = LOWER_LEG*LOWER_LEG
 
+offsets = [{"position" : np.array([0.6062, 0.35, 0.0]), "angle" : deg2rad(30)},
+           {"position" : np.array([0.6062, -0.35, 0.0]), "angle" : deg2rad(-30)},
+           {"position" : np.array([0.0, 0.7, 0.0]), "angle" : deg2rad(90)},
+           {"position" : np.array([0.0, -0.7, 0.0]), "angle" : deg2rad(-90)},
+           {"position" : np.array([-0.6062, 0.35, 0.0]), "angle" : deg2rad(150)},
+           {"position" : np.array([-0.6062, -0.35, 0.0]), "angle" : deg2rad(-150)}]
+
 class MoveType(Enum):
     LINEAR = 1
     SPHERICAL = 2
 
 @dataclass
 class Movement:
-    target : nparr
+    target : np.array
     duration : float
     type : MoveType
-    start : nparr = nparr([0,0])
+    start : np.array = np.array([0,0])
     t : float = 0.0
     next = None
 
@@ -36,8 +45,14 @@ def slerp(a,b,t):
     ang = acos(a.dot(b)/sqrt(a.dot(a)*b.dot(b)))
     return (sin((1-t)*ang)/sin(ang))*a + (sin(t*ang)/sin(ang))*b
 
+def rotate_vec(vector, axis, angle):
+    angle /= 2
+    s = sin(angle)
+    q = np.quaternion(cos(angle), s*axis[0], s*axis[1], s*axis[2])
+    return as_vector_part(q*from_vector_part(vector)*q.conjugate())
+
 # TODO Try make IK this work wothout sqrt
-def solveIK(x,y,z) -> list[float]:
+def solve_ik(x,y,z) -> list[float]:
     # Root to target distance squared
     dist2 = x*x + y*y + z*z
     dist = sqrt(dist2)
@@ -72,11 +87,11 @@ class MovementHandler:
         curr_pitch = self.ctrl[id*3 + 1]
         curr_knee = self.ctrl[id*3 + 2]
 
-        knee_rel = nparr([cos(curr_pitch)*cos(curr_yaw), cos(curr_pitch)*sin(curr_yaw), sin(curr_pitch)])*UPPER_LEG
-        foot_rel = nparr([cos(curr_pitch+curr_knee)*cos(curr_yaw), cos(curr_pitch+curr_knee)*sin(curr_yaw), sin(curr_pitch+curr_knee)])*LOWER_LEG
+        knee_rel = np.array([cos(curr_pitch)*cos(curr_yaw), cos(curr_pitch)*sin(curr_yaw), sin(curr_pitch)])*UPPER_LEG
+        foot_rel = np.array([cos(curr_pitch+curr_knee)*cos(curr_yaw), cos(curr_pitch+curr_knee)*sin(curr_yaw), sin(curr_pitch+curr_knee)])*LOWER_LEG
         return  knee_rel + foot_rel
         
-    def updateMoves(self, dt):
+    def update_moves(self, dt):
          for id in range(NUM_ACTUATORS):
             if len(self.movements[id]) == 0:
                 continue
@@ -90,7 +105,7 @@ class MovementHandler:
                     curr_target = c + slerp(self.movements[id][0].start - c, self.movements[id][0].target - c, self.movements[id][0].t)
 
             # Solve IK
-            [yaw,pitch,knee] = solveIK(curr_target[0], curr_target[1], curr_target[2])
+            [yaw,pitch,knee] = solve_ik(curr_target[0], curr_target[1], curr_target[2])
             
             # Apply actuator commands
             self.ctrl[id*3] = yaw
@@ -104,25 +119,19 @@ class MovementHandler:
                 if len(self.movements[id]) != 0:
                     self.movements[id][0].start = self.find_foot_pos(id)
                 continue
-            # self.ctrl[id] = self.ctrl[id] + copysign(self.movements[id][0].speed, self.movements[id][0].target - self.qpos[id + self.qpos_start_id]) * dt
-            # if self.movements[id][0].t > 1:
-            #     self.movements[id].popleft()
 
-    def addMovementS(self, target, id, speed):
-        self.movements[id].append(Movement(target, speed))
-    
-    def addMovementT(self, target, id, time):
-        self.movements[id].append(Movement(target, abs(self.qpos[id + self.qpos_start_id] - target)/time))
-    
-    def moveFoot(self, target, id, time, type):
+
+    def move_foot(self, target, id, time, type):
         curr_pos = self.find_foot_pos(id)
-        # diff = target - self.find_foot_pos(id)
+        target -= offsets[id]["position"]
+        target = rotate_vec(target,np.array([0,0,1]), -offsets[id]["angle"])
         if len(self.movements[id]) == 0:
             self.movements[id].append(Movement(target, time, type, curr_pos))
         else:
             self.movements[id].append(Movement(target, time, type))
 
-    def setHeight(self, h):
+
+    def set_height(self, h):
         self.height = h
         print("Height set")
 

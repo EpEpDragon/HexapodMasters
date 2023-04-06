@@ -5,7 +5,7 @@
     <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>
     <texture builtin="flat" height="1278" mark="cross" markrgb="1 1 1" name="texgeom" random="0.01" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" type="cube" width="127"/>
     <texture builtin="checker" height="100" name="texplane" rgb1="0 0 0" rgb2="0.8 0.8 0.8" type="2d" width="100"/>
-    <material name="MatPlane" reflectance="0.5" shininess="1" specular="1" texrepeat="60 60" texture="texplane"/>
+    <material name="MatPlane" reflectance="0.5" shininess="1" specular="1" texrepeat="40 40" texture="texplane"/>
     <material name="geom" texture="texgeom" texuniform="true"/>
   </asset>
 
@@ -15,8 +15,8 @@
       <geom  type="box" condim="1" density="500"/>
       <joint type="hinge" damping="300" armature=".01" limited="true"/>
       <default class="yaw">
-        <joint axis="0 0 1" range="-45 45"/>
-        <position ctrlrange="-0.785 0.785"/>
+        <joint axis="0 0 1" range="-90 90"/>
+        <position ctrlrange="-1.5708 1.5708"/>
         <geom fromto="0 0 0 0.1 0 0" size="0.1"/>
       </default>
       <default class="pitch">
