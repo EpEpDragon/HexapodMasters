@@ -1,55 +1,103 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import cmath
-from mpl_toolkits import mplot3d
+"""
 
-from math import sin, asin, cos, acos, tan, atan, pi
-from math import sqrt
+raylib [shapes] example - Following Eyes
 
-def q_mult(q1, q2):
-    w1, x1, y1, z1 = q1
-    w2, x2, y2, z2 = q2
-    w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
-    x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
-    y = w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2
-    z = w1 * z2 + z1 * w2 + x1 * y2 - y1 * x2
-    return w, x, y, z
+"""
+from walkStateMachine import WalkCycleMachine
 
-def q_conjugate(q):
-    w, x, y, z = q
-    return (w, -x, -y, -z)
+from pyray import *
+from raylib import colors as color
+from numpy import deg2rad
+from math import (
+    atan2,
+    cos,
+    sin
+)
 
-a = np.array([1.0, 0.0, 0.0])
-b = np.array([2.0, 0.0, 0.0])
-c = a + (b - a)/2
-diff = b - a
-n = np.cross(diff, np.array([0,0,1]))
-print(n)
-ang = 0 + (pi/4)/2
-q1 = np.array([cos(ang), sin(ang)*n[0], sin(ang)*n[1], sin(ang)*n[2]])
-q2 = q1*np.array([1,-1,-1,-1])
-print(q1)
-print(q2)
-print()
-print(ang)
+from raylib import (
+    MOUSE_BUTTON_LEFT,
+    MOUSE_BUTTON_MIDDLE,
+    MOUSE_BUTTON_RIGHT,
+    MOUSE_BUTTON_SIDE,
+    MOUSE_BUTTON_EXTRA,
+    MOUSE_BUTTON_FORWARD,
+    MOUSE_BUTTON_BACK
+)
 
-xline = []
-yline = []
-zline = []
+# Initialization
+# ----------------------------------------------------------------------------------
+screenWidth = 800
+screenHeight = 450
 
-t = np.linspace(0.0, 1.0, 100)
+body_radius = 20
+foot_radius = 10
 
-for i in t:
-    ang = 0 + (pi*i)/2
-    q1 = np.array([cos(ang), sin(ang)*n[0], sin(ang)*n[1], sin(ang)*n[2]])
-    q2 = q1*np.array([1,-1,-1,-1])
-    out = q_mult(q_mult(q1,np.append([0],a)),q2)[1:4]
-    xline.append(out[0])
-    yline.append(out[1])
-    zline.append(out[2])
+body_pos = Vector2(screenWidth / 2.0 , screenHeight / 2.0)
+foot_pos = [Vector2(86.6, -50.0), Vector2(86.6, 50.0), 
+            Vector2(0, -100.0), Vector2(0, 100.0), 
+            Vector2(-86.6, -50.0), Vector2(-86.6, 50.0)]
 
-fig = plt.figure
-ax = plt.axes(projection='3d')
-ax.plot3D(xline,yline,zline)
-plt.show()
+walk_direction = vector2_normalize(vector2_subtract(get_mouse_position(), body_pos))
+                               
+walk_machine = WalkCycleMachine()
+walk_machine.active
 
+def find_active(walk_direction):
+    if walk_direction is None:
+        print("Rest")
+    else:
+        angle = vector2_angle(walk_direction, Vector2(1,0))
+        if (0.0 < angle and angle < deg2rad(60)) or (deg2rad(120) < angle and angle < deg2rad(180)) or (deg2rad(240) < angle and angle < deg2rad(300)):
+            walk_machine.active = [0,3,4]
+        else:
+            walk_machine.active= [1,2,5]
+        print(angle)
+
+init_window(screenWidth, screenHeight, "Walk cycle test")
+
+set_target_fps(60)
+# ----------------------------------------------------------------------------------
+
+# Main game loop
+while not window_should_close():  # Detect window close button or ESC key
+    # Update
+    # ----------------------------------------------------------------------------------
+    if is_mouse_button_down(MOUSE_BUTTON_LEFT):
+        walk_direction = vector2_normalize(vector2_subtract(get_mouse_position(), body_pos))
+    elif is_mouse_button_down(MOUSE_BUTTON_RIGHT):
+        walk_direction = None
+    find_active(walk_direction)
+    # ----------------------------------------------------------------------------------
+
+    # draw
+    # ----------------------------------------------------------------------------------
+    begin_drawing()
+
+    clear_background(color.RAYWHITE)
+
+    draw_circle_v(body_pos, body_radius, color.RED)
+
+    if walk_machine.active[0] == 0:
+        draw_circle_v(vector2_add(foot_pos[0], body_pos), foot_radius, color.GREEN)
+        draw_circle_v(vector2_add(foot_pos[1], body_pos), foot_radius, color.RED)
+        draw_circle_v(vector2_add(foot_pos[2], body_pos), foot_radius, color.RED)
+        draw_circle_v(vector2_add(foot_pos[3], body_pos), foot_radius, color.GREEN)
+        draw_circle_v(vector2_add(foot_pos[4], body_pos), foot_radius, color.GREEN)
+        draw_circle_v(vector2_add(foot_pos[5], body_pos), foot_radius, color.RED)
+    else:
+        draw_circle_v(vector2_add(foot_pos[0], body_pos), foot_radius, color.RED)
+        draw_circle_v(vector2_add(foot_pos[1], body_pos), foot_radius, color.GREEN)
+        draw_circle_v(vector2_add(foot_pos[2], body_pos), foot_radius, color.GREEN)
+        draw_circle_v(vector2_add(foot_pos[3], body_pos), foot_radius, color.RED)
+        draw_circle_v(vector2_add(foot_pos[4], body_pos), foot_radius, color.RED)
+        draw_circle_v(vector2_add(foot_pos[5], body_pos), foot_radius, color.GREEN)
+
+    if walk_direction is not None:
+        draw_line_ex(body_pos, vector2_add(body_pos, vector2_scale(walk_direction, 100)),5,color.RED)
+    
+    draw_fps(10, 10)
+
+    end_drawing()
+
+# De-Initialization
+close_window()  # Close window and OpenGL context
