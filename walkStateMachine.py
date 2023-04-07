@@ -109,9 +109,12 @@ class WalkCycleMachine(StateMachine):
 
     # Logic
     # -------------------------------------------------------------------------------------------
-    def update(self, dt):
+    def update(self, walk_direction, speed, dt):
+        self.speed = speed
+        self.walk_direction = walk_direction
         self.update_targets()
         self.walk()
+
 
         if self.current_state == self.stepping:
             for i in range(6):

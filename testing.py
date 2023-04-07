@@ -60,17 +60,16 @@ walk_direction = Vector2(0,0)
 while not window_should_close():  # Detect window close button or ESC key
     # Input
     # ----------------------------------------------------------------------------------
-    walk_machine.speed += get_mouse_wheel_move()*5
+    speed = walk_machine.speed + get_mouse_wheel_move()*5
     if is_mouse_button_down(MOUSE_BUTTON_LEFT):
         walk_direction = vector2_normalize(vector2_subtract(get_mouse_position(), body_pos))
     if is_mouse_button_down(MOUSE_BUTTON_RIGHT):
         walk_direction = Vector2(0,0)
-    walk_machine.walk_direction = a([walk_direction.x, walk_direction.y])
 
     # Update
     # ----------------------------------------------------------------------------------
     dt = get_frame_time()
-    walk_machine.update(dt)
+    walk_machine.update(a([walk_direction.x, walk_direction.y]), speed, dt)
     # ----------------------------------------------------------------------------------
 
     # draw
