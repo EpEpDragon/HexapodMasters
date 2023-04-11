@@ -5,132 +5,55 @@ from math import sin, cos, tan, pi
 from numpy import deg2rad, rad2deg
 import numpy as np
 
-from walkStateMachine import WalkCycleMachine
-from walkStateMachine import REST_POS
-
 import keyboard
 import windowFuncs
+
+from walkStateMachine import WalkCycleMachine
+
+from controlInterface import ControInterface
 
 import motion
 from motion import MoveType
 
-def input(event):
 
+def input(event):
     # print(get_active_window_title())
     window = windowFuncs.get_active_window_title()
     if window == "MuJoCo : MuJoCo Model":
-        if event.scan_code == keyboard.key_to_scan_codes("1")[0]:
-            walk_machine.walk_direction = np.array([0,1])
-        if event.scan_code == keyboard.key_to_scan_codes("2")[0]:
-            walk_machine.walk_direction = np.array([0,0])
-        #     # motion.stand(movement_handler)
-        #     movement_handler.move_foot(np.array([0.707*2,0.707*2,0.0]),0,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0.707*2,-0.707*2,0.0]),1,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0,2,0.0]),2,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0,-2,0.0]),3,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2,0.707*2,0.0]),4,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2,-0.707*2,0.0]),5,3, MoveType.LINEAR)
-        # if event.scan_code == keyboard.key_to_scan_codes("2")[0]:
-        #     movement_handler.move_foot(np.array([0.707*2,0.707*2,0.5]),0,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0.707*2,-0.707*2,0.5]),1,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0,2,0.5]),2,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0,-2,0.5]),3,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2,0.707*2,0.5]),4,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2,-0.707*2,0.5]),5,3, MoveType.LINEAR)
-        # # Rise
-        # if event.scan_code == keyboard.key_to_scan_codes("3")[0]:
-        #     # Active
-        #     movement_handler.move_foot(np.array([0.707*2,0.707*2,0.7]),0,0.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0,-2,0.7]),3,0.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2,0.707*2,0.7]),4,0.5, MoveType.LINEAR)
+        if event.scan_code == keyboard.key_to_scan_codes("1")[0]:            
+            windowFuncs.move_size_window("MuJoCo : MuJoCo Model",0,0.5,0,0.5,1)
 
-        #     # Inactive
-        #     movement_handler.move_foot(np.array([0.707*2,-0.707*2,0.5]),1,0.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0,2,0.5]),2,0.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2,-0.707*2,0.5]),5,0.5, MoveType.LINEAR)
-        # # Forward
-        # if event.scan_code == keyboard.key_to_scan_codes("4")[0]:
-        #     # Active
-        #     movement_handler.move_foot(np.array([0.707*2+0.3,0.707*2,0.7]),0,3, MoveType.LINEAR)
-            
-        #     # Inactive
-        #     movement_handler.move_foot(np.array([0.707*2-0.3,-0.707*2,0.5]),1,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0-0.3,2,0.5]),2,3, MoveType.LINEAR)
-            
-        #     # Active
-        #     movement_handler.move_foot(np.array([0+0.3,-2,0.7]),3,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2+0.3,0.707*2,0.7]),4,3, MoveType.LINEAR)
-            
-        #     # Inactive
-        #     movement_handler.move_foot(np.array([-0.707*2-0.3,-0.707*2,0.5]),5,3, MoveType.LINEAR)
-        # # Fall
-        # if event.scan_code == keyboard.key_to_scan_codes("5")[0]:
-        #     # Active
-        #     movement_handler.move_foot(np.array([0.707*2+0.3,0.707*2,0.5]),0,0.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0+0.3,-2,0.5]),3,0.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2+0.3,0.707*2,0.5]),4,0.5, MoveType.LINEAR)
-
-        #     # Inactive
-        #     movement_handler.move_foot(np.array([0.707*2-0.3,-0.707*2,0.5]),1,0.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0-0.3,2,0.5]),2,0.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2-0.3,-0.707*2,0.5]),5,0.5, MoveType.LINEAR)
-        
-        # # Rise2
-        # if event.scan_code == keyboard.key_to_scan_codes("6")[0]:
-        #     # Active
-        #     movement_handler.move_foot(np.array([0.707*2-0.3,-0.707*2,0.7]),1,0.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0-0.3,2,0.7]),2,0.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2-0.3,-0.707*2,0.7]),5,0.5, MoveType.LINEAR)
-
-        #     # Inactive
-        #     movement_handler.move_foot(np.array([0.707*2+0.3,0.707*2,0.5]),0,0.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0+0.3,-2,0.5]),3,0.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2+0.3,0.707*2,0.5]),4,0.5, MoveType.LINEAR)
-        # # Forward2
-        # if event.scan_code == keyboard.key_to_scan_codes("7")[0]:
-        #     # Active
-        #     movement_handler.move_foot(np.array([0.707*2+0.3,-0.707*2,0.7]),1,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0+0.3,2,0.7]),2,3, MoveType.LINEAR)
-            
-        #     # Inactive
-        #     movement_handler.move_foot(np.array([0.707*2-0.3,0.707*2,0.5]),0,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0-0.3,-2,0.5]),3,3, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2-0.3,0.707*2,0.5]),4,3, MoveType.LINEAR)
-            
-        #     # Active
-        #     movement_handler.move_foot(np.array([-0.707*2+0.3,-0.707*2,0.7]),5,3, MoveType.LINEAR)
-        # # Fall2
-        # if event.scan_code == keyboard.key_to_scan_codes("8")[0]:
-        #     # Active
-        #     movement_handler.move_foot(np.array([0.707*2+0.3,-0.707*2,0.5]),1,1.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0+0.3,2,0.5]),2,1.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2+0.3,-0.707*2,0.5]),5,1.5, MoveType.LINEAR)
-
-        #     # Inactive
-        #     movement_handler.move_foot(np.array([0.707*2-0.3,0.707*2,0.5]),0,1.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([0-0.3,-2,0.5]),3,1.5, MoveType.LINEAR)
-        #     movement_handler.move_foot(np.array([-0.707*2-0.3,0.707*2,0.5]),4,1.5, MoveType.LINEAR)
 
 if __name__ == '__main__':
+    # Setup model
+    model = mujoco.MjModel.from_xml_path("hexapod.xml")
+    data = mujoco.MjData(model)
+    timestep = model.opt.timestep
+    
+    # Start walkin state machine
     walk_machine = WalkCycleMachine()
     walk_machine.speed = 0.5
 
+    # Start contorl interface
+    control_interface = ControInterface()
     keyboard.on_press(input)
-    model = mujoco.MjModel.from_xml_path("hexapod.xml")
-    mujoco.GLContext
-
-    data = mujoco.MjData(model)
-    timestep = model.opt.timestep
-    error = 0.0 # Timestep error integrator
-
-    movement_handler = motion.MovementHandler(data.ctrl, data.qpos)
     
+    # Start movement handler
+    movement_handler = motion.MovementHandler(data.ctrl, data.qpos)    
+
+    # Start simulation
     viewer.launch_passive(model, data)
-    
-    scene = mujoco.MjvScene(model, 20)
+    time.sleep(1)
+    windowFuncs.move_size_window("MuJoCo : MuJoCo Model",0,0,0,0.8,1)
+    windowFuncs.move_size_window("Control Interface",0,0.8,0,0.2,1)
+    # Used for real time sim
+    error = 0.0 # Timestep error integrator
     start_time = time.perf_counter()
     dt = 0.0
+    
     while True:
+        # windowFuncs.move_size_window("MuJoCo : MuJoCo Model",0,0.5,0,0.5,1)
+        control_interface.update(walk_machine)
         step_start = time.perf_counter()
         walk_machine.update(walk_machine.walk_direction,walk_machine.speed,timestep)
         # Move actuators
@@ -140,7 +63,7 @@ if __name__ == '__main__':
         # Step by integrating timestep error to simulation in (approximatley) real time
         mujoco.mj_step(model, data)
         step_elapse = time.perf_counter() - step_start
-        time.sleep(max(min(timestep - step_elapse - error, 1), 0))  # Delay remaining timestep - error
+        time.sleep(max(min(timestep - step_elapse - error, 1), 0)) # Delay remaining timestep - error
         dt = time.perf_counter() - step_start
-        error +=  dt - timestep        # Integrate error
+        error +=  dt - timestep # Integrate error
         # print(dt)
