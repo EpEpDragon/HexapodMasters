@@ -46,7 +46,7 @@ body_pos = Vector2(screenWidth / 2.0 , screenHeight / 2.0)
 # angle = 0.0
 
 walk_machine = WalkCycleMachine()
-walk_machine.active
+# walk_machine.active
 
 
 

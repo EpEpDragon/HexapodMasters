@@ -18,7 +18,7 @@ UPPER_LEG_2 = UPPER_LEG*UPPER_LEG
 LOWER_LEG = 1
 LOWER_LEG_2 = LOWER_LEG*LOWER_LEG
 
-offsets = [{"position" : np.array([0.6062, 0.35, 0.0]), "angle" : deg2rad(30)},
+OFFSETS = [{"position" : np.array([0.6062, 0.35, 0.0]), "angle" : deg2rad(30)},
            {"position" : np.array([0.6062, -0.35, 0.0]), "angle" : deg2rad(-30)},
            {"position" : np.array([0.0, 0.7, 0.0]), "angle" : deg2rad(90)},
            {"position" : np.array([0.0, -0.7, 0.0]), "angle" : deg2rad(-90)},
@@ -78,9 +78,9 @@ class MovementHandler:
         self.qpos = qpos
         self.qpos_start_id = qpos.size - NUM_ACTUATORS*3
         self.ctrl = ctrl
-        self.movements = []
+        self.movements = [None,None,None,None,None,None]
         self.height = 0.0
-        for i in range(NUM_ACTUATORS) : self.movements.append(deque())
+        # for i in range(NUM_ACTUATORS) : self.movements.append(deque())
 
     def find_foot_pos(self, id):
         curr_yaw = self.ctrl[id*3]
@@ -93,38 +93,48 @@ class MovementHandler:
         
     def update_moves(self, dt):
          for id in range(NUM_ACTUATORS):
-            if len(self.movements[id]) == 0:
+            if self.movements[id] == None:
                 continue
                 
             # Interpolate foot position
-            match self.movements[id][0].type:
-                case MoveType.LINEAR:
-                    curr_target = lerp(self.movements[id][0].start, self.movements[id][0].target, self.movements[id][0].t)
-                case MoveType.SPHERICAL:
-                    c = self.movements[id][0].start + (self.movements[id][0].target - self.movements[id][0].start)/2
-                    curr_target = c + slerp(self.movements[id][0].start - c, self.movements[id][0].target - c, self.movements[id][0].t)
+            # match self.movements[id].type:
+            #     case MoveType.LINEAR:
+            #         curr_target = lerp(self.movements[id].start, self.movements[id].target, self.movements[id].t)
+            #     case MoveType.SPHERICAL:
+            #         c = self.movements[id].start + (self.movements[id].target - self.movements[id].start)/2
+            #         curr_target = c + slerp(self.movements[id].start - c, self.movements[id].target - c, self.movements[id].t)
 
             # Solve IK
-            [yaw,pitch,knee] = solve_ik(curr_target[0], curr_target[1], curr_target[2])
+            # [yaw,pitch,knee] = solve_ik(curr_target, curr_target[1], curr_target[2])
+            [yaw,pitch,knee] = solve_ik(self.movements[id].target[0], self.movements[id].target[1], self.movements[id].target[2])
             
             # Apply actuator commands
             self.ctrl[id*3] = yaw
             self.ctrl[id*3 + 1] = pitch
             self.ctrl[id*3 + 2] = knee
-            self.movements[id][0].t += dt/self.movements[id][0].duration
+            # self.movements[id].t += dt/self.movements[id].duration
 
             # Check finish condition
-            if max(abs(curr_target - self.movements[id][0].target)) < 0.01:
-                self.movements[id].popleft()
-                if len(self.movements[id]) != 0:
-                    self.movements[id][0].start = self.find_foot_pos(id)
-                continue
+            # if max(abs(self.movements[id] - self.movements[id].target)) < 0.01:
+            #     self.movements[id] = None
+                # self.movements[id].popleft()
+                # if len(self.movements[id]) != 0:
+                #     self.movements[id][0].start = self.find_foot_pos(id)
+                # continue
+
+
+    def set_targets(self, targets):
+        for id in range(6):
+            target = np.array([targets[id][0],targets[id][1],0])
+            target -= OFFSETS[id]["position"]
+            target = rotate_vec(target,np.array([0,0,1]), -OFFSETS[id]["angle"])
+            self.movements[id] = Movement(target,0,0)
 
 
     def move_foot(self, target, id, time, type):
         curr_pos = self.find_foot_pos(id)
-        target -= offsets[id]["position"]
-        target = rotate_vec(target,np.array([0,0,1]), -offsets[id]["angle"])
+        target -= OFFSETS[id]["position"]
+        target = rotate_vec(target,np.array([0,0,1]), -OFFSETS[id]["angle"])
         if len(self.movements[id]) == 0:
             self.movements[id].append(Movement(target, time, type, curr_pos))
         else:

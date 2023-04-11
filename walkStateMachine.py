@@ -3,25 +3,28 @@ import numpy as np
 from numpy import array as a
 from numpy import deg2rad, rad2deg
 from math import acos, sqrt
-from pyray import *
+# from pyray import *
 
 # rest_pos = [Vector2(86.6, -50.0), Vector2(86.6, 50.0),
 #                 Vector2(0, -100.0), Vector2(0, 100.0),
 #                 Vector2(-86.6, -50.0), Vector2(-86.6, 50.0)]
 
-REST_POS = [a([86.6, -50.0]), a([86.6, 50.0]),
-            a([0.0, -100.0]), a([0.0, 100]),
-            a([-86.6, -50.0]), a([-86.6, 50.0])]
+# REST_POS = [a([86.6, -50.0]), a([86.6, 50.0]),
+#             a([0.0, -100.0]), a([0.0, 100]),
+#             a([-86.6, -50.0]), a([-86.6, 50.0])]
+REST_POS = [a([0.866, 0.500])*2, a([0.866, -0.500])*2,
+            a([0.0, 1.000])*2, a([0.0, -1.00])*2,
+            a([-0.866, 0.500])*2, a([-0.866, -0.500])*2]
 
-STRIDE_LENGTH = 30
-PLACE_TOLERANCE = 1
+STRIDE_LENGTH = 0.3
+PLACE_TOLERANCE = 0.01
 
 def find_angle(v):
     # return np.angle(v)
     if v[1] > 0:        
-        return -acos(np.clip((v@a([1,0]))/sqrt(v@v), -1.0, 1.0))
-    else:
         return acos(np.clip((v@a([1,0]))/sqrt(v@v), -1.0, 1.0))
+    else:
+        return -acos(np.clip((v@a([1,0]))/sqrt(v@v), -1.0, 1.0))
 
 def normalize(v):
     return v/sqrt(v@v)
@@ -39,12 +42,8 @@ class WalkCycleMachine(StateMachine):
         self.angle = 0.0
         self.speed = 50
         self.walk_direction = a([0,0])
-        self.foot_pos = [a([86.6, -50.0]), a([86.6, 50.0]),
-            a([0.0, -100.0]), a([0.0, 100]),
-            a([-86.6, -50.0]), a([-86.6, 50.0])]
-        self.targets = [a([86.6, -50.0]), a([86.6, 50.0]),
-            a([0.0, -100.0]), a([0.0, 100]),
-            a([-86.6, -50.0]), a([-86.6, 50.0])]
+        self.foot_pos = list(REST_POS)
+        self.targets = list(REST_POS)
         
         super(WalkCycleMachine, self).__init__()
 
@@ -101,6 +100,7 @@ class WalkCycleMachine(StateMachine):
         for i in range(6):
             if not (abs(self.foot_pos[i] - self.targets[i]) < PLACE_TOLERANCE).all():
                 return False
+        
         return True
     
     def has_speed(self):
@@ -119,6 +119,7 @@ class WalkCycleMachine(StateMachine):
         if self.current_state == self.stepping:
             for i in range(6):
                 self.foot_pos[i] = self.foot_pos[i] + (normalize(self.targets[i] - self.foot_pos[i])*self.speed*dt)
+        # print(self.foot_pos[0])
 
     def update_targets(self):
         for i in range(6):
