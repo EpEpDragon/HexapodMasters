@@ -60,7 +60,6 @@ class ControInterface():
 
         # Draw direction
         if not vector2_equals(self.walk_direction, Vector2(0,0)):
-            # body_pos = Vector2(get_screen_width() / 2.0 , get_screen_width() / 2.0)
             draw_line_ex(body_pos, vector2_add(body_pos, vector2_scale(self.walk_direction, 100)),5,Color.RED)
 
         # Draw text

@@ -22,7 +22,9 @@ def input(event):
     window = windowFuncs.get_active_window_title()
     if window == "MuJoCo : MuJoCo Model":
         if event.scan_code == keyboard.key_to_scan_codes("1")[0]:
-            walk_machine.walk_direction = a([0.707, 0.707, 0.0])
+            walk_machine.walk_direction = a([1, 1, 0])
+        if event.scan_code == keyboard.key_to_scan_codes("2")[0]:
+            walk_machine.walk_direction = a([0, 0, 0])
         if event.scan_code == keyboard.key_to_scan_codes(",")[0]:
             walk_machine.walk_direction = rotate_vec(walk_machine.walk_direction, a([0,0,1]),deg2rad(10))
         if event.scan_code == keyboard.key_to_scan_codes(".")[0]:

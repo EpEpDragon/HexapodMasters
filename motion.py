@@ -69,7 +69,6 @@ class MovementHandler:
         self.ctrl = ctrl
         self.movements = [None,None,None,None,None,None]
         self.height = 0.0
-        # for i in range(NUM_ACTUATORS) : self.movements.append(deque())
 
     def find_foot_pos(self, id):
         curr_yaw = self.ctrl[id*3]
@@ -84,14 +83,6 @@ class MovementHandler:
          for id in range(NUM_ACTUATORS):
             if self.movements[id] == None:
                 continue
-                
-            # Interpolate foot position
-            # match self.movements[id].type:
-            #     case MoveType.LINEAR:
-            #         curr_target = lerp(self.movements[id].start, self.movements[id].target, self.movements[id].t)
-            #     case MoveType.SPHERICAL:
-            #         c = self.movements[id].start + (self.movements[id].target - self.movements[id].start)/2
-            #         curr_target = c + slerp(self.movements[id].start - c, self.movements[id].target - c, self.movements[id].t)
 
             # Solve IK
             # [yaw,pitch,knee] = solve_ik(curr_target, curr_target[1], curr_target[2])
@@ -101,15 +92,6 @@ class MovementHandler:
             self.ctrl[id*3] = yaw
             self.ctrl[id*3 + 1] = pitch
             self.ctrl[id*3 + 2] = knee
-            # self.movements[id].t += dt/self.movements[id].duration
-
-            # Check finish condition
-            # if max(abs(self.movements[id] - self.movements[id].target)) < 0.01:
-            #     self.movements[id] = None
-                # self.movements[id].popleft()
-                # if len(self.movements[id]) != 0:
-                #     self.movements[id][0].start = self.find_foot_pos(id)
-                # continue
 
 
     def set_targets(self, targets):

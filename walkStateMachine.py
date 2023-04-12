@@ -4,16 +4,13 @@ from numpy import array as a
 from numpy import deg2rad, rad2deg
 from math import acos, sqrt
 
-# REST_POS = [a([86.6, -50.0]), a([86.6, 50.0]),
-#             a([0.0, -100.0]), a([0.0, 100]),
-#             a([-86.6, -50.0]), a([-86.6, 50.0])]
 REST_Z = 0.5
 REST_POS = [a([0.866, 0.500, REST_Z])*2, a([0.866, -0.500, REST_Z])*2,
             a([0.0, 1.000, REST_Z])*2, a([0.0, -1.00, REST_Z])*2,
             a([-0.866, 0.500, REST_Z])*2, a([-0.866, -0.500, REST_Z])*2]
-# REST_Z = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 STRIDE_LENGTH = 0.3
 PLACE_TOLERANCE = 0.01
+
 
 def find_angle(v):
     if v[1] > 0:        
@@ -21,11 +18,13 @@ def find_angle(v):
     else:
         return -acos(np.clip((v@a([1,0,0]))/sqrt(v@v), -1.0, 1.0))
 
+
 def normalize(v):
     try:
         return v/sqrt(v@v)
     except:
         return v/abs(v)
+
 
 class WalkCycleMachine(StateMachine):
     "A walk cycle machine"
@@ -42,7 +41,6 @@ class WalkCycleMachine(StateMachine):
         self.walk_direction = a([0,0,0])
         self.foot_pos = list(REST_POS)
         self.targets = list(REST_POS)
-        # self.targets_z = list(REST_Z)
         
         super(WalkCycleMachine, self).__init__()
 
@@ -61,17 +59,17 @@ class WalkCycleMachine(StateMachine):
         self.angle = angle
         if self.walk_direction is not None:
             id = -1
-            if 0.0 < angle and angle < deg2rad(60):
+            if 0.0 <= angle and angle < deg2rad(60):
                 id = 0
-            elif deg2rad(60) < angle and angle < deg2rad(120):
+            elif deg2rad(60) <= angle and angle < deg2rad(120):
                 id = 2
-            elif deg2rad(120) < angle and angle < deg2rad(180):
+            elif deg2rad(120) <= angle and angle < deg2rad(180):
                 id = 4
-            elif deg2rad(-180) < angle and angle < deg2rad(-120):
+            elif deg2rad(-180) <= angle and angle < deg2rad(-120):
                 id = 5
-            elif deg2rad(-120) < angle and angle < deg2rad(-60):
+            elif deg2rad(-120) <= angle and angle < deg2rad(-60):
                 id = 3
-            elif deg2rad(-60.0) < angle and angle < 0.0:
+            elif deg2rad(-60.0) <= angle and angle < 0.0:
                 id = 1
             if id == 0 or id == 3 or id == 4:
                 self.active[0] = True                
@@ -128,7 +126,7 @@ class WalkCycleMachine(StateMachine):
                 self.targets[i][2] = REST_Z*2 - min(dist, 0.1)
             else:
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
-                    
+
     # -------------------------------------------------------------------------------------------
 
     def is_long(self, id):
