@@ -1,5 +1,3 @@
-import threading
-
 from pyray import *
 from raylib import colors as Color
 
@@ -24,7 +22,7 @@ SCREEN_HEIGHT = 450
 
 BODY_RADIUS = 20
 FOOT_RADIUS = 10
-# body_pos = Vector2(SCREEN_WIDTH / 2.0 , SCREEN_HEIGHT / 2.0)
+
 
 class ControInterface():
     def __init__(self) -> None:
@@ -39,7 +37,7 @@ class ControInterface():
             self.walk_direction = vector2_normalize(vector2_subtract(get_mouse_position(), body_pos))
         if is_mouse_button_down(MOUSE_BUTTON_RIGHT):
             self.walk_direction = Vector2(0,0)
-        walk_machine.walk_direction = a([self.walk_direction.x, -self.walk_direction.y])
+        walk_machine.walk_direction = a([self.walk_direction.x, -self.walk_direction.y, 0.0])
 
         begin_drawing()
         clear_background(Color.RAYWHITE)
@@ -53,9 +51,9 @@ class ControInterface():
                 color = Color.GREEN
             else:
                 color = Color.RED
-            foot_pos_screen = walk_machine.foot_pos[id]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
+            foot_pos_screen = walk_machine.foot_pos[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
             foot_pos_screen = Vector2(foot_pos_screen[0], foot_pos_screen[1])
-            foot_target_screen = walk_machine.targets[id]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
+            foot_target_screen = walk_machine.targets[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
             draw_line_ex(body_pos, foot_pos_screen,2, color)
             draw_circle_v(Vector2(foot_target_screen[0], foot_target_screen[1]), FOOT_RADIUS, Color.GRAY)
             draw_circle_v(foot_pos_screen, FOOT_RADIUS, color)

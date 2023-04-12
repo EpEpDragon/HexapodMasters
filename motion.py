@@ -11,6 +11,8 @@ from quaternion import from_vector_part, as_vector_part
 from dataclasses import dataclass
 from enum import Enum
 
+from roboMath import rotate_vec
+
 NUM_ACTUATORS = 6
 
 UPPER_LEG = 1
@@ -37,19 +39,6 @@ class Movement:
     start : np.array = np.array([0,0])
     t : float = 0.0
     next = None
-
-def lerp(a,b,t):
-    return a + (b-a)*t
-
-def slerp(a,b,t):
-    ang = acos(a.dot(b)/sqrt(a.dot(a)*b.dot(b)))
-    return (sin((1-t)*ang)/sin(ang))*a + (sin(t*ang)/sin(ang))*b
-
-def rotate_vec(vector, axis, angle):
-    angle /= 2
-    s = sin(angle)
-    q = np.quaternion(cos(angle), s*axis[0], s*axis[1], s*axis[2])
-    return as_vector_part(q*from_vector_part(vector)*q.conjugate())
 
 # TODO Try make IK this work wothout sqrt
 def solve_ik(x,y,z) -> list[float]:
@@ -125,10 +114,7 @@ class MovementHandler:
 
     def set_targets(self, targets):
         for id in range(6):
-            target = np.array([targets[id][0],targets[id][1],0])
-            target -= OFFSETS[id]["position"]
-            target = rotate_vec(target,np.array([0,0,1]), -OFFSETS[id]["angle"])
-            self.movements[id] = Movement(target,0,0)
+            self.movements[id] = Movement(rotate_vec(targets[id] - OFFSETS[id]["position"],np.array([0,0,1]), -OFFSETS[id]["angle"]),0,0)
 
 
     def move_foot(self, target, id, time, type):
