@@ -43,7 +43,7 @@ if __name__ == '__main__':
     walk_machine.speed = 0.5
 
     # Start contorl interface
-    # control_interface = ControInterface()
+    control_interface = ControInterface()
     keyboard.on_press(input)
     
     # Start movement handler
@@ -59,10 +59,16 @@ if __name__ == '__main__':
     start_time = time.perf_counter()
     dt = 0.0
     
+    k = 0
     while True:
-        # control_interface.update(walk_machine)
+
+        if k % 20 == 0:
+            control_interface.update(walk_machine)
+            k = 0
+        k += 1
+        
         step_start = time.perf_counter()
-        walk_machine.update(walk_machine.walk_direction,walk_machine.speed,timestep)
+        walk_machine.update(timestep)
         # Move actuators
         movement_handler.set_targets(walk_machine.foot_pos)
         movement_handler.update_moves(timestep)

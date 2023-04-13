@@ -37,7 +37,7 @@ class WalkCycleMachine(StateMachine):
         self.active = a([False, False, False, False, False, False])
         self.stretch = [None,None]
         self.angle = 0.0
-        self.speed = 50
+        self.speed = 0.5
         self.walk_direction = a([0,0,0])
         self.foot_pos = list(REST_POS)
         self.targets = list(REST_POS)
@@ -106,9 +106,7 @@ class WalkCycleMachine(StateMachine):
 
     # Logic
     # -------------------------------------------------------------------------------------------
-    def update(self, walk_direction, speed, dt):
-        self.speed = speed
-        self.walk_direction = walk_direction
+    def update(self, dt):
         self.update_targets()
         self.walk()
 
