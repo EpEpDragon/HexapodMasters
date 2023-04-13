@@ -1,5 +1,6 @@
 from pyray import *
 from raylib import colors as Color
+# from raylib import FontType
 
 from raylib import (
     MOUSE_BUTTON_LEFT,
@@ -35,7 +36,7 @@ class ControInterface():
         # ----------------------------------------------------------------------------------
         walk_machine.speed = walk_machine.speed + get_mouse_wheel_move()*0.1
         # Walk direction 
-        body_pos = Vector2(get_screen_width() / 2.0 , get_screen_height() / 2.0)
+        body_pos = Vector2(get_screen_width() / 2.0 , 210)
         if is_mouse_button_down(MOUSE_BUTTON_LEFT):
             self.walk_direction = vector2_normalize(vector2_subtract(get_mouse_position(), body_pos))
         if is_mouse_button_down(MOUSE_BUTTON_RIGHT):
@@ -67,13 +68,18 @@ class ControInterface():
         # Draw body
         draw_circle_v(body_pos, BODY_RADIUS, Color.YELLOW)
 
+        # Divider
+        draw_line(10,420,get_screen_width()-10,420,Color.GRAY)
+        draw_line(10,430,get_screen_width()-10,430,Color.GRAY)
+        
         # Draw text
         if walk_machine.current_state == walk_machine.rest:
             color = Color.YELLOW
         elif walk_machine.current_state == walk_machine.stepping:
             color = Color.GREEN
-        draw_text(walk_machine.current_state.name, 10, 10, 20, color)
-        draw_text("Speed: %.2f" % walk_machine.speed, 10, 30, 20, Color.LIGHTGRAY)
+        draw_text(walk_machine.current_state.name, 10, 440, 20, color)
+        draw_text("Speed: %.2f" % walk_machine.speed, 10, 470, 20, Color.LIGHTGRAY)
+
         end_drawing()
         # ----------------------------------------------------------------------------------
     
