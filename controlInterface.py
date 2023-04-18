@@ -1,7 +1,6 @@
 from pyray import *
 from raylib import colors as Color
 from walkStateMachine import SPEED_MAX,HEIGHT_MAX
-# from raylib import FontType
 
 from raylib import (
     MOUSE_BUTTON_LEFT,
@@ -43,7 +42,7 @@ class ProgressBar():
         self.v_size = v_size
         self.v_x = int(self.x + self.w*0.1 + tab_x)
         self.v_y = int(self.y + self.h*0.5 - v_size/2)
-
+    
     def update(self, p, v):
         draw_rectangle(self.x + self.tab_x, self.y,self.w, self.h, self.c_back)         # Background bar
         draw_rectangle(self.x + self.tab_x, self.y, int(self.w*p), self.h,self.c_front) # Foreground bar
@@ -51,22 +50,32 @@ class ProgressBar():
         draw_text(v, self.v_x, self.v_y, self.v_size, self.t_color)                     # Value text
 
 class ControInterface():
-    def __init__(self) -> None:
+    def __init__(self, walk_machine) -> None:
+        self.walk_machine = walk_machine
         self.walk_direction = Vector2(0,0)
         self.speed_bar = ProgressBar(10, 470, 300, 25, 200, Color.PURPLE, Color.DARKPURPLE, 'Speed')
         self.height_bar = ProgressBar(10, 500, 300, 25, 200, Color.PURPLE, Color.DARKPURPLE, 'Height')
         set_config_flags(ConfigFlags.FLAG_WINDOW_RESIZABLE)
         init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Control Interface")
     
-    def update(self, walk_machine):
+    def increase_height(self, event):
+        self.walk_machine.set_height(self.walk_machine.height + 0.01)
+    def decrease_height(self, event):
+        self.walk_machine.set_height(self.walk_machine.height - 0.01)
+    
+    def update_input(self):
+        if is_key_down(KEY_SPACE):
+            self.walk_machine.set_height(self.walk_machine.height + 0.001)
+        elif is_key_down(KEY_LEFT_SHIFT):
+            self.walk_machine.set_height(self.walk_machine.height - 0.001)        
+    def update(self):
         # Input
         # ----------------------------------------------------------------------------------
-        walk_machine.set_speed(walk_machine.speed + get_mouse_wheel_move()*0.1)
-        if is_key_down(KEY_SPACE):
-            walk_machine.set_height(walk_machine.height + 0.01)
-        elif is_key_down(KEY_LEFT_SHIFT):
-            walk_machine.set_height(walk_machine.height - 0.01)
-
+        self.walk_machine.set_speed(self.walk_machine.speed + get_mouse_wheel_move()*0.1)
+        # if is_key_down(KEY_SPACE):
+        #     self.walk_machine.set_height(self.walk_machine.height + 0.005)
+        # elif is_key_down(KEY_LEFT_SHIFT):
+        #     self.walk_machine.set_height(self.walk_machine.height - 0.005)
         # Walk direction
         body_pos = Vector2(get_screen_width() / 2.0 , 210)
         if is_mouse_button_down(MOUSE_BUTTON_LEFT):
@@ -75,7 +84,7 @@ class ControInterface():
         if is_mouse_button_down(MOUSE_BUTTON_RIGHT):
             if mouse_in_box(0,0,get_screen_width(),420):
                 self.walk_direction = Vector2(0,0)
-        walk_machine.walk_direction = a([self.walk_direction.x, -self.walk_direction.y, 0.0])
+        self.walk_machine.walk_direction = a([self.walk_direction.x, -self.walk_direction.y, 0.0])
         # ----------------------------------------------------------------------------------
 
         # draw
@@ -84,13 +93,13 @@ class ControInterface():
         clear_background((64, 64, 64, 255))
         # Draw Legs
         for id in range(6):
-            if walk_machine.active[id]:
+            if self.walk_machine.active[id]:
                 color = Color.GREEN
             else:
                 color = Color.RED
-            foot_pos_screen = walk_machine.foot_pos[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
+            foot_pos_screen = self.walk_machine.foot_pos[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
             foot_pos_screen = Vector2(foot_pos_screen[0], foot_pos_screen[1])
-            foot_target_screen = walk_machine.targets[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
+            foot_target_screen = self.walk_machine.targets[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
             draw_line_ex(body_pos, foot_pos_screen,2, color)
             draw_circle_v(Vector2(foot_target_screen[0], foot_target_screen[1]), FOOT_RADIUS, Color.GRAY)
             draw_circle_v(foot_pos_screen, FOOT_RADIUS, color)
@@ -107,14 +116,14 @@ class ControInterface():
         draw_line(10,430,get_screen_width()-10,430,Color.GRAY)
 
         # Draw text
-        if walk_machine.current_state == walk_machine.rest:
+        if self.walk_machine.current_state == self.walk_machine.rest:
             color = Color.YELLOW
-        elif walk_machine.current_state == walk_machine.stepping:
+        elif self.walk_machine.current_state == self.walk_machine.stepping:
             color = Color.GREEN
-        draw_text(walk_machine.current_state.name, 10, 440, 20, color)
-        # draw_text("Speed: %.2f" % walk_machine.speed, 10, 470, 20, Color.LIGHTGRAY)
-        self.speed_bar.update(walk_machine.speed/SPEED_MAX, '%.2f' % walk_machine.speed)
-        self.height_bar.update(walk_machine.height/HEIGHT_MAX, '%.2f' % walk_machine.height)
+        draw_text(self.walk_machine.current_state.name, 10, 440, 20, color)
+        # draw_text("Speed: %.2f" % self.walk_machine.speed, 10, 470, 20, Color.LIGHTGRAY)
+        self.speed_bar.update(self.walk_machine.speed/SPEED_MAX, '%.2f' % self.walk_machine.speed)
+        self.height_bar.update(self.walk_machine.height/HEIGHT_MAX, '%.2f' % self.walk_machine.height)
 
         end_drawing()
         # ----------------------------------------------------------------------------------

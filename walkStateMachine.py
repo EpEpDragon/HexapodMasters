@@ -12,7 +12,7 @@ STRIDE_LENGTH = 0.3
 PLACE_TOLERANCE = 0.01
 
 SPEED_MAX = 2
-HEIGHT_MAX = 1
+HEIGHT_MAX = 1.15
 
 
 def find_angle(v):
@@ -34,7 +34,7 @@ class WalkCycleMachine(StateMachine):
     rest = State(initial=True, enter="deactivate_all")
     stepping = State(enter="find_active")
      
-    walk = rest.to(stepping, cond="has_speed") | stepping.to(rest, cond="step_finished") | rest.to.itself(internal=True) | stepping.to.itself(internal=True) 
+    walk = rest.to(stepping, cond="should_adjust") | stepping.to(rest, cond="step_finished") | rest.to.itself(internal=True) | stepping.to.itself(internal=True) 
 
     def __init__(self):
         self.active = a([False, False, False, False, False, False])
@@ -57,6 +57,9 @@ class WalkCycleMachine(StateMachine):
         self.active[5] = False
 
     def find_active(self):
+        if (self.walk_direction == a([0,0,0])).all():
+            self.deactivate_all()
+            return
         angle = find_angle(self.walk_direction)
         self.angle = angle
         if self.walk_direction is not None:
@@ -102,7 +105,10 @@ class WalkCycleMachine(StateMachine):
         
         return True
     
-    def has_speed(self):
+    def should_adjust(self):
+        for i in range(6):
+            if not abs(self.foot_pos[i][2] - self.targets[i][2]) < PLACE_TOLERANCE:
+                return True
         return not (self.walk_direction == a([0,0,0])).all()
     # -------------------------------------------------------------------------------------------
 

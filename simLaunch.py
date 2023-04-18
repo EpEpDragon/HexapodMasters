@@ -19,7 +19,7 @@ is_sim_running = True
 def input(event):
     # print(get_active_window_title())
     window = windowFuncs.get_active_window_title()
-    if window == "MuJoCo : MuJoCo Model":
+    if window == "MuJoCo : MuJoCo Model" or  window == "Control Interface":
         if event.scan_code == keyboard.key_to_scan_codes("1")[0]:
             walk_machine.walk_direction = a([1, 1, 0])
         if event.scan_code == keyboard.key_to_scan_codes("2")[0]:
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     walk_machine.speed = 0.5
 
     # Start contorl interface
-    control_interface = ControInterface()
+    control_interface = ControInterface(walk_machine)
     keyboard.on_press(input)
 
     # Start movement handler
@@ -60,11 +60,12 @@ if __name__ == '__main__':
     start_time = time.perf_counter()
     dt = 0.0
 
+
     k = 0
     while is_sim_running:
-
+        control_interface.update_input()
         if k % 20 == 0:
-            control_interface.update(walk_machine)
+            control_interface.update()
             k = 0
         k += 1
 
