@@ -11,6 +11,9 @@ REST_POS = [a([0.866, 0.500, REST_Z])*2, a([0.866, -0.500, REST_Z])*2,
 STRIDE_LENGTH = 0.3
 PLACE_TOLERANCE = 0.01
 
+SPEED_MAX = 2
+HEIGHT_MAX = 1
+
 
 def find_angle(v):
     if v[1] > 0:        
@@ -35,9 +38,8 @@ class WalkCycleMachine(StateMachine):
 
     def __init__(self):
         self.active = a([False, False, False, False, False, False])
-        self.stretch = [None,None]
-        self.angle = 0.0
         self.speed = 0.5
+        self.height = REST_Z*2
         self.walk_direction = a([0,0,0])
         self.foot_pos = list(REST_POS)
         self.targets = list(REST_POS)
@@ -107,7 +109,7 @@ class WalkCycleMachine(StateMachine):
     # Logic
     # -------------------------------------------------------------------------------------------
     def update(self, dt):
-        self.update_targets()
+        self._update_targets()
         self.walk()
 
         if self.current_state == self.stepping:
@@ -115,15 +117,16 @@ class WalkCycleMachine(StateMachine):
                 self.foot_pos[i] = self.foot_pos[i] + (normalize(self.targets[i] - self.foot_pos[i])*a([1,1,4])*self.speed*dt)
 
 
-    def update_targets(self):
+    def _update_targets(self):
         for i in range(6):
             if self.active[i]:
                 diff = self.foot_pos[i] - self.targets[i]
                 dist = sqrt(diff @ diff)
                 self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
-                self.targets[i][2] = REST_Z*2 - min(dist, 0.1)
+                self.targets[i][2] = self.height - min(dist, 0.1)
             else:
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
+                self.targets[i][2] = self.height
 
     # -------------------------------------------------------------------------------------------
 
@@ -132,6 +135,11 @@ class WalkCycleMachine(StateMachine):
             return True
         return False
 
+    def set_speed(self, value):
+        self.speed = max(min(value, SPEED_MAX), 0)
+
+    def set_height(self, value):
+        self.height = max(min(value, HEIGHT_MAX), 0)
 
 if __name__ == '__main__':
     sm = WalkCycleMachine()

@@ -4,18 +4,17 @@ import time
 from math import sin, cos, tan, pi
 from numpy import deg2rad, rad2deg
 from numpy import array as a
+import os
 
 import keyboard
 import windowFuncs
 
 from walkStateMachine import WalkCycleMachine
-
 from controlInterface import ControInterface
-
 import motion
-from motion import MoveType
-
 from roboMath import rotate_vec
+
+is_sim_running = True
 
 def input(event):
     # print(get_active_window_title())
@@ -29,6 +28,8 @@ def input(event):
             walk_machine.walk_direction = rotate_vec(walk_machine.walk_direction, a([0,0,1]),deg2rad(10))
         if event.scan_code == keyboard.key_to_scan_codes(".")[0]:
             walk_machine.walk_direction = rotate_vec(walk_machine.walk_direction, a([0,0,1]),deg2rad(-10))
+        if event.scan_code == 1:
+            os._exit(os.EX_OK)
 
 
 
@@ -37,7 +38,7 @@ if __name__ == '__main__':
     model = mujoco.MjModel.from_xml_path("hexapod.xml")
     data = mujoco.MjData(model)
     timestep = model.opt.timestep
-    
+
     # Start walkin state machine
     walk_machine = WalkCycleMachine()
     walk_machine.speed = 0.5
@@ -45,28 +46,28 @@ if __name__ == '__main__':
     # Start contorl interface
     control_interface = ControInterface()
     keyboard.on_press(input)
-    
+
     # Start movement handler
-    movement_handler = motion.MovementHandler(data.ctrl, data.qpos)    
+    movement_handler = motion.MovementHandler(data.ctrl, data.qpos)
 
     # Start simulation
     viewer.launch_passive(model, data)
     time.sleep(1)
-    windowFuncs.move_size_window("MuJoCo : MuJoCo Model",1,0,0,0.8,1)
-    windowFuncs.move_size_window("Control Interface",1,0.8,0,0.2,1)
+    windowFuncs.move_size_window("MuJoCo : MuJoCo Model",0,0,0,0.8,0.9)
+    windowFuncs.move_size_window("Control Interface",0,0.8,0,0.2,0.9)
     # Used for real time sim
     error = 0.0 # Timestep error integrator
     start_time = time.perf_counter()
     dt = 0.0
-    
+
     k = 0
-    while True:
+    while is_sim_running:
 
         if k % 20 == 0:
             control_interface.update(walk_machine)
             k = 0
         k += 1
-        
+
         step_start = time.perf_counter()
         walk_machine.update(timestep)
         # Move actuators
