@@ -1,2 +1,4 @@
 MUJOCO_LOG.TXT
+MJMODEL.TXT
+mjmodel.mjb
 __pycache__/

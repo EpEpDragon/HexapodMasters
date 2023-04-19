@@ -8,7 +8,7 @@ from collections import deque
 import quaternion
 from quaternion import from_vector_part, as_vector_part
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 from roboMath import rotate_vec
@@ -33,12 +33,12 @@ class MoveType(Enum):
 
 @dataclass
 class Movement:
-    target : np.array
-    duration : float
-    type : MoveType
-    start : np.array = np.array([0,0])
-    t : float = 0.0
-    next = None
+    target : np.array = field(default_factory=np.array)
+    duration : float = 0
+    # type : MoveType
+    # start : np.array = np.array([0,0])
+    # t : float = 0.0
+    # next = None
 
 # TODO Try make IK this work wothout sqrt
 def solve_ik(x,y,z) -> list[float]:
@@ -96,17 +96,17 @@ class MovementHandler:
 
     def set_targets(self, targets):
         for id in range(6):
-            self.movements[id] = Movement(rotate_vec(targets[id] - OFFSETS[id]["position"],np.array([0,0,1]), -OFFSETS[id]["angle"]),0,0)
+            self.movements[id] = Movement(rotate_vec(targets[id] - OFFSETS[id]["position"],np.array([0,0,1]), -OFFSETS[id]["angle"]))
 
 
-    def move_foot(self, target, id, time, type):
-        curr_pos = self.find_foot_pos(id)
-        target -= OFFSETS[id]["position"]
-        target = rotate_vec(target,np.array([0,0,1]), -OFFSETS[id]["angle"])
-        if len(self.movements[id]) == 0:
-            self.movements[id].append(Movement(target, time, type, curr_pos))
-        else:
-            self.movements[id].append(Movement(target, time, type))
+    # def move_foot(self, target, id, time, type):
+    #     curr_pos = self.find_foot_pos(id)
+    #     target -= OFFSETS[id]["position"]
+    #     target = rotate_vec(target,np.array([0,0,1]), -OFFSETS[id]["angle"])
+    #     if len(self.movements[id]) == 0:
+    #         self.movements[id].append(Movement(target, time, type, curr_pos))
+    #     else:
+    #         self.movements[id].append(Movement(target, time, type))
 
 
     def set_height(self, h):
