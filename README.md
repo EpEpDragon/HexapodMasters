@@ -46,5 +46,5 @@ python3 -m pip install --upgrade --force-reinstall numpy-quaternion
 ---
 [Screeninfo](https://github.com/rr-/screeninfo) is used for retreiving info about the screen, used for automaticially tiling windows.
 ```
-python3 -m pip install keyboard
+python3 -m pip install screeninfo
 ```
