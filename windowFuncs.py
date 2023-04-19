@@ -54,13 +54,12 @@ def move_size_window(window_name, monitor:int, pos_x:float, pos_y:float, size_x:
     #     x_pad += monitors(n).width
     #     y_pad += monitors(n).height
     #     n += 1
-    # if monitor == 0:
-    #     pix_x = screen.get_monitor_geometry(monitor).width - BAR_SIZE
-    # else:
-    #     pix_x = screen.get_monitor_geometry(monitor).width
-    pix_x = monitors[monitor].width
+    if monitor == 0:
+        pix_x = monitors[monitor].width - BAR_SIZE
+    else:
+        pix_x = monitors[monitor].width
     pix_y = monitors[monitor].height
-    x_pad = monitors[monitor].x
+    x_pad = monitors[monitor].x + BAR_SIZE
     y_pad = monitors[monitor].y
     adjust_window(window_name,int(pos_x*pix_x + x_pad),int(pos_y*pix_y + y_pad),int(size_x*pix_x),int(size_y*pix_y))
     # subprocess.run(['wmctrl', '-r', window_name, '-e', f"0,{int(pos_x*pix_x + x_pad)},{int(pos_y*pix_y + y_pad)},{int(size_x*pix_x)},{int(size_y*pix_y)}"])

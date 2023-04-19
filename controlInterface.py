@@ -15,8 +15,8 @@ from numpy import (
 )
 
 SCREEN_SCALE = 80
-SCREEN_WIDTH = 600
-SCREEN_HEIGHT = 800
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 450
 
 BODY_RADIUS = 20
 FOOT_RADIUS = 10
@@ -72,11 +72,6 @@ class ControInterface():
         # Input
         # ----------------------------------------------------------------------------------
         self.walk_machine.set_speed(self.walk_machine.speed + get_mouse_wheel_move()*0.1)
-        # if is_key_down(KEY_SPACE):
-        #     self.walk_machine.set_height(self.walk_machine.height + 0.005)
-        # elif is_key_down(KEY_LEFT_SHIFT):
-        #     self.walk_machine.set_height(self.walk_machine.height - 0.005)
-        # Walk direction
         body_pos = Vector2(get_screen_width() / 2.0 , 210)
         if is_mouse_button_down(MOUSE_BUTTON_LEFT):
             if mouse_in_box(0,0,get_screen_width(),420):
