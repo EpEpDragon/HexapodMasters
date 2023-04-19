@@ -2,8 +2,8 @@ from sys import platform
 import subprocess
 import screeninfo
 
-if platform in ['Windows','win32','cywin']:
-    import win32gui
+# if platform in ['Windows','win32','cywin']:
+#     import win32gui
 
 # def get_active_window_title():
 #     if platform in ['linux','linux2']:
