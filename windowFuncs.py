@@ -2,6 +2,9 @@ from sys import platform
 import subprocess
 import screeninfo
 
+import warnings
+
+
 # if platform in ['Windows','win32','cywin']:
 #     import win32gui
 
@@ -15,7 +18,7 @@ import screeninfo
 
 def adjust_window(name,pos_x, pos_y, size_x, size_y):
     if platform in ['Windows','win32','cywin']:
-        print("adjust_window not implemented on Windows OS")
+        warnings.warn("adjust_window not implemented on Windows OS")
     else:
         subprocess.run(['wmctrl', '-r', name, '-e', f"0,{pos_x},{pos_y},{size_x},{size_y}"])
 
