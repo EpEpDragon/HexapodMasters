@@ -44,3 +44,7 @@ python3 -m pip install python-statemachine[diagrams]
 python3 -m pip install --upgrade --force-reinstall numpy-quaternion
 ```
 ---
+[Keyboard](https://github.com/boppreh/keyboard) is used for handeling keyboard inputs. Note that this might be removed later.
+```
+python3 -m pip install keyboard
+```
