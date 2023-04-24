@@ -1,5 +1,12 @@
 <mujoco>
+  <option timestep="0.002"/>
   <compiler angle="degree" coordinate="local"/>
+  
+  <visual>
+    <global  offwidth="1280" offheight="720"/>
+    <map znear="0.05" zfar="10.0"/>
+    <rgba haze=".3 .3 .3 1"/>
+  </visual>
 
   <asset>
     <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>
@@ -42,8 +49,12 @@
     <body name="torso" childclass="body" pos="0 0 1">
       <!-- Body -->
       <joint type="free" limited="false"/>
-      <geom type="cylinder" size="0.7 0.15" rgba="0.9 0.9 0.5 1"/> 
-      
+      <geom type="cylinder" size="0.7 0.15" rgba="0.9 0.9 0.5 1"/>
+      <camera name="cam" mode="fixed" fovy="45" pos="0 0 1" xyaxes="0 -1 0 0.6 0 1" />
+      <!-- <body name="camera" pos="0 0 0.5" euler="60 -90 0">
+        
+      </body> -->
+
       <!-- Front Left Leg -->
       <body pos="0.6062 0.35 0" euler="0 0 30" childclass="yaw" name="front_left_leg">
         <joint name="front_left_yaw"/>
