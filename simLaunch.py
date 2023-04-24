@@ -17,7 +17,7 @@ import pyray as pr
 import windowFuncs
 
 from walkStateMachine import WalkCycleMachine
-from controlInterface import ControInterface
+import controlInterface
 import motion
 from roboMath import rotate_vec
 
@@ -27,16 +27,13 @@ RES_Y = 720
 
 is_sim_running = True
 
-def input(event):
-    # print(get_active_window_title())
-    # window = windowFuncs.get_active_window_title()
-    # if window == "MuJoCo : MuJoCo Model" or  window == "Control Interface":
-    if event.scan_code == 1:
-        os._exit(os.EX_OK)
+# def input(event):
+#     # print(get_active_window_title())
+#     # window = windowFuncs.get_active_window_title()
+#     # if window == "MuJoCo : MuJoCo Model" or  window == "Control Interface":
+#     if event.scan_code == 1:
+#         os._exit(os.EX_OK)
 
-def start_interface(walk_machine):
-    control_interface = ControInterface(walk_machine)
-    control_interface.update()
 
 if __name__ == '__main__':
     # Setup model
@@ -50,7 +47,7 @@ if __name__ == '__main__':
 
     # Start contorl interface
     # control_interface = ControInterface(walk_machine)
-    control_interface_thread = threading.Thread(target=start_interface, args=(walk_machine,))
+    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,))
     control_interface_thread.start()
     # keyboard.on_press(input)
 
@@ -63,7 +60,7 @@ if __name__ == '__main__':
     gl_ctx.make_current()
 
     scn = mujoco.MjvScene(model, maxgeom=100)
-
+    
     cam = mujoco.MjvCamera()
     cam.type = mujoco.mjtCamera.mjCAMERA_FIXED
     cam.fixedcamid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'cam')
@@ -112,11 +109,18 @@ if __name__ == '__main__':
     while is_sim_running:
         # control_interface.update_input()
         
-        # Run every X timesteps(k)
+        step_start = time.perf_counter()
+        walk_machine.update(timestep)
+        # Move actuators
+        movement_handler.set_targets(walk_machine.foot_pos)
+        movement_handler.update_moves(timestep)
+
+        # Step by integrating timestep error to simulation in (approximatley) real time
+        mujoco.mj_step(model, data)
+
+        # Render camera every X timesteps(k)
+        # ----------------------------------------------------------------------------------------------------
         if k % 20 == 0:
-            # control_interface.update()
-            # Camera Stuff
-            # -----------------------------------------------------------------------------------------------
             mujoco.mjv_updateScene(model, data, vopt, pert, cam, mujoco.mjtCatBit.mjCAT_ALL, scn)
             mujoco.mjr_render(viewport, scn, ctx)
             image = np.empty((RES_Y, RES_X, 3), dtype=np.uint8)
@@ -128,20 +132,9 @@ if __name__ == '__main__':
             # Show the simulated camera image
             cv2.imshow('image', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
             cv2.waitKey(1)
-
-            # -----------------------------------------------------------------------------------------------
-            
             k = 0
         k += 1
-
-        step_start = time.perf_counter()
-        walk_machine.update(timestep)
-        # Move actuators
-        movement_handler.set_targets(walk_machine.foot_pos)
-        movement_handler.update_moves(timestep)
-
-        # Step by integrating timestep error to simulation in (approximatley) real time
-        mujoco.mj_step(model, data)
+        # ----------------------------------------------------------------------------------------------------
         step_elapse = time.perf_counter() - step_start
         time.sleep(max(min(timestep - step_elapse - error, 1), 0)) # Delay remaining timestep - error
         dt = time.perf_counter() - step_start

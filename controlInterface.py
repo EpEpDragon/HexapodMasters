@@ -49,6 +49,11 @@ class ProgressBar():
         draw_text(self.lable, self.x, self.l_y, self.l_size, self.t_color)              # Lable text
         draw_text(v, self.v_x, self.v_y, self.v_size, self.t_color)                     # Value text
 
+
+def start_interface(walk_machine):
+    ControInterface(walk_machine).run()
+
+
 class ControInterface():
     def __init__(self, walk_machine) -> None:
         self.walk_machine = walk_machine
@@ -71,7 +76,7 @@ class ControInterface():
         elif is_key_down(KEY_LEFT_SHIFT):
             self.walk_machine.set_height(self.walk_machine.height - 0.001)        
     
-    def update(self):
+    def run(self):
         while not window_should_close():
             # Input
             # ----------------------------------------------------------------------------------
@@ -125,7 +130,6 @@ class ControInterface():
             elif self.walk_machine.current_state == self.walk_machine.stepping:
                 color = Color.GREEN
             draw_text(self.walk_machine.current_state.name, 10, 440, 20, color)
-            # draw_text("Speed: %.2f" % self.walk_machine.speed, 10, 470, 20, Color.LIGHTGRAY)
             self.speed_bar.update(self.walk_machine.speed/SPEED_MAX, '%.2f' % self.walk_machine.speed)
             self.height_bar.update(self.walk_machine.height/HEIGHT_MAX, '%.2f' % self.walk_machine.height)
 
