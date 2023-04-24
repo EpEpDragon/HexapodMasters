@@ -55,6 +55,8 @@ class ControInterface():
         self.walk_direction = Vector2(0,0)
         self.speed_bar = ProgressBar(10, 470, 300, 25, 200, Color.PURPLE, Color.DARKPURPLE, 'Speed')
         self.height_bar = ProgressBar(10, 500, 300, 25, 200, Color.PURPLE, Color.DARKPURPLE, 'Height')
+        self.image = load_image("machine.png")
+        set_target_fps(60)
         set_config_flags(ConfigFlags.FLAG_WINDOW_RESIZABLE)
         init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Control Interface")
     
@@ -68,60 +70,68 @@ class ControInterface():
             self.walk_machine.set_height(self.walk_machine.height + 0.001)
         elif is_key_down(KEY_LEFT_SHIFT):
             self.walk_machine.set_height(self.walk_machine.height - 0.001)        
+    
     def update(self):
-        # Input
-        # ----------------------------------------------------------------------------------
-        self.walk_machine.set_speed(self.walk_machine.speed + get_mouse_wheel_move()*0.1)
-        body_pos = Vector2(get_screen_width() / 2.0 , 210)
-        if is_mouse_button_down(MOUSE_BUTTON_LEFT):
-            if mouse_in_box(0,0,get_screen_width(),420):
-                self.walk_direction = vector2_normalize(vector2_subtract(get_mouse_position(), body_pos))
-        if is_mouse_button_down(MOUSE_BUTTON_RIGHT):
-            if mouse_in_box(0,0,get_screen_width(),420):
-                self.walk_direction = Vector2(0,0)
-        self.walk_machine.walk_direction = a([self.walk_direction.x, -self.walk_direction.y, 0.0])
-        # ----------------------------------------------------------------------------------
+        while not window_should_close():
+            # Input
+            # ----------------------------------------------------------------------------------
+            if is_key_down(KEY_SPACE):
+                self.walk_machine.set_height(self.walk_machine.height + 0.001)
+            elif is_key_down(KEY_LEFT_SHIFT):
+                self.walk_machine.set_height(self.walk_machine.height - 0.001)
 
-        # draw
-        # ----------------------------------------------------------------------------------
-        begin_drawing()
-        clear_background((64, 64, 64, 255))
-        # Draw Legs
-        for id in range(6):
-            if self.walk_machine.active[id]:
+            self.walk_machine.set_speed(self.walk_machine.speed + get_mouse_wheel_move()*0.1)
+            body_pos = Vector2(get_screen_width() / 2.0 , 210)
+            if is_mouse_button_down(MOUSE_BUTTON_LEFT):
+                if mouse_in_box(0,0,get_screen_width(),420):
+                    self.walk_direction = vector2_normalize(vector2_subtract(get_mouse_position(), body_pos))
+            if is_mouse_button_down(MOUSE_BUTTON_RIGHT):
+                if mouse_in_box(0,0,get_screen_width(),420):
+                    self.walk_direction = Vector2(0,0)
+            self.walk_machine.walk_direction = a([self.walk_direction.x, -self.walk_direction.y, 0.0])
+            # ----------------------------------------------------------------------------------
+
+            # draw
+            # ----------------------------------------------------------------------------------
+            begin_drawing()
+            clear_background((64, 64, 64, 255))
+            # Draw Legs
+            for id in range(6):
+                if self.walk_machine.active[id]:
+                    color = Color.GREEN
+                else:
+                    color = Color.RED
+                foot_pos_screen = self.walk_machine.foot_pos[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
+                foot_pos_screen = Vector2(foot_pos_screen[0], foot_pos_screen[1])
+                foot_target_screen = self.walk_machine.targets[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
+                draw_line_ex(body_pos, foot_pos_screen,2, color)
+                draw_circle_v(Vector2(foot_target_screen[0], foot_target_screen[1]), FOOT_RADIUS, Color.GRAY)
+                draw_circle_v(foot_pos_screen, FOOT_RADIUS, color)
+
+            # Draw direction
+            if not vector2_equals(self.walk_direction, Vector2(0,0)):
+                draw_line_ex(body_pos, vector2_add(body_pos, vector2_scale(self.walk_direction, 100)),4,Color.LIGHTGRAY)
+
+            # Draw body
+            draw_circle_v(body_pos, BODY_RADIUS, Color.YELLOW)
+
+            # Divider
+            draw_line(10,420,get_screen_width()-10,420,Color.GRAY)
+            draw_line(10,430,get_screen_width()-10,430,Color.GRAY)
+
+            # Draw text
+            if self.walk_machine.current_state == self.walk_machine.rest:
+                color = Color.YELLOW
+            elif self.walk_machine.current_state == self.walk_machine.stepping:
                 color = Color.GREEN
-            else:
-                color = Color.RED
-            foot_pos_screen = self.walk_machine.foot_pos[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
-            foot_pos_screen = Vector2(foot_pos_screen[0], foot_pos_screen[1])
-            foot_target_screen = self.walk_machine.targets[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
-            draw_line_ex(body_pos, foot_pos_screen,2, color)
-            draw_circle_v(Vector2(foot_target_screen[0], foot_target_screen[1]), FOOT_RADIUS, Color.GRAY)
-            draw_circle_v(foot_pos_screen, FOOT_RADIUS, color)
+            draw_text(self.walk_machine.current_state.name, 10, 440, 20, color)
+            # draw_text("Speed: %.2f" % self.walk_machine.speed, 10, 470, 20, Color.LIGHTGRAY)
+            self.speed_bar.update(self.walk_machine.speed/SPEED_MAX, '%.2f' % self.walk_machine.speed)
+            self.height_bar.update(self.walk_machine.height/HEIGHT_MAX, '%.2f' % self.walk_machine.height)
 
-        # Draw direction
-        if not vector2_equals(self.walk_direction, Vector2(0,0)):
-            draw_line_ex(body_pos, vector2_add(body_pos, vector2_scale(self.walk_direction, 100)),4,Color.LIGHTGRAY)
+            end_drawing()
+            # ----------------------------------------------------------------------------------
 
-        # Draw body
-        draw_circle_v(body_pos, BODY_RADIUS, Color.YELLOW)
-
-        # Divider
-        draw_line(10,420,get_screen_width()-10,420,Color.GRAY)
-        draw_line(10,430,get_screen_width()-10,430,Color.GRAY)
-
-        # Draw text
-        if self.walk_machine.current_state == self.walk_machine.rest:
-            color = Color.YELLOW
-        elif self.walk_machine.current_state == self.walk_machine.stepping:
-            color = Color.GREEN
-        draw_text(self.walk_machine.current_state.name, 10, 440, 20, color)
-        # draw_text("Speed: %.2f" % self.walk_machine.speed, 10, 470, 20, Color.LIGHTGRAY)
-        self.speed_bar.update(self.walk_machine.speed/SPEED_MAX, '%.2f' % self.walk_machine.speed)
-        self.height_bar.update(self.walk_machine.height/HEIGHT_MAX, '%.2f' % self.walk_machine.height)
-
-        end_drawing()
-        # ----------------------------------------------------------------------------------
 
     def set_window_size(self, width: int,height: int):
         set_window_size(width, height)

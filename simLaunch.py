@@ -1,9 +1,9 @@
 import os
-import traceback
+import time
+import threading
 
 import mujoco
 from mujoco import viewer
-import time
 from math import sin, cos, tan, pi
 
 import numpy as np
@@ -11,6 +11,7 @@ from numpy import deg2rad, rad2deg
 from numpy import array as a
 
 import cv2
+import pyray as pr
 
 # import keyboard
 import windowFuncs
@@ -33,6 +34,9 @@ def input(event):
     if event.scan_code == 1:
         os._exit(os.EX_OK)
 
+def start_interface(walk_machine):
+    control_interface = ControInterface(walk_machine)
+    control_interface.update()
 
 if __name__ == '__main__':
     # Setup model
@@ -46,6 +50,8 @@ if __name__ == '__main__':
 
     # Start contorl interface
     # control_interface = ControInterface(walk_machine)
+    control_interface_thread = threading.Thread(target=start_interface, args=(walk_machine,))
+    control_interface_thread.start()
     # keyboard.on_press(input)
 
     # Start movement handler
