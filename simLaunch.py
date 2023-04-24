@@ -24,6 +24,8 @@ from roboMath import rotate_vec
 # Camera
 RES_X = 1280
 RES_Y = 720
+# Changed from control interface thread, thus list for mutable
+view = [0]
 
 is_sim_running = True
 
@@ -34,6 +36,10 @@ is_sim_running = True
 #     if event.scan_code == 1:
 #         os._exit(os.EX_OK)
 
+# Linearize Depth from an OpenGL buffer
+def linearize_depth(depth, znear, zfar):
+    zlinear = (znear * zfar) / (zfar + depth * (znear - zfar))
+    return zlinear
 
 if __name__ == '__main__':
     # Setup model
@@ -47,7 +53,7 @@ if __name__ == '__main__':
 
     # Start contorl interface
     # control_interface = ControInterface(walk_machine)
-    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,))
+    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,view))
     control_interface_thread.start()
     # keyboard.on_press(input)
 
@@ -129,9 +135,22 @@ if __name__ == '__main__':
             image = cv2.flip(image, 0) # OpenGL renders with inverted y axis
             depth = cv2.flip(depth, 0) # OpenGL renders with inverted y axis
 
+            # Check XML reference, choice of zfar and znear can have big effect on accuracy
+            zfar  = model.vis.map.zfar * model.stat.extent
+            znear = model.vis.map.znear * model.stat.extent
+            depth_linear = linearize_depth(depth, znear=znear, zfar=zfar)
+            
+            # For visualization
+            depth_linear[depth_linear > model.vis.map.zfar - 0.0005] = 0 # Zero out depths farther than the z buffer
+            
             # Show the simulated camera image
-            cv2.imshow('image', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+            
+            if view[0] == 0:
+                cv2.imshow('image', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+            elif view[0] == 1:
+                cv2.imshow('image', depth_linear / np.max(depth_linear))
             cv2.waitKey(1)
+            
             k = 0
         k += 1
         # ----------------------------------------------------------------------------------------------------

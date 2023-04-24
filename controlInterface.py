@@ -7,6 +7,7 @@ from raylib import (
     MOUSE_BUTTON_RIGHT,
     KEY_LEFT_SHIFT,
     KEY_SPACE,
+    KEY_V,
 )
 
 from numpy import (
@@ -50,17 +51,19 @@ class ProgressBar():
         draw_text(v, self.v_x, self.v_y, self.v_size, self.t_color)                     # Value text
 
 
-def start_interface(walk_machine):
-    ControInterface(walk_machine).run()
+def start_interface(walk_machine, view):
+    control_interface = ControInterface(walk_machine, view)
+    control_interface.run()
 
 
 class ControInterface():
-    def __init__(self, walk_machine) -> None:
+    def __init__(self, walk_machine, view) -> None:
         self.walk_machine = walk_machine
         self.walk_direction = Vector2(0,0)
         self.speed_bar = ProgressBar(10, 470, 300, 25, 200, Color.PURPLE, Color.DARKPURPLE, 'Speed')
         self.height_bar = ProgressBar(10, 500, 300, 25, 200, Color.PURPLE, Color.DARKPURPLE, 'Height')
         self.image = load_image("machine.png")
+        self.view = view
         set_target_fps(60)
         set_config_flags(ConfigFlags.FLAG_WINDOW_RESIZABLE)
         init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Control Interface")
@@ -70,12 +73,6 @@ class ControInterface():
     def decrease_height(self, event):
         self.walk_machine.set_height(self.walk_machine.height - 0.01)
     
-    def update_input(self):
-        if is_key_down(KEY_SPACE):
-            self.walk_machine.set_height(self.walk_machine.height + 0.001)
-        elif is_key_down(KEY_LEFT_SHIFT):
-            self.walk_machine.set_height(self.walk_machine.height - 0.001)        
-    
     def run(self):
         while not window_should_close():
             # Input
@@ -84,6 +81,9 @@ class ControInterface():
                 self.walk_machine.set_height(self.walk_machine.height + 0.001)
             elif is_key_down(KEY_LEFT_SHIFT):
                 self.walk_machine.set_height(self.walk_machine.height - 0.001)
+            elif is_key_pressed(KEY_V):
+                self.view[0] += 1
+                self.view[0] = self.view[0] % (2)
 
             self.walk_machine.set_speed(self.walk_machine.speed + get_mouse_wheel_move()*0.1)
             body_pos = Vector2(get_screen_width() / 2.0 , 210)
