@@ -18,13 +18,16 @@ import warnings
 
 def adjust_window(name,pos_x, pos_y, size_x, size_y):
     if platform in ['Windows','win32','cywin']:
-        warnings.warn("adjust_window not implemented on Windows OS")
-    else:
-        subprocess.run(['wmctrl', '-r', name, '-e', f"0,{pos_x},{pos_y},{size_x},{size_y}"])
+        warnings.warn("Not implemented on Windows OS")
+        return
+    subprocess.run(['wmctrl', '-r', name, '-e', f"0,{pos_x},{pos_y},{size_x},{size_y}"])
 
 
 def get_window_size(name):
     """Get window size including its frame in pixels"""
+    if platform in ['Windows','win32','cywin']:
+        warnings.warn("Not implemented on Windows OS")
+        return
     w = int(subprocess.getoutput(f"xwininfo -name '{name}' | grep Width | cut -d ' ' -f 4"))
     h = int(subprocess.getoutput(f"xwininfo -name '{name}'| grep Height | cut -d ' ' -f 4"))
     frame = get_window_frame(name)
@@ -32,11 +35,17 @@ def get_window_size(name):
 
 
 def get_screen_margins():
+    if platform in ['Windows','win32','cywin']:
+        warnings.warn("Not implemented on Windows OS")
+        return
     return list(map(int, subprocess.getoutput("xprop -root _NET_WORKAREA | sed 's/[[:space:]]*//g' | cut -d '=' -f 2").split(',')))
 
 
 def get_window_frame(name):
     """Return window frame as [left, right, top, bottom]"""
+    if platform in ['Windows','win32','cywin']:
+        warnings.warn("Not implemented on Windows OS")
+        return
     return list(map(int, subprocess.getoutput(f"xprop -id $(wmctrl -l | grep '{name}' | cut -d ' ' -f 1) | grep FRAME | sed 's/[[:space:]]*//g' | cut -d '=' -f 2").split(',')))
 
 
@@ -45,9 +54,11 @@ def get_monitor(monitor):
     return monitors[monitor]
 
 
-BAR_SIZE = 40
 def move_size_window(window_name:str, monitor:int, pos_x:float, pos_y:float, size_x:float=0, size_y:float=0, is_cv2=False) -> None:
     """Move and size window to the given monitor using relative coordinates/sizes""" 
+    if platform in ['Windows','win32','cywin']:
+        warnings.warn("Not implemented on Windows OS")
+        return    
     monitors = screeninfo.get_monitors()
     n_monitors = len(monitors)
     if monitor == -1:
