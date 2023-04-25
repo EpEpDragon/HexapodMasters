@@ -14,7 +14,6 @@ import cv2
 import pyray as pr
 
 # import keyboard
-import windowFuncs
 
 from walkStateMachine import WalkCycleMachine
 import controlInterface
@@ -101,10 +100,9 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------------------------------------
 
     # Start simulation
+    cv2.namedWindow("Camera")
     viewer.launch_passive(model, data)
     time.sleep(1)
-    windowFuncs.move_size_window("MuJoCo : MuJoCo Model",0,0,0,0.8,0.9)
-    windowFuncs.move_size_window("Control Interface",0,0.8,0,0.2,0.9)
 
     # Used for real time sim
     error = 0.0 # Timestep error integrator
@@ -146,9 +144,9 @@ if __name__ == '__main__':
             # Show the simulated camera image
             
             if view[0] == 0:
-                cv2.imshow('image', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+                cv2.imshow('Camera', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
             elif view[0] == 1:
-                cv2.imshow('image', depth_linear / np.max(depth_linear))
+                cv2.imshow('Camera', depth_linear / np.max(depth_linear))
             cv2.waitKey(1)
             
             k = 0

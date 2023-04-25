@@ -2,6 +2,9 @@ from pyray import *
 from raylib import colors as Color
 from walkStateMachine import SPEED_MAX,HEIGHT_MAX
 
+import windowFuncs as wf
+import time
+
 from raylib import (
     MOUSE_BUTTON_LEFT,
     MOUSE_BUTTON_RIGHT,
@@ -53,6 +56,14 @@ class ProgressBar():
 
 def start_interface(walk_machine, view):
     control_interface = ControInterface(walk_machine, view)
+    time.sleep(2)
+    cam_size = wf.get_window_size('Camera')
+    margins = wf.get_screen_margins()
+    centerX = (wf.get_monitor(0).width - margins[0] - cam_size[0])/(wf.get_monitor(0).width - margins[0])
+    centerY = (wf.get_monitor(0).height - margins[1] - cam_size[1])/(wf.get_monitor(0).height - margins[1])
+    wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0, 0, centerX, 1)
+    wf.move_size_window("Control Interface", 0, centerX, 0, 1-centerX, centerY)
+    wf.move_size_window("Camera", 0, centerX, centerY, is_cv2=True)
     control_interface.run()
 
 

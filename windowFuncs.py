@@ -1,7 +1,7 @@
 from sys import platform
 import subprocess
 import screeninfo
-
+import cv2
 import warnings
 
 
@@ -22,44 +22,57 @@ def adjust_window(name,pos_x, pos_y, size_x, size_y):
     else:
         subprocess.run(['wmctrl', '-r', name, '-e', f"0,{pos_x},{pos_y},{size_x},{size_y}"])
 
-# def get_screen_resolution():
-#     if platform in ['linux','linux2']:
-#         screen = Gdk.Screen.get_default()
-#         return [screen.get_monitor_geometry(0).height, screen.get_monitor_geometry(0).width]
-#     elif platform in ['Windows', 'win32', 'cygwin']:
-#         return [GetSystemMetrics(0), GetSystemMetrics(1)]
-#     else:
-#         print("OS Not supported")
+
+def get_window_size(name):
+    """Get window size including its frame in pixels"""
+    w = int(subprocess.getoutput(f"xwininfo -name '{name}' | grep Width | cut -d ' ' -f 4"))
+    h = int(subprocess.getoutput(f"xwininfo -name '{name}'| grep Height | cut -d ' ' -f 4"))
+    frame = get_window_frame(name)
+    return [w+sum(frame[0:2]),h+sum(frame[2:4])]
+
+
+def get_screen_margins():
+    return list(map(int, subprocess.getoutput("xprop -root _NET_WORKAREA | sed 's/[[:space:]]*//g' | cut -d '=' -f 2").split(',')))
+
+
+def get_window_frame(name):
+    """Return window frame as [left, right, top, bottom]"""
+    return list(map(int, subprocess.getoutput(f"xprop -id $(wmctrl -l | grep '{name}' | cut -d ' ' -f 1) | grep FRAME | sed 's/[[:space:]]*//g' | cut -d '=' -f 2").split(',')))
+
+
+def get_monitor(monitor):
+    monitors = screeninfo.get_monitors()
+    return monitors[monitor]
+
 
 BAR_SIZE = 40
-def move_size_window(window_name, monitor:int, pos_x:float, pos_y:float, size_x:float, size_y:float) -> None:
-    """Move and size window to the given monitor, dimentions given in percentage"""
-    # screen = Gdk.Screen.get_default()
+def move_size_window(window_name:str, monitor:int, pos_x:float, pos_y:float, size_x:float=0, size_y:float=0, is_cv2=False) -> None:
+    """Move and size window to the given monitor using relative coordinates/sizes""" 
     monitors = screeninfo.get_monitors()
-    # n_monitors = screen.get_n_monitors()
     n_monitors = len(monitors)
     if monitor == -1:
         monitor = n_monitors - 1
     elif monitor > n_monitors:
         print("Monitor out of bounds, default to monitor 0")
         monitor = 0
+    
+    screen_margins = get_screen_margins()
+    window_frame = get_window_frame(window_name)
+    tot_win_margin = [sum(window_frame[0:2]), sum(window_frame[2:4])] # left, right, top and bottom frames in width and height margins
 
-    # if monitor == 0:
-    #     x_pad : int = BAR_SIZE
-    # else:
-    #     x_pad : int = 0
-    # y_pad : int = 0
-    # n : int = 0
-    # while n < monitor:
-    #     x_pad += monitors(n).width
-    #     y_pad += monitors(n).height
-    #     n += 1
+    # Workable pixel area
     if monitor == 0:
-        pix_x = monitors[monitor].width - BAR_SIZE
+        pix_x = monitors[monitor].width - screen_margins[0]
+        pix_y = monitors[monitor].height - screen_margins[1]
     else:
         pix_x = monitors[monitor].width
-    pix_y = monitors[monitor].height
-    x_pad = monitors[monitor].x + BAR_SIZE
-    y_pad = monitors[monitor].y
-    adjust_window(window_name,int(pos_x*pix_x + x_pad),int(pos_y*pix_y + y_pad),int(size_x*pix_x),int(size_y*pix_y))
-    # subprocess.run(['wmctrl', '-r', window_name, '-e', f"0,{int(pos_x*pix_x + x_pad)},{int(pos_y*pix_y + y_pad)},{int(size_x*pix_x)},{int(size_y*pix_y)}"])
+        pix_y = monitors[monitor].height
+
+    # Get padding for positioning, includes screen margins and window frame
+    x_pad = monitors[monitor].x + screen_margins[0] + window_frame[0]
+    y_pad = monitors[monitor].y + screen_margins[1] + window_frame[1]
+
+    if is_cv2:
+        cv2.moveWindow(window_name, int(pos_x*pix_x + x_pad), int(pos_y*pix_y + y_pad))
+        return
+    adjust_window(window_name, int(pos_x*pix_x + x_pad), int(pos_y*pix_y + y_pad), int(size_x*pix_x - tot_win_margin[0]), int(size_y*pix_y - tot_win_margin[1]))
