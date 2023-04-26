@@ -1,7 +1,7 @@
 import os
 import time
 import threading
-
+from multiprocessing import shared_memory, Process, Lock
 import mujoco
 from mujoco import viewer
 from math import sin, cos, tan, pi
@@ -11,7 +11,7 @@ from numpy import deg2rad, rad2deg
 from numpy import array as a
 
 import cv2
-import pyray as pr
+import viz_cloud
 
 # import keyboard
 
@@ -23,6 +23,7 @@ from roboMath import rotate_vec
 # Camera
 RES_X = 1280
 RES_Y = 720
+POINT_CLOUD_DIVISOR = 4
 # Changed from control interface thread, thus list for mutable
 view = [0]
 
@@ -54,6 +55,23 @@ if __name__ == '__main__':
     # control_interface = ControInterface(walk_machine)
     control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,view))
     control_interface_thread.start()
+    
+    # Point cloud
+    # -------------------------------------------------------------------------------------------------------
+    # a = np.ndarray((1000, 3),dtype=np.float32)
+    a = np.random.rand(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)
+    lock = Lock()
+    shm = shared_memory.SharedMemory(create=True,size=a.nbytes)
+    np_array = np.ndarray(a.shape, dtype=np.float64, buffer=shm.buf)
+    np_array[:] = a[:]  # Copy the original data into shared memory
+
+    p1 = Process(target=viz_cloud.start, args=(shm.name,), daemon=True)
+    p1.start()
+    # -------------------------------------------------------------------------------------------------------
+    
+    # exec(open("viz_cloud.py").read())
+    # cloud_viz_thread = threading.Thread(target=viz_cloud.start)
+    # cloud_viz_thread.start()
     # keyboard.on_press(input)
 
     # Start movement handler
@@ -97,10 +115,8 @@ if __name__ == '__main__':
             m1type=cv2.CV_32FC1)
 
     sample_list = []
-    # -------------------------------------------------------------------------------------------------------
 
     # Start simulation
-    cv2.namedWindow("Camera")
     viewer.launch_passive(model, data)
     time.sleep(1)
 
@@ -148,7 +164,24 @@ if __name__ == '__main__':
             elif view[0] == 1:
                 cv2.imshow('Camera', depth_linear / np.max(depth_linear))
             cv2.waitKey(1)
+
+            p_X = cam_x_over_z * depth_linear
+            p_Y = cam_y_over_z * depth_linear
+            p_Z = depth_linear
+            p = np.dstack((p_X, p_Y, p_Z))
+            p_list = p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)
+            # np_array[:] = np.random.rand(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)[:]
+            # p_list = p_list[p_list[:, 2] > 0.001]
+            np_array[:] = p_list[:]
             
+            # Swap some axis to make the visualization nicer
+            # pos3[:p_list.shape[0], 0] = p_list[:, 0]
+            # pos3[:p_list.shape[0], 1] = p_list[:, 2]
+            # pos3[:p_list.shape[0], 2] = -p_list[:, 1]
+            # pos3[p_list.shape[0]:, ...] = 0
+
+            # sp3.setData(pos=pos3)
+
             k = 0
         k += 1
         # ----------------------------------------------------------------------------------------------------

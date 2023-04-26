@@ -77,6 +77,7 @@ def start_interface(walk_machine, view):
 class ControInterface():
     def __init__(self, walk_machine, view) -> None:
         self.walk_machine = walk_machine
+        # self.cloud_vis = CloudVis()
         self.walk_direction = Vector2(0,0)
         self.speed_bar = ProgressBar(10, 470, 300, 25, 200, Color.PURPLE, Color.DARKPURPLE, 'Speed')
         self.height_bar = ProgressBar(10, 500, 300, 25, 200, Color.PURPLE, Color.DARKPURPLE, 'Height')
@@ -116,6 +117,7 @@ class ControInterface():
 
             # draw
             # ----------------------------------------------------------------------------------
+            # self.cloud_vis.update()
             begin_drawing()
             clear_background((64, 64, 64, 255))
             # Draw Legs
