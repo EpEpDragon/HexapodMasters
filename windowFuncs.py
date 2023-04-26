@@ -81,7 +81,7 @@ def move_size_window(window_name:str, monitor:int, pos_x:float, pos_y:float, siz
 
     # Get padding for positioning, includes screen margins and window frame
     x_pad = monitors[monitor].x + screen_margins[0] + window_frame[0]
-    y_pad = monitors[monitor].y + screen_margins[1] + window_frame[1]
+    y_pad = monitors[monitor].y + screen_margins[1] + window_frame[2]
 
     if is_cv2:
         cv2.moveWindow(window_name, int(pos_x*pix_x + x_pad), int(pos_y*pix_y + y_pad))

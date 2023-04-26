@@ -63,14 +63,17 @@ def start_interface(walk_machine, view):
     if platform in ['Windows','win32','cywin']:
         warnings.warn("Not implemented on Windows OS")
     else:
-        time.sleep(2)
+        time.sleep(3)
         cam_size = wf.get_window_size('Camera')
         margins = wf.get_screen_margins()
-        centerX = (wf.get_monitor(0).width - margins[0] - cam_size[0])/(wf.get_monitor(0).width - margins[0])
+        ctrl_x_rel = 370/(wf.get_monitor(0).width - margins[0])
+        centerX = (wf.get_monitor(0).width - margins[0] - cam_size[0])/(wf.get_monitor(0).width - margins[0]) - ctrl_x_rel
         centerY = (wf.get_monitor(0).height - margins[1] - cam_size[1])/(wf.get_monitor(0).height - margins[1])
         wf.move_size_window("MuJoCo : MuJoCo Model", -1, 0, 0, centerX, 1)
-        wf.move_size_window("Control Interface", -1, centerX, 0, 1-centerX, centerY)
+        wf.move_size_window("Open3D", -1, centerX, 0, 1-centerX, centerY)
+        wf.move_size_window("Control Interface", -1, 1-ctrl_x_rel, centerY, ctrl_x_rel, 1-centerY)
         wf.move_size_window("Camera", -1, centerX, centerY, is_cv2=True)
+        
     control_interface.run()
 
 
@@ -79,8 +82,8 @@ class ControInterface():
         self.walk_machine = walk_machine
         # self.cloud_vis = CloudVis()
         self.walk_direction = Vector2(0,0)
-        self.speed_bar = ProgressBar(10, 470, 300, 25, 200, Color.PURPLE, Color.DARKPURPLE, 'Speed')
-        self.height_bar = ProgressBar(10, 500, 300, 25, 200, Color.PURPLE, Color.DARKPURPLE, 'Height')
+        self.speed_bar = ProgressBar(x=10, y=470, w=200, h=25, tab_x=100, c_front=Color.PURPLE, c_back=Color.DARKPURPLE, lable='Speed')
+        self.height_bar = ProgressBar(x=10, y=500, w=200, h=25, tab_x=100, c_front=Color.PURPLE, c_back=Color.DARKPURPLE, lable='Height')
         self.image = load_image("machine.png")
         self.view = view
         set_target_fps(60)

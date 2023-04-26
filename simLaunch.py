@@ -62,8 +62,8 @@ if __name__ == '__main__':
     a = np.random.rand(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)
     lock = Lock()
     shm = shared_memory.SharedMemory(create=True,size=a.nbytes)
-    np_array = np.ndarray(a.shape, dtype=np.float64, buffer=shm.buf)
-    np_array[:] = a[:]  # Copy the original data into shared memory
+    points_buffer = np.ndarray(a.shape, dtype=np.float64, buffer=shm.buf)
+    points_buffer[:] = a[:]  # Copy the original data into shared memory
 
     p1 = Process(target=viz_cloud.start, args=(shm.name,), daemon=True)
     p1.start()
@@ -169,19 +169,15 @@ if __name__ == '__main__':
             p_Y = cam_y_over_z * depth_linear
             p_Z = depth_linear
             p = np.dstack((p_X, p_Y, p_Z))
-            p_list = p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)
-            # np_array[:] = np.random.rand(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)[:]
+            # points_buffer[:] = np.random.rand(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)[:]
             # p_list = p_list[p_list[:, 2] > 0.001]
-            np_array[:] = p_list[:]
+            temp = p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)
             
             # Swap some axis to make the visualization nicer
-            # pos3[:p_list.shape[0], 0] = p_list[:, 0]
-            # pos3[:p_list.shape[0], 1] = p_list[:, 2]
-            # pos3[:p_list.shape[0], 2] = -p_list[:, 1]
-            # pos3[p_list.shape[0]:, ...] = 0
-
-            # sp3.setData(pos=pos3)
-
+            points_buffer[:,0] = temp[:,0]
+            points_buffer[:,1] = temp[:,2]
+            points_buffer[:,2] = -temp[:,1]
+            
             k = 0
         k += 1
         # ----------------------------------------------------------------------------------------------------
