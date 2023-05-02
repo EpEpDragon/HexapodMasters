@@ -189,8 +189,10 @@ class WalkCycleMachine(StateMachine):
     def set_height(self, value):
         self.height = max(min(value, HEIGHT_MAX), 0)
 
-    def set_yaw(self, value):
-        self.target_yaw_local[:] = max(min(max(value),YAW_MAX),-YAW_MAX)
+    def adjust_local_yaw(self, value):
+        for i in range(6):
+            if not self.active[i]:
+                self.target_yaw_local[i] += max(min(value,YAW_MAX),-YAW_MAX)
 
 if __name__ == '__main__':
     sm = WalkCycleMachine()

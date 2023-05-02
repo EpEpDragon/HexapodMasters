@@ -110,10 +110,10 @@ class ControInterface():
             elif is_key_down(KEY_LEFT_SHIFT):
                 self.walk_machine.set_height(self.walk_machine.height - 0.001)
             if is_key_down(KEY_LEFT):
-                self.walk_machine.set_yaw(self.walk_machine.target_yaw_local - 0.01)
+                self.walk_machine.adjust_local_yaw(-0.01)
             elif is_key_down(KEY_RIGHT):
-                self.walk_machine.set_yaw(self.walk_machine.target_yaw_local + 0.01)
-            elif is_key_down(KEY_Z):
+                self.walk_machine.adjust_local_yaw(0.01)
+            if is_key_down(KEY_Z):
                 self.walk_machine.centering_yaw[:] = True
             if is_key_pressed(KEY_V):
                 self.view[0] += 1
