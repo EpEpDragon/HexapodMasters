@@ -3,6 +3,7 @@ import numpy as np
 from numpy import array as a
 from numpy import deg2rad, rad2deg
 from math import acos, sqrt
+from roboMath import clerp, rotate_vec
 
 REST_Z = 0.5
 REST_POS = [a([0.866, 0.500, REST_Z])*2, a([0.866, -0.500, REST_Z])*2,
@@ -13,7 +14,7 @@ PLACE_TOLERANCE = 0.01
 
 SPEED_MAX = 2
 HEIGHT_MAX = 1.15
-YAW_MAX = deg2rad(30)
+YAW_MAX = deg2rad(15)
 
 
 def find_angle(v):
@@ -40,10 +41,13 @@ class WalkCycleMachine(StateMachine):
     def __init__(self):
         self.active = a([False, False, False, False, False, False])
         self.speed = 0.5
+        self.yaw_rate = deg2rad(10)
         self.height = REST_Z*2
-        self.yaw = 0.0
+        self.target_yaw = 0.0
+        self._current_yaw = 0.0
         self.walk_direction = a([0,0,0])
-        self.foot_pos = list(REST_POS)
+        self.foot_pos_pre_yaw = list(REST_POS)
+        self.foot_pos_post_yaw = list(REST_POS)
         self.targets = list(REST_POS)
         
         super(WalkCycleMachine, self).__init__()
@@ -102,14 +106,14 @@ class WalkCycleMachine(StateMachine):
     # -------------------------------------------------------------------------------------------
     def step_finished(self):
         for i in range(6):
-            if not (abs(self.foot_pos[i] - self.targets[i]) < PLACE_TOLERANCE).all():
+            if not (abs(self.foot_pos_pre_yaw[i] - self.targets[i]) < PLACE_TOLERANCE).all():
                 return False
         
         return True
     
     def should_adjust(self):
         for i in range(6):
-            if not abs(self.foot_pos[i][2] - self.targets[i][2]) < PLACE_TOLERANCE:
+            if not abs(self.foot_pos_pre_yaw[i][2] - self.targets[i][2]) < PLACE_TOLERANCE:
                 return True
         return not (self.walk_direction == a([0,0,0])).all()
     # -------------------------------------------------------------------------------------------
@@ -118,17 +122,25 @@ class WalkCycleMachine(StateMachine):
     # -------------------------------------------------------------------------------------------
     def update(self, dt):
         self._update_targets()
+
+        # Cycle state machine
         self.walk()
 
+        # Update foot position for walking
         if self.current_state == self.stepping:
             for i in range(6):
-                self.foot_pos[i] = self.foot_pos[i] + (normalize(self.targets[i] - self.foot_pos[i])*a([1,1,4])*self.speed*dt)
+                self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,4])*self.speed*dt)
+        
+        # Update foot position for local rotation
+        self._current_yaw = clerp(self._current_yaw, self.target_yaw, self.yaw_rate*dt)
+        for i in range(6):
+            self.foot_pos_post_yaw[i] = rotate_vec(self.foot_pos_pre_yaw[i], a([0,0,1]), self._current_yaw)
 
 
     def _update_targets(self):
         for i in range(6):
             if self.active[i]:
-                diff = self.foot_pos[i] - self.targets[i]
+                diff = self.foot_pos_pre_yaw[i] - self.targets[i]
                 dist = sqrt(diff @ diff)
                 self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
                 self.targets[i][2] = self.height - min(dist, 0.1)
@@ -139,7 +151,7 @@ class WalkCycleMachine(StateMachine):
     # -------------------------------------------------------------------------------------------
 
     def is_long(self, id):
-        if self.foot_pos[id]@self.foot_pos[id] > REST_POS[id]@REST_POS[id]:
+        if self.foot_pos_pre_yaw[id]@self.foot_pos_pre_yaw[id] > REST_POS[id]@REST_POS[id]:
             return True
         return False
 
@@ -150,7 +162,7 @@ class WalkCycleMachine(StateMachine):
         self.height = max(min(value, HEIGHT_MAX), 0)
     
     def set_yaw(self, value):
-        self.yaw = max(min(value,YAW_MAX),-YAW_MAX)
+        self.target_yaw = max(min(value,YAW_MAX),-YAW_MAX)
 
 if __name__ == '__main__':
     sm = WalkCycleMachine()

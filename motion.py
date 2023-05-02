@@ -80,7 +80,7 @@ class MovementHandler:
         foot_rel = np.array([cos(curr_pitch+curr_knee)*cos(curr_yaw), cos(curr_pitch+curr_knee)*sin(curr_yaw), sin(curr_pitch+curr_knee)])*LOWER_LEG
         return  knee_rel + foot_rel
         
-    def update_moves(self, dt):
+    def update_moves(self):
          for id in range(NUM_ACTUATORS):
             if self.movements[id] == None:
                 continue
@@ -90,15 +90,15 @@ class MovementHandler:
             [yaw,pitch,knee] = solve_ik(self.movements[id].target[0], self.movements[id].target[1], self.movements[id].target[2])
             
             # Apply actuator commands
-            self.ctrl[id*3] = yaw + self.yaw
+            self.ctrl[id*3] = yaw
             self.ctrl[id*3 + 1] = pitch
             self.ctrl[id*3 + 2] = knee
 
 
-    def set_targets(self, targets, yaw):
+    def set_targets(self, targets):
         for id in range(6):
             self.movements[id] = Movement(rotate_vec(targets[id] - OFFSETS[id]["position"],np.array([0,0,1]), -OFFSETS[id]["angle"]))
-        self.yaw = yaw
+        # self.yaw = yaw
 
 
     # def move_foot(self, target, id, time, type):

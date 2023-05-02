@@ -8,9 +8,12 @@ from quaternion import from_vector_part, as_vector_part
 def lerp(a,b,t):
     return a + (b-a)*t
 
-def slerp(a,b,t):
-    ang = acos(a.dot(b)/sqrt(a.dot(a)*b.dot(b)))
-    return (sin((1-t)*ang)/sin(ang))*a + (sin(t*ang)/sin(ang))*b
+def clerp(a,b,s):
+    """lerp at a constant rate, intended for feedback use"""
+    d = b-a
+    if d == 0:
+        return a
+    return a + (abs(d)/(d))*s
 
 def rotate_vec(vector, axis, angle):
     angle /= 2

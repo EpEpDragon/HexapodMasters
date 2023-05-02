@@ -108,9 +108,9 @@ class ControInterface():
             elif is_key_down(KEY_LEFT_SHIFT):
                 self.walk_machine.set_height(self.walk_machine.height - 0.001)
             elif is_key_down(KEY_LEFT):
-                self.walk_machine.set_yaw(self.walk_machine.yaw - 0.001)
+                self.walk_machine.set_yaw(self.walk_machine.target_yaw - 0.01)
             elif is_key_down(KEY_RIGHT):
-                self.walk_machine.set_yaw(self.walk_machine.yaw + 0.001)
+                self.walk_machine.set_yaw(self.walk_machine.target_yaw + 0.01)
             elif is_key_pressed(KEY_V):
                 self.view[0] += 1
                 self.view[0] = self.view[0] % (2)
@@ -137,7 +137,7 @@ class ControInterface():
                     color = Color.GREEN
                 else:
                     color = Color.RED
-                foot_pos_screen = self.walk_machine.foot_pos[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
+                foot_pos_screen = self.walk_machine.foot_pos_pre_yaw[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
                 foot_pos_screen = Vector2(foot_pos_screen[0], foot_pos_screen[1])
                 foot_target_screen = self.walk_machine.targets[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
                 draw_line_ex(body_pos, foot_pos_screen,2, color)

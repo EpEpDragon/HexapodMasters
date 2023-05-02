@@ -69,11 +69,6 @@ if __name__ == '__main__':
     p1.start()
     # -------------------------------------------------------------------------------------------------------
     
-    # exec(open("viz_cloud.py").read())
-    # cloud_viz_thread = threading.Thread(target=viz_cloud.start)
-    # cloud_viz_thread.start()
-    # keyboard.on_press(input)
-
     # Start movement handler
     movement_handler = motion.MovementHandler(data.ctrl, data.qpos)
 
@@ -132,8 +127,8 @@ if __name__ == '__main__':
         step_start = time.perf_counter()
         walk_machine.update(timestep)
         # Move actuators
-        movement_handler.set_targets(walk_machine.foot_pos, walk_machine.yaw)
-        movement_handler.update_moves(timestep)
+        movement_handler.set_targets(walk_machine.foot_pos_post_yaw)
+        movement_handler.update_moves()
 
         # Step by integrating timestep error to simulation in (approximatley) real time
         mujoco.mj_step(model, data)
@@ -169,8 +164,6 @@ if __name__ == '__main__':
             p_Y = cam_y_over_z * depth_linear
             p_Z = depth_linear
             p = np.dstack((p_X, p_Y, p_Z))
-            # points_buffer[:] = np.random.rand(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)[:]
-            # p_list = p_list[p_list[:, 2] > 0.001]
             temp = p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)
             
             # Swap some axis to make the visualization nicer
