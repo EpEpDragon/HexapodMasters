@@ -8,6 +8,7 @@ import time
 from sys import platform
 import warnings
 
+from math import cos, sin
 
 from raylib import (
     MOUSE_BUTTON_LEFT,
@@ -107,11 +108,11 @@ class ControInterface():
                 self.walk_machine.set_height(self.walk_machine.height + 0.001)
             elif is_key_down(KEY_LEFT_SHIFT):
                 self.walk_machine.set_height(self.walk_machine.height - 0.001)
-            elif is_key_down(KEY_LEFT):
+            if is_key_down(KEY_LEFT):
                 self.walk_machine.set_yaw(self.walk_machine.target_yaw - 0.01)
-            elif is_key_down(KEY_RIGHT):
+            if is_key_down(KEY_RIGHT):
                 self.walk_machine.set_yaw(self.walk_machine.target_yaw + 0.01)
-            elif is_key_pressed(KEY_V):
+            if is_key_pressed(KEY_V):
                 self.view[0] += 1
                 self.view[0] = self.view[0] % (2)
 
@@ -150,6 +151,8 @@ class ControInterface():
 
             # Draw body
             draw_circle_v(body_pos, BODY_RADIUS, Color.YELLOW)
+            # Local yaw direction
+            draw_line_ex(body_pos, vector2_add(body_pos, Vector2(cos(self.walk_machine._current_yaw)*100, sin(self.walk_machine._current_yaw)*100)),3, Color.YELLOW)
 
             # Divider
             draw_line(10,420,get_screen_width()-10,420,Color.GRAY)

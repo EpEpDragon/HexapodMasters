@@ -14,7 +14,7 @@ PLACE_TOLERANCE = 0.01
 
 SPEED_MAX = 2
 HEIGHT_MAX = 1.15
-YAW_MAX = deg2rad(15)
+YAW_MAX = deg2rad(20)
 
 
 def find_angle(v):
