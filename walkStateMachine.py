@@ -170,7 +170,6 @@ class WalkCycleMachine(StateMachine):
                 if (self.walk_direction == 0).all() and self.centering_yaw[i]:
                     self.targets[i][2] = self.height + self.height_offsets[i] - min(abs(self.current_yaw_local[i])*3, 0.1)
                 else:
-                    print(min(dist, 0.2))
                     self.targets[i][2] = self.height + self.height_offsets[i] - min(dist, 0.1)
                     
                 if self.centering_yaw[i]:
@@ -201,11 +200,6 @@ class WalkCycleMachine(StateMachine):
         offset = sin(self.pitch)*BODY_RADIUS
         self.height_offsets[0:2] = -offset
         self.height_offsets[4:6] = offset
-
-        # self.height_offsets[0] = -tan(self.pitch)*BODY_RADIUS*tan()
-        # self.height_offsets[2] = -tan(self.pitch)*BODY_RADIUS
-        # self.height_offsets[3] = tan(self.pitch)*BODY_RADIUS
-        # self.height_offsets[4:6] = tan(self.pitch)*BODY_RADIUS
 
     def adjust_local_yaw(self, value):
         for i in range(6):

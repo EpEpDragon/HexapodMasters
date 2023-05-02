@@ -95,12 +95,8 @@ class ControInterface():
         set_target_fps(60)
         set_config_flags(ConfigFlags.FLAG_WINDOW_RESIZABLE)
         init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Control Interface")
-    
-    # def increase_height(self, event):
-    #     self.walk_machine.set_height(self.walk_machine.height + 0.01)
-    # def decrease_height(self, event):
-    #     self.walk_machine.set_height(self.walk_machine.height - 0.01)
-    
+
+
     def run(self):
         while True:
             # Input
