@@ -20,6 +20,7 @@ from raylib import (
     KEY_RIGHT,
     KEY_UP,
     KEY_DOWN,
+    KEY_Z,
 )
 
 from numpy import (
@@ -75,8 +76,8 @@ def start_interface(walk_machine, view):
         centerX = (wf.get_monitor(0).width - margins[0] - cam_size[0])/(wf.get_monitor(0).width - margins[0]) - ctrl_x_rel
         centerY = (wf.get_monitor(0).height - margins[1] - cam_size[1])/(wf.get_monitor(0).height - margins[1])
         wf.move_size_window("MuJoCo : MuJoCo Model", -1, 0, 0, centerX, 1)
-        wf.move_size_window("Open3D", -1, centerX, 0, 1-centerX, centerY)
-        wf.move_size_window("Control Interface", -1, 1-ctrl_x_rel, centerY, ctrl_x_rel, 1-centerY)
+        wf.move_size_window("Open3D", -1, centerX, 0, 1-centerX-ctrl_x_rel, centerY)
+        wf.move_size_window("Control Interface", -1, 1-ctrl_x_rel, 0, ctrl_x_rel, 1)
         wf.move_size_window("Camera", -1, centerX, centerY, is_cv2=True)
         
     control_interface.run()
@@ -87,8 +88,8 @@ class ControInterface():
         self.walk_machine = walk_machine
         # self.cloud_vis = CloudVis()
         self.walk_direction = Vector2(0,0)
-        self.speed_bar = ProgressBar(x=10, y=470, w=200, h=25, tab_x=100, c_front=Color.PURPLE, c_back=Color.DARKPURPLE, lable='Speed')
-        self.height_bar = ProgressBar(x=10, y=500, w=200, h=25, tab_x=100, c_front=Color.PURPLE, c_back=Color.DARKPURPLE, lable='Height')
+        self.speed_bar = ProgressBar(x=10, y=870, w=200, h=25, tab_x=100, c_front=Color.PURPLE, c_back=Color.DARKPURPLE, lable='Speed')
+        self.height_bar = ProgressBar(x=10, y=900, w=200, h=25, tab_x=100, c_front=Color.PURPLE, c_back=Color.DARKPURPLE, lable='Height')
         self.image = load_image("machine.png")
         self.view = view
         set_target_fps(60)
@@ -109,9 +110,11 @@ class ControInterface():
             elif is_key_down(KEY_LEFT_SHIFT):
                 self.walk_machine.set_height(self.walk_machine.height - 0.001)
             if is_key_down(KEY_LEFT):
-                self.walk_machine.set_yaw(self.walk_machine.target_yaw - 0.01)
-            if is_key_down(KEY_RIGHT):
-                self.walk_machine.set_yaw(self.walk_machine.target_yaw + 0.01)
+                self.walk_machine.set_yaw(self.walk_machine.target_yaw_local - 0.01)
+            elif is_key_down(KEY_RIGHT):
+                self.walk_machine.set_yaw(self.walk_machine.target_yaw_local + 0.01)
+            elif is_key_down(KEY_Z):
+                self.walk_machine.centering_yaw[:] = True
             if is_key_pressed(KEY_V):
                 self.view[0] += 1
                 self.view[0] = self.view[0] % (2)
@@ -152,18 +155,19 @@ class ControInterface():
             # Draw body
             draw_circle_v(body_pos, BODY_RADIUS, Color.YELLOW)
             # Local yaw direction
-            draw_line_ex(body_pos, vector2_add(body_pos, Vector2(cos(self.walk_machine._current_yaw)*100, sin(self.walk_machine._current_yaw)*100)),3, Color.YELLOW)
+            yaw = max(self.walk_machine.current_yaw_local)
+            draw_line_ex(body_pos, vector2_add(body_pos, Vector2(cos(yaw)*100, sin(yaw)*100)),3, Color.YELLOW)
 
             # Divider
-            draw_line(10,420,get_screen_width()-10,420,Color.GRAY)
-            draw_line(10,430,get_screen_width()-10,430,Color.GRAY)
+            draw_line(10,820,get_screen_width()-10,820,Color.GRAY)
+            draw_line(10,830,get_screen_width()-10,830,Color.GRAY)
 
             # Draw text
             if self.walk_machine.current_state == self.walk_machine.rest:
                 color = Color.YELLOW
             elif self.walk_machine.current_state == self.walk_machine.stepping:
                 color = Color.GREEN
-            draw_text(self.walk_machine.current_state.name, 10, 440, 20, color)
+            draw_text(self.walk_machine.current_state.name, 10, 840, 20, color)
             self.speed_bar.update(self.walk_machine.speed/SPEED_MAX, '%.2f' % self.walk_machine.speed)
             self.height_bar.update(self.walk_machine.height/HEIGHT_MAX, '%.2f' % self.walk_machine.height)
 
