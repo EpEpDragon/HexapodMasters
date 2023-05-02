@@ -15,6 +15,10 @@ from raylib import (
     KEY_LEFT_SHIFT,
     KEY_SPACE,
     KEY_V,
+    KEY_LEFT,
+    KEY_RIGHT,
+    KEY_UP,
+    KEY_DOWN,
 )
 
 from numpy import (
@@ -103,6 +107,10 @@ class ControInterface():
                 self.walk_machine.set_height(self.walk_machine.height + 0.001)
             elif is_key_down(KEY_LEFT_SHIFT):
                 self.walk_machine.set_height(self.walk_machine.height - 0.001)
+            elif is_key_down(KEY_LEFT):
+                self.walk_machine.set_yaw(self.walk_machine.yaw - 0.001)
+            elif is_key_down(KEY_RIGHT):
+                self.walk_machine.set_yaw(self.walk_machine.yaw + 0.001)
             elif is_key_pressed(KEY_V):
                 self.view[0] += 1
                 self.view[0] = self.view[0] % (2)

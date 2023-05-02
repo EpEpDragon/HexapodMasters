@@ -132,7 +132,7 @@ if __name__ == '__main__':
         step_start = time.perf_counter()
         walk_machine.update(timestep)
         # Move actuators
-        movement_handler.set_targets(walk_machine.foot_pos)
+        movement_handler.set_targets(walk_machine.foot_pos, walk_machine.yaw)
         movement_handler.update_moves(timestep)
 
         # Step by integrating timestep error to simulation in (approximatley) real time

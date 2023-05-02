@@ -13,6 +13,7 @@ PLACE_TOLERANCE = 0.01
 
 SPEED_MAX = 2
 HEIGHT_MAX = 1.15
+YAW_MAX = deg2rad(30)
 
 
 def find_angle(v):
@@ -40,6 +41,7 @@ class WalkCycleMachine(StateMachine):
         self.active = a([False, False, False, False, False, False])
         self.speed = 0.5
         self.height = REST_Z*2
+        self.yaw = 0.0
         self.walk_direction = a([0,0,0])
         self.foot_pos = list(REST_POS)
         self.targets = list(REST_POS)
@@ -146,6 +148,9 @@ class WalkCycleMachine(StateMachine):
 
     def set_height(self, value):
         self.height = max(min(value, HEIGHT_MAX), 0)
+    
+    def set_yaw(self, value):
+        self.yaw = max(min(value,YAW_MAX),-YAW_MAX)
 
 if __name__ == '__main__':
     sm = WalkCycleMachine()

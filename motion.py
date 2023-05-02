@@ -35,6 +35,7 @@ class MoveType(Enum):
 class Movement:
     target : np.array = field(default_factory=np.array)
     duration : float = 0
+    
     # type : MoveType
     # start : np.array = np.array([0,0])
     # t : float = 0.0
@@ -68,7 +69,7 @@ class MovementHandler:
         self.qpos_start_id = qpos.size - NUM_ACTUATORS*3
         self.ctrl = ctrl
         self.movements = [None,None,None,None,None,None]
-        self.height = 0.0
+        self.yaw = 0.0
 
     def find_foot_pos(self, id):
         curr_yaw = self.ctrl[id*3]
@@ -89,14 +90,15 @@ class MovementHandler:
             [yaw,pitch,knee] = solve_ik(self.movements[id].target[0], self.movements[id].target[1], self.movements[id].target[2])
             
             # Apply actuator commands
-            self.ctrl[id*3] = yaw
+            self.ctrl[id*3] = yaw + self.yaw
             self.ctrl[id*3 + 1] = pitch
             self.ctrl[id*3 + 2] = knee
 
 
-    def set_targets(self, targets):
+    def set_targets(self, targets, yaw):
         for id in range(6):
             self.movements[id] = Movement(rotate_vec(targets[id] - OFFSETS[id]["position"],np.array([0,0,1]), -OFFSETS[id]["angle"]))
+        self.yaw = yaw
 
 
     # def move_foot(self, target, id, time, type):
@@ -107,11 +109,6 @@ class MovementHandler:
     #         self.movements[id].append(Movement(target, time, type, curr_pos))
     #     else:
     #         self.movements[id].append(Movement(target, time, type))
-
-
-    def set_height(self, h):
-        self.height = h
-        print("Height set")
 
 
 
