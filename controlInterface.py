@@ -96,23 +96,27 @@ class ControInterface():
         set_config_flags(ConfigFlags.FLAG_WINDOW_RESIZABLE)
         init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Control Interface")
     
-    def increase_height(self, event):
-        self.walk_machine.set_height(self.walk_machine.height + 0.01)
-    def decrease_height(self, event):
-        self.walk_machine.set_height(self.walk_machine.height - 0.01)
+    # def increase_height(self, event):
+    #     self.walk_machine.set_height(self.walk_machine.height + 0.01)
+    # def decrease_height(self, event):
+    #     self.walk_machine.set_height(self.walk_machine.height - 0.01)
     
     def run(self):
         while True:
             # Input
             # ----------------------------------------------------------------------------------
             if is_key_down(KEY_SPACE):
-                self.walk_machine.set_height(self.walk_machine.height + 0.001)
+                self.walk_machine.adjust_height(0.01)
             elif is_key_down(KEY_LEFT_SHIFT):
-                self.walk_machine.set_height(self.walk_machine.height - 0.001)
+                self.walk_machine.adjust_height(-0.01)
             if is_key_down(KEY_LEFT):
                 self.walk_machine.adjust_local_yaw(-0.01)
             elif is_key_down(KEY_RIGHT):
                 self.walk_machine.adjust_local_yaw(0.01)
+            if is_key_down(KEY_UP):
+                self.walk_machine.adjust_pitch(0.01)
+            elif is_key_down(KEY_DOWN):
+                self.walk_machine.adjust_pitch(-0.01)
             if is_key_down(KEY_Z):
                 self.walk_machine.centering_yaw[:] = True
             if is_key_pressed(KEY_V):

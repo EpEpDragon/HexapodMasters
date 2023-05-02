@@ -2,10 +2,10 @@ from statemachine import StateMachine, State
 import numpy as np
 from numpy import array as a
 from numpy import deg2rad, rad2deg
-from math import acos, sqrt
+from math import sin,cos,tan, acos, sqrt
 from roboMath import clerp, rotate_vec
 
-REST_Z = 0.5
+REST_Z = 0.6/2
 REST_POS = [a([0.866, 0.500, REST_Z])*2, a([0.866, -0.500, REST_Z])*2,
             a([0.0, 1.000, REST_Z])*2, a([0.0, -1.00, REST_Z])*2,
             a([-0.866, 0.500, REST_Z])*2, a([-0.866, -0.500, REST_Z])*2]
@@ -15,6 +15,8 @@ UP = a([0,0,1])
 SPEED_MAX = 2
 HEIGHT_MAX = 1.15
 YAW_MAX = deg2rad(20)
+PITCH_MAX = deg2rad(30)
+BODY_RADIUS = 0.7
 
 
 def find_angle(v):    
@@ -43,6 +45,8 @@ class WalkCycleMachine(StateMachine):
         self.speed = 0.5
         self.yaw_rate = deg2rad(10)
         self.height = REST_Z*2
+        self.height_offsets = np.zeros(6)
+        self.pitch = 0.0
         self.target_yaw_local = np.zeros(6)
         self.current_yaw_local = np.zeros(6)
         self.centering_yaw = np.full(6, False) # True when robot in process of centering yaw
@@ -148,7 +152,7 @@ class WalkCycleMachine(StateMachine):
         if self.current_state == self.stepping:
             for i in range(6):
                 if not (self.targets[i] - self.foot_pos_pre_yaw[i] == 0).all():
-                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,4])*self.speed*dt)
+                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,5])*self.speed*dt)
 
         # Update foot position for local rotation
         for i in range(6):
@@ -164,9 +168,10 @@ class WalkCycleMachine(StateMachine):
                 self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
                 # If not walking means rotationg in place, thus set foot height based on rotation
                 if (self.walk_direction == 0).all() and self.centering_yaw[i]:
-                    self.targets[i][2] = self.height - min(abs(self.current_yaw_local[i])*3, 0.2)
+                    self.targets[i][2] = self.height + self.height_offsets[i] - min(abs(self.current_yaw_local[i])*3, 0.1)
                 else:
-                    self.targets[i][2] = self.height - min(dist, 0.1)
+                    print(min(dist, 0.2))
+                    self.targets[i][2] = self.height + self.height_offsets[i] - min(dist, 0.1)
                     
                 if self.centering_yaw[i]:
                     # rotate_vec(self.targets[i], UP, -self.target_yaw_local[i])
@@ -174,7 +179,7 @@ class WalkCycleMachine(StateMachine):
 
             else:
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
-                self.targets[i][2] = self.height
+                self.targets[i][2] = self.height + self.height_offsets[i]
 
     # -------------------------------------------------------------------------------------------
 
@@ -186,13 +191,28 @@ class WalkCycleMachine(StateMachine):
     def set_speed(self, value):
         self.speed = max(min(value, SPEED_MAX), 0)
 
-    def set_height(self, value):
-        self.height = max(min(value, HEIGHT_MAX), 0)
+    def adjust_height(self, value):
+        self.height += value
+        self.height = min(max(self.height,0), HEIGHT_MAX)
+    
+    def adjust_pitch(self, value):
+        self.pitch += value
+        self.pitch = min(max(self.pitch,-PITCH_MAX), PITCH_MAX)
+        offset = sin(self.pitch)*BODY_RADIUS
+        self.height_offsets[0:2] = -offset
+        self.height_offsets[4:6] = offset
+
+        # self.height_offsets[0] = -tan(self.pitch)*BODY_RADIUS*tan()
+        # self.height_offsets[2] = -tan(self.pitch)*BODY_RADIUS
+        # self.height_offsets[3] = tan(self.pitch)*BODY_RADIUS
+        # self.height_offsets[4:6] = tan(self.pitch)*BODY_RADIUS
 
     def adjust_local_yaw(self, value):
         for i in range(6):
-            if not self.active[i]:
-                self.target_yaw_local[i] += max(min(value,YAW_MAX),-YAW_MAX)
+                # if not self.active[i]:
+                if (-YAW_MAX <= self.target_yaw_local + value).all() and (self.target_yaw_local + value <= YAW_MAX).all():
+                    self.target_yaw_local[i] += value
+                    self.target_yaw_local[i] = min(max(self.target_yaw_local[i],-YAW_MAX),YAW_MAX)
 
 if __name__ == '__main__':
     sm = WalkCycleMachine()
