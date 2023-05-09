@@ -15,27 +15,28 @@ class KeyboardThread(threading.Thread):
         while True:
             self.input_cbk(input()) #waits to get input + Return
 
-
+MOVE_STEP = 5
 def my_callback(inp):
     #evaluate the keyboard input
     if inp == '\x1b[D':
-        adjust_local_pos(local_pos, np.array([-5,0,0]))
+        adjust_local_pos(local_pos, np.array([-MOVE_STEP,0,0]))
         print(f"Left: {local_pos}")
     elif inp == '\x1b[C':
-        adjust_local_pos(local_pos, np.array([5,0,0]))
+        adjust_local_pos(local_pos, np.array([MOVE_STEP,0,0]))
         print(f"Left: {local_pos}")
     elif inp == ("\x1b[A"):
-        adjust_local_pos(local_pos, np.array([0,5,0]))
+        adjust_local_pos(local_pos, np.array([0,MOVE_STEP,0]))
         print(f"Forwards: {local_pos}")
     elif inp == ("\x1b[B"):
-        adjust_local_pos(local_pos, np.array([0,-5,0]))
+        adjust_local_pos(local_pos, np.array([0,-MOVE_STEP,0]))
         print(f"Backwards: {local_pos}")
     elif inp == ("q"):
-        adjust_local_pos(local_pos, np.array([0,0,5]))
+        adjust_local_pos(local_pos, np.array([0,0,MOVE_STEP]))
         print(f"Up: {local_pos}")
     elif inp == ("a"):
-        adjust_local_pos(local_pos, np.array([0,0,-5]))
+        adjust_local_pos(local_pos, np.array([0,0,-MOVE_STEP]))
         print(f"Down: {local_pos}")
+    
     elif inp == 'clear':
         clear_sdf()
         update_viz()
@@ -45,19 +46,84 @@ def my_callback(inp):
     elif inp == 'center':
         local_pos[:] = 0
         update_viz()
-
-def adjust_local_pos(local_pos, value):
+    elif inp == 'red':
+        pcd.paint_uniform_color([1,0,0])
+        update_viz()
+    elif inp == 'green':
+        pcd.paint_uniform_color([0,1,0])
+        update_viz()
+    elif inp == 'blue':
+        pcd.paint_uniform_color([0,0,1])
+        update_viz()
+    elif inp == 'black':
+        pcd.paint_uniform_color([0,0,0])
+        update_viz()
+    elif inp == 'gray':
+        pcd.paint_uniform_color([0.5,0.5,0.5])
+        update_viz()
+def adjust_local_pos(local_pos, value):    
     local_pos += value
     # Wrap local pos around range
-    for i in range(3):
-        local_pos[i] = local_pos[i]%(EXTENTS)
-        # [ x%(EXTENTS+1) for x in value ]
+    local_pos[:] = (local_pos%EXTENTS)[:]
+    
+    # Y axis
+    if value[0] > 0:
+        start = (local_pos[0]+EXTENTS-MOVE_STEP)%(EXTENTS)
+        end = (local_pos[0]+EXTENTS)%(EXTENTS)
+        if end == 0:
+            end = EXTENTS
+        print(f"Clear {start} to {end}")
+        sdf_buffer[start:end,:,:] = 100
+    elif value[0] < 0:
+        start = (local_pos[0])%(EXTENTS)
+        end = (local_pos[0]+MOVE_STEP)%(EXTENTS)
+        if end == 0:
+            end = EXTENTS
+        print(f"Clear {start} to {end}")
+        sdf_buffer[start:end,:,:] = 100
+    
+    # X axis
+    if value[1] > 0:
+        start = (local_pos[1]+EXTENTS-MOVE_STEP)%(EXTENTS)
+        end = (local_pos[1]+EXTENTS)%(EXTENTS)
+        if end == 0:
+            end = EXTENTS
+        print(f"Clear {start} to {end}")
+        sdf_buffer[:,start:end,:] = 100
+    elif value[1] < 0:
+        start = (local_pos[1])%(EXTENTS)
+        end = (local_pos[1]+MOVE_STEP)%(EXTENTS)
+        if end == 0:
+            end = EXTENTS
+        print(f"Clear {start} to {end}")
+        sdf_buffer[:,start:end,:] = 100
+
+    # Z axis
+    if value[2] > 0:
+        start = (local_pos[2]+EXTENTS-MOVE_STEP)%(EXTENTS)
+        end = (local_pos[2]+EXTENTS)%(EXTENTS)
+        if end == 0:
+            end = EXTENTS
+        print(f"Clear {start} to {end}")
+        sdf_buffer[:,:,start:end] = 100
+    elif value[2] < 0:
+        start = (local_pos[2])%(EXTENTS)
+        end = (local_pos[2]+MOVE_STEP)%(EXTENTS)
+        if end == 0:
+            end = EXTENTS
+        print(f"Clear {start} to {end}")
+        sdf_buffer[:,:,start:end] = 100
+
     update_viz()
 
 def add_block(center_xyz, extent_xyz):
-    start_xyz = (center_xyz - local_pos - (extent_xyz/2).astype(int) + (np.array(sdf_buffer.shape)/2).astype(int))%EXTENTS
+    start_xyz = center_xyz + local_pos - (extent_xyz/2).astype(int) + (np.array(sdf_buffer.shape)/2).astype(int)
     end_xyz = start_xyz + extent_xyz
-    sdf_buffer[start_xyz[0]:end_xyz[0], start_xyz[1]:end_xyz[1], start_xyz[2]:end_xyz[2]] = 0
+    
+    for x in range(start_xyz[0], end_xyz[0]):
+        for y in range(start_xyz[1], end_xyz[1]):
+            for z in range(start_xyz[2], end_xyz[2]):
+                sdf_buffer[x%EXTENTS,y%EXTENTS,z%EXTENTS] = 0
 
 
 def clear_sdf():
@@ -68,9 +134,9 @@ def update_viz():
     for i in range(sdf_buffer.shape[0]):
         for j in range(sdf_buffer.shape[1]):
             for k in range(sdf_buffer.shape[2]):
-                x = (local_pos[0]+i)%EXTENTS
-                y = (j+local_pos[1])%EXTENTS
-                z = (k+local_pos[2])%EXTENTS
+                x = (i-local_pos[0])%EXTENTS
+                y = (j-local_pos[1])%EXTENTS
+                z = (k-local_pos[2])%EXTENTS
                 index = int(x + y*sdf_buffer.shape[0] + z*sdf_buffer.shape[0]*sdf_buffer.shape[1])
                 if sdf_buffer[i,j,k] <= 0:
                     points_buffer[index] = np.array([x,y,z])
