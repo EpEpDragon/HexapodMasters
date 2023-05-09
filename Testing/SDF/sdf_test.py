@@ -1,10 +1,8 @@
 import open3d as o3d
 import numpy as np
-import time
-from multiprocessing import shared_memory, Process, Lock
-
 import threading
 
+# Input
 class KeyboardThread(threading.Thread):
     def __init__(self, input_cbk = None, name='keyboard-input-thread'):
         self.input_cbk = input_cbk
@@ -17,7 +15,7 @@ class KeyboardThread(threading.Thread):
 
 MOVE_STEP = 5
 def my_callback(inp):
-    #evaluate the keyboard input
+    # Commands
     if inp == '\x1b[D':
         adjust_local_pos(local_pos, np.array([-MOVE_STEP,0,0]))
         print(f"Left: {local_pos}")
@@ -36,7 +34,6 @@ def my_callback(inp):
     elif inp == ("a"):
         adjust_local_pos(local_pos, np.array([0,0,-MOVE_STEP]))
         print(f"Down: {local_pos}")
-    
     elif inp == 'clear':
         clear_sdf()
         update_viz()
@@ -61,61 +58,60 @@ def my_callback(inp):
     elif inp == 'gray':
         pcd.paint_uniform_color([0.5,0.5,0.5])
         update_viz()
-def adjust_local_pos(local_pos, value):    
-    local_pos += value
+
+# Move in vector
+def adjust_local_pos(local_pos, vector):    
+    local_pos += vector
     # Wrap local pos around range
     local_pos[:] = (local_pos%EXTENTS)[:]
     
+    # Clear required cells
+    #-------------------------------------------------------------
     # Y axis
-    if value[0] > 0:
+    if vector[0] > 0:
         start = (local_pos[0]+EXTENTS-MOVE_STEP)%(EXTENTS)
         end = (local_pos[0]+EXTENTS)%(EXTENTS)
         if end == 0:
             end = EXTENTS
-        print(f"Clear {start} to {end}")
         sdf_buffer[start:end,:,:] = 100
-    elif value[0] < 0:
+    elif vector[0] < 0:
         start = (local_pos[0])%(EXTENTS)
         end = (local_pos[0]+MOVE_STEP)%(EXTENTS)
         if end == 0:
             end = EXTENTS
-        print(f"Clear {start} to {end}")
         sdf_buffer[start:end,:,:] = 100
     
     # X axis
-    if value[1] > 0:
+    if vector[1] > 0:
         start = (local_pos[1]+EXTENTS-MOVE_STEP)%(EXTENTS)
         end = (local_pos[1]+EXTENTS)%(EXTENTS)
         if end == 0:
             end = EXTENTS
-        print(f"Clear {start} to {end}")
         sdf_buffer[:,start:end,:] = 100
-    elif value[1] < 0:
+    elif vector[1] < 0:
         start = (local_pos[1])%(EXTENTS)
         end = (local_pos[1]+MOVE_STEP)%(EXTENTS)
         if end == 0:
             end = EXTENTS
-        print(f"Clear {start} to {end}")
         sdf_buffer[:,start:end,:] = 100
 
     # Z axis
-    if value[2] > 0:
+    if vector[2] > 0:
         start = (local_pos[2]+EXTENTS-MOVE_STEP)%(EXTENTS)
         end = (local_pos[2]+EXTENTS)%(EXTENTS)
         if end == 0:
             end = EXTENTS
-        print(f"Clear {start} to {end}")
         sdf_buffer[:,:,start:end] = 100
-    elif value[2] < 0:
+    elif vector[2] < 0:
         start = (local_pos[2])%(EXTENTS)
         end = (local_pos[2]+MOVE_STEP)%(EXTENTS)
         if end == 0:
             end = EXTENTS
-        print(f"Clear {start} to {end}")
         sdf_buffer[:,:,start:end] = 100
-
+    #-------------------------------------------------------------
     update_viz()
 
+# Add block at current position
 def add_block(center_xyz, extent_xyz):
     start_xyz = center_xyz + local_pos - (extent_xyz/2).astype(int) + (np.array(sdf_buffer.shape)/2).astype(int)
     end_xyz = start_xyz + extent_xyz
@@ -143,11 +139,8 @@ def update_viz():
                 else:
                     points_buffer[index] = np.array([100,100,100])
     pcd.points = o3d.utility.Vector3dVector(points_buffer)
-    # pcd.paint_uniform_color(np.array([0,0,0]))
-    # pcd.paint_uniform_color(np.array([0,0,0]))
     vis.update_geometry(pcd)
     vis.update_renderer()
-    # pcd.paint_uniform_color(np.array([0,0,0]))
 
 # Setup
 #-----------------------------------------------------------------------
