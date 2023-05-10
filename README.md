@@ -48,3 +48,6 @@ python3 -m pip install --upgrade --force-reinstall numpy-quaternion
 ```
 python3 -m pip install screeninfo
 ```
+
+## Possible References
+- A Fast Voxel Traversal Algorithm for Ray Tracing: http://www.cse.yorku.ca/~amana/research/grid.pdf

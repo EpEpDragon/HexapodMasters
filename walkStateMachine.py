@@ -172,17 +172,14 @@ class WalkCycleMachine(StateMachine):
                 else:
                     pass
                     self.targets[i][2] += self.height_offsets[i] - min(dist, 0.1) - REST_POS[i][2] + self.height
-                    # self.targets[i][2] += self.height_offsets[i]
                     
                 if self.centering_yaw[i]:
-                    # rotate_vec(self.targets[i], UP, -self.target_yaw_local[i])
                     self.target_yaw_local[i] = 0.0
 
             else:
                 # Rotate walk direction to account for pitch angle and add to targets
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH) 
                 self.targets[i][2] += self.height_offsets[i] - REST_POS[i][2] + self.height
-                # self.targets[i][2] += self.height_offsets[i]
 
     # -------------------------------------------------------------------------------------------
 
