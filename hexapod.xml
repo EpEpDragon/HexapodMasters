@@ -53,7 +53,7 @@
 
       <!-- Camera -->
       <body name="camera" pos="0 0 1" xyaxes="0 -1 0 0.6 0 1">
-        <camera name="cam" mode="fixed" fovy="60"/>  
+        <camera name="cam" mode="fixed" fovy="60"/>
       </body>
 
       <!-- Front Left Leg -->
@@ -167,4 +167,8 @@
     <position joint="back_right_pitch" class="pitch"name="back_right_pitch"/>
     <position joint="back_right_knee" class="knee" name="back_right_knee"/>
   </actuator>
+
+  <sensor>
+    <framepos name="cam_position" objtype="camera" objname="cam"/>
+  </sensor>
 </mujoco>

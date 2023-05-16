@@ -16,16 +16,17 @@ import viz_cloud
 # import keyboard
 
 from walkStateMachine import WalkCycleMachine
+from perception import Perception, SDF_EXTENTS
 import controlInterface
 import motion
 from roboMath import rotate_vec
 
-READ_CAMERA = False
+READ_CAMERA = True
 
 # Camera
 RES_X = 1280
 RES_Y = 720
-POINT_CLOUD_DIVISOR = 4
+POINT_CLOUD_DIVISOR = 10
 # Changed from control interface thread, thus list for mutable
 view = [0]
 
@@ -53,31 +54,30 @@ if __name__ == '__main__':
     walk_machine = WalkCycleMachine()
     walk_machine.speed = 0.5
 
-    # Start contorl interface
-    # control_interface = ControInterface(walk_machine)
-    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,view))
-    control_interface_thread.start()
-    
-    # Point cloud
-    # -------------------------------------------------------------------------------------------------------
-    # a = np.ndarray((1000, 3),dtype=np.float32)
-    if READ_CAMERA:
-        a = np.random.rand(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)
-        lock = Lock()
-        shm = shared_memory.SharedMemory(create=True,size=a.nbytes)
-        points_buffer = np.ndarray(a.shape, dtype=np.float64, buffer=shm.buf)
-        points_buffer[:] = a[:]  # Copy the original data into shared memory
 
-        p1 = Process(target=viz_cloud.start, args=(shm.name,), daemon=True)
+# Visual sensors
+    # -------------------------------------------------------------------------------------------------------
+    if READ_CAMERA:
+        # Perception memory
+        perception = Perception()
+
+        # a = np.random.rand(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS,3)
+        # a = np.zeros((SDF_EXTENTS*SDF_EXTENTS*SDF_EXTENTS,3))
+        # lock = Lock()
+        # sdf_shm = shared_memory.SharedMemory(create=True,size=perception.sdf_buffer.nbytes)
+        # sdf_buffer = np.ndarray(perception.sdf_buffer.shape, dtype=np.float64, buffer=sdf_shm.buf)
+        # sdf_buffer[:] = a[:]  # Copy the original data into shared memory
+        
+        # a = np.zeros(3)
+        # sdf_index_shm = shared_memory.SharedMemory(create=True,size=a.nbytes)
+        # sdf_index = np.ndarray(a.shape, dtype=np.float32, buffer=sdf_index_shm.buf)
+        # sdf_index[:] = a[:]
+        
+        # Visualisation process
+        p1 = Process(target=viz_cloud.start, args=(perception.sdf_shm.name, perception.sdf_index_shm.name,), daemon=True)
         p1.start()
-    # -------------------------------------------------------------------------------------------------------
     
-    # Start movement handler
-    movement_handler = motion.MovementHandler(data.ctrl, data.qpos)
-
-    # Camera Stuff
-    # -------------------------------------------------------------------------------------------------------
-    if READ_CAMERA:
+        # Camera Setup
         gl_ctx = mujoco.GLContext(RES_X, RES_Y)
         gl_ctx.make_current()
 
@@ -115,6 +115,16 @@ if __name__ == '__main__':
 
         sample_list = []
     # -------------------------------------------------------------------------------------------------------
+
+
+    # Start contorl interface
+    # control_interface = ControInterface(walk_machine)
+    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,view))
+    control_interface_thread.start()
+    
+    # Start movement handler
+    movement_handler = motion.MovementHandler(data.ctrl, data.qpos)
+    
 
     # Start simulation
     viewer.launch_passive(model, data)
@@ -156,6 +166,7 @@ if __name__ == '__main__':
             
             # For visualization
             depth_linear[depth_linear > model.vis.map.zfar - 0.0005] = 0 # Zero out depths farther than the z buffer
+            depth_linear[depth_linear < 3] = 0
             
             # Show the simulated camera image
             if view[0] == 0:
@@ -168,12 +179,19 @@ if __name__ == '__main__':
             p_Y = cam_y_over_z * depth_linear
             p_Z = depth_linear
             p = np.dstack((p_X, p_Y, p_Z))
-            temp = p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)
+
+            # temp = p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)
+            # for i in range(temp.size):
+            #     if (temp[i]@temp[i]) < 1
+            
+            # Update perception module
+            perception.update(data.sensordata[0:3], p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3))
             
             # Swap some axis to make the visualization nicer
-            points_buffer[:,0] = temp[:,0]
-            points_buffer[:,1] = temp[:,2]
-            points_buffer[:,2] = -temp[:,1]
+            # points_buffer[:,0] = temp[:,0]
+            # points_buffer[:,1] = temp[:,2]
+            # points_buffer[:,2] = -temp[:,1]
+
 
             k = 0
         k += 1
@@ -181,4 +199,5 @@ if __name__ == '__main__':
         step_elapse = time.perf_counter() - step_start
         time.sleep(max(min(timestep - step_elapse - error, 1), 0)) # Delay remaining timestep - error
         dt = time.perf_counter() - step_start
-        error +=  dt - timestep # Integrate error
+        error +=  (dt - timestep)*3 # Integrate error
+        error = min(max(error,0), 0.002)

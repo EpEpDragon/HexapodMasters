@@ -147,7 +147,8 @@ def update_viz():
 #start the Keyboard thread
 kthread = KeyboardThread(my_callback)
 EXTENTS = 30
-pcd = o3d.geometry.PointCloud()
+# pcd = o3d.geometry.PointCloud()
+pcd = o3d.geometry.VoxelGrid()
 sdf_buffer = np.zeros((EXTENTS,EXTENTS,EXTENTS))
 points_buffer_size = (sdf_buffer.shape[0]*sdf_buffer.shape[0]*sdf_buffer.shape[0], 3)
 points_buffer = np.empty(points_buffer_size)
