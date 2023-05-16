@@ -1,7 +1,7 @@
 import numpy as np
 from multiprocessing import shared_memory
 EXTENTS = 30                        # Extents of SDF block, in distance units
-DIVISIOINS =1                      # Cells per distance unit
+DIVISIOINS = 2                   # Cells per distance unit
 SDF_EXTENTS = EXTENTS*DIVISIOINS    # Extents of SDF block, in number of cells
 
 def to_sdf_index(global_pos):
@@ -13,13 +13,15 @@ class Perception():
         # Shared Memory buffers for communication with 3D visualisation process
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
-        sdf_buffer = np.ones((SDF_EXTENTS, SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32)
+        sdf_buffer = np.zeros((SDF_EXTENTS, SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32)
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=sdf_buffer.nbytes)
         self.sdf_buffer = np.ndarray(sdf_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
+        self.sdf_buffer[:] = sdf_buffer[:]
         # Index of current cell
-        sdf_index = np.zeros(3, dtype=np.int8)
+        sdf_index = np.zeros(3, dtype=np.float32)
         self.sdf_index_shm = shared_memory.SharedMemory(create=True,size=sdf_index.nbytes)
-        self.sdf_index = np.ndarray(sdf_index.shape, dtype=np.int8, buffer=self.sdf_index_shm.buf)
+        self.sdf_index = np.ndarray(sdf_index.shape, dtype=np.float32, buffer=self.sdf_index_shm.buf)
+        self.sdf_index[:] = sdf_index[:]
         #---------------------------------------------------------------------------------
         
         self.cell_offset = np.zeros(3) # Position offset from cell origin
@@ -27,8 +29,9 @@ class Perception():
     
     def update(self, global_pos, points):
         self.update_sdf_index(global_pos)
-        indices = points.astype(int)
-        self.sdf_buffer[indices[:,0], indices[:,1]] = 0.0
+        indices = points.astype(int)*DIVISIOINS + int(SDF_EXTENTS/2)
+        # self.sdf_buffer[:] = 100
+        self.sdf_buffer[indices[:,0], indices[:,1], indices[:,2]] = 0.0
 
 
     def update_sdf_index(self, global_pos):

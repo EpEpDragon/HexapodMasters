@@ -13,6 +13,7 @@ from numpy import array as a
 import cv2
 import viz_cloud
 
+import depth_image_test as dit
 # import keyboard
 
 from walkStateMachine import WalkCycleMachine
@@ -154,7 +155,7 @@ if __name__ == '__main__':
             mujoco.mjv_updateScene(model, data, vopt, pert, cam, mujoco.mjtCatBit.mjCAT_ALL, scn)
             mujoco.mjr_render(viewport, scn, ctx)
             image = np.empty((RES_Y, RES_X, 3), dtype=np.uint8)
-            depth = np.empty((RES_Y, RES_X, 1),    dtype=np.float32)
+            depth = np.empty((RES_Y, RES_X, 1), dtype=np.float32)
             mujoco.mjr_readPixels(image, depth, viewport, ctx)
             image = cv2.flip(image, 0) # OpenGL renders with inverted y axis
             depth = cv2.flip(depth, 0) # OpenGL renders with inverted y axis
