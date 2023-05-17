@@ -32,13 +32,25 @@ def show_points(p):
     pcd = o3d.geometry.PointCloud()
     if p.shape[1] != 3:
         p.resize((p.shape[0]*p.shape[1], 3))
-    # pos3 = np.array(p)
-    # pos3[:,0] = p[:,0]
-    # pos3[:,1] = p[:,2]
-    # pos3[:,2] = -p[:,1]
+    pos3 = np.ndarray((p.shape[0]+8,p.shape[1]))
+    # pos3[0:-8,0] = p[:,0]
+    # pos3[0:-8,1] = p[:,2]
+    # pos3[0:-8,2] = -p[:,1]
+    pos3[0:-8,0] = p[:,0]
+    pos3[0:-8,1] = p[:,1]
+    pos3[0:-8,2] = p[:,2]
+    pos3[-1] = np.array([15, 15, 15])
+    pos3[-2] = np.array([15, 15, -15])
+    pos3[-3] = np.array([15, -15, -15])
+    pos3[-4] = np.array([-15, 15, -15])
+    pos3[-5] = np.array([-15, -15, 15])
+    pos3[-6] = np.array([-15, -15, -15])
+    pos3[-7] = np.array([15, -15, 15])
+    pos3[-8] = np.array([-15, 15, 15])
 
-    pcd.points = o3d.utility.Vector3dVector(p)
+    pcd.points = o3d.utility.Vector3dVector(pos3)
     vis.add_geometry(pcd)
+    vis.add_geometry(o3d.geometry.TriangleMesh.create_coordinate_frame(15))
     keep_running = True
 
     while keep_running:
@@ -62,13 +74,13 @@ def sdf_to_points(sdf, sdf_points):
 if __name__ == '__main__':
     perception = Perception()
     
-    img = (cv2.imread('/home/epep/Documents/HexapodMasters/depth_img.png')/255)[:,:,0]
+    img = (cv2.imread('depth_img.png')/255)[:,:,0]
     cv2.imshow('img', img)
     cv2.waitKey(0)
     depth = img*10
     p = points_from_depth(depth)
     show_points(p)
-    # perception.update(np.array([0,0,0]),p)
+    perception.update(np.array([0,0,0]),p)
     sdf = perception.sdf_buffer
     sdf_points = np.ones((sdf.shape[0]*sdf.shape[1]*sdf.shape[2],3))
     sdf_to_points(sdf, sdf_points)

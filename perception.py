@@ -6,14 +6,14 @@ SDF_EXTENTS = EXTENTS*DIVISIOINS    # Extents of SDF block, in number of cells
 
 def to_sdf_index(global_pos):
     """Convert global position to position in SDF grid, which has its corner at 0,0,0"""
-    return ((global_pos + EXTENTS/2)%(EXTENTS))*DIVISIOINS
+    return ((global_pos)%(EXTENTS))*DIVISIOINS
 
 class Perception():
     def __init__(self) -> None:
         # Shared Memory buffers for communication with 3D visualisation process
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
-        sdf_buffer = np.zeros((SDF_EXTENTS, SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32)
+        sdf_buffer = np.ones((SDF_EXTENTS, SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32)
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=sdf_buffer.nbytes)
         self.sdf_buffer = np.ndarray(sdf_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.sdf_buffer[:] = sdf_buffer[:]
@@ -29,7 +29,7 @@ class Perception():
     
     def update(self, global_pos, points):
         self.update_sdf_index(global_pos)
-        indices = points.astype(int)*DIVISIOINS + int(SDF_EXTENTS/2)
+        indices = ((points + EXTENTS/2)*DIVISIOINS).astype(int)
         # self.sdf_buffer[:] = 100
         self.sdf_buffer[indices[:,0], indices[:,1], indices[:,2]] = 0.0
 
@@ -54,8 +54,8 @@ class Perception():
                 end = SDF_EXTENTS
             self.sdf_buffer[start:end,:,:] = 100
         elif diff[0] < 0:
-            start = (self.sdf_index[0])%(SDF_EXTENTS)
-            end = (self.sdf_index[0]-diff[0])%(SDF_EXTENTS)
+            start = int(self.sdf_index[0])%(SDF_EXTENTS)
+            end = int(self.sdf_index[0]-diff[0])%(SDF_EXTENTS)
             if end == 0:
                 end = SDF_EXTENTS
             self.sdf_buffer[start:end,:,:] = 100
