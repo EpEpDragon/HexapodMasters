@@ -20,3 +20,7 @@ def rotate_vec(vector, axis, angle):
     s = sin(angle)
     q = np.quaternion(cos(angle), s*axis[0], s*axis[1], s*axis[2])
     return as_vector_part(q*from_vector_part(vector)*q.conjugate())
+
+def rotate_vec_quat(vector, q):
+    q = np.quaternion(q[0], q[1], q[2], q[3])
+    return as_vector_part(q*from_vector_part(vector)*q.conjugate())

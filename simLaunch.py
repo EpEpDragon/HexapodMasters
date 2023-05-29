@@ -188,7 +188,7 @@ if __name__ == '__main__':
             # Update perception module
             
             # if snapshot[0]:
-            perception.update(data.sensordata[0:3], p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3))
+            perception.update(data.sensordata[0:3], data.sensordata[3:7], p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3))
                 # snapshot[0] = False
             # else:
             #     perception.update_sdf_index(data.sensordata[0:3])
