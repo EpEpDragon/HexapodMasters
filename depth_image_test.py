@@ -59,17 +59,9 @@ def show_points(p):
     vis.destroy_window()
 
 def sdf_to_points(sdf, sdf_points):
-    for i in range(sdf.shape[0]):
-        for j in range(sdf.shape[1]):
-            for k in range(sdf.shape[2]):
-                # x = (i)%SDF_EXTENTS 
-                # y = (j)%SDF_EXTENTS
-                # z = (k)%SDF_EXTENTS
-                index = int(i + j*SDF_EXTENTS + k*SDF_EXTENTS*SDF_EXTENTS)
-                if sdf[i,j,k] <= 0:
-                    sdf_points[index] = (np.array([i,j,k]))/DIVISIOINS - EXTENTS/2
-                else:
-                    sdf_points[index] = np.array([0,0,0])
+    index = np.where(sdf <= 0)
+    index_flat = index[0][:] + index[1][:]*SDF_EXTENTS + index[2][:]*SDF_EXTENTS*SDF_EXTENTS
+    sdf_points[index_flat] = np.transpose(index)/DIVISIOINS - EXTENTS/2
 
 if __name__ == '__main__':
     perception = Perception()

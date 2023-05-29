@@ -21,6 +21,7 @@ from raylib import (
     KEY_UP,
     KEY_DOWN,
     KEY_Z,
+    KEY_P,
 )
 
 from numpy import (
@@ -64,8 +65,8 @@ class ProgressBar():
         draw_text(v, self.v_x, self.v_y, self.v_size, self.t_color)                     # Value text
 
 
-def start_interface(walk_machine, view):
-    control_interface = ControInterface(walk_machine, view)
+def start_interface(walk_machine, view, snapshot):
+    control_interface = ControInterface(walk_machine, view, snapshot)
     if platform in ['Windows','win32','cywin']:
         warnings.warn("Not implemented on Windows OS")
     else:
@@ -89,7 +90,8 @@ def start_interface(walk_machine, view):
 
 
 class ControInterface():
-    def __init__(self, walk_machine, view) -> None:
+    def __init__(self, walk_machine, view, snapshot) -> None:
+        self.snapshot = snapshot
         self.walk_machine = walk_machine
         # self.cloud_vis = CloudVis()
         self.walk_direction = Vector2(0,0)
@@ -123,6 +125,8 @@ class ControInterface():
             if is_key_pressed(KEY_V):
                 self.view[0] += 1
                 self.view[0] = self.view[0] % (2)
+            if is_key_pressed(KEY_P):
+                self.snapshot[0] = True
 
             self.walk_machine.set_speed(self.walk_machine.speed + get_mouse_wheel_move()*0.1)
             body_pos = Vector2(get_screen_width() / 2.0 , 210)

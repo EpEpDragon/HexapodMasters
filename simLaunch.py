@@ -12,6 +12,7 @@ from numpy import array as a
 
 import cv2
 import viz_cloud
+import open3d as o3d
 
 import depth_image_test as dit
 # import keyboard
@@ -30,8 +31,10 @@ RES_Y = 720
 POINT_CLOUD_DIVISOR = 10
 # Changed from control interface thread, thus list for mutable
 view = [0]
+snapshot = [False]
 
 is_sim_running = True
+
 
 # def input(event):
 #     # print(get_active_window_title())
@@ -120,7 +123,7 @@ if __name__ == '__main__':
 
     # Start contorl interface
     # control_interface = ControInterface(walk_machine)
-    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,view))
+    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,view,snapshot))
     control_interface_thread.start()
     
     # Start movement handler
@@ -181,18 +184,26 @@ if __name__ == '__main__':
             p_Z = depth_linear
             p = np.dstack((p_X, p_Y, p_Z))
 
-            # temp = p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3)
-            # for i in range(temp.size):
-            #     if (temp[i]@temp[i]) < 1
             
             # Update perception module
-            perception.update(data.sensordata[0:3], p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3))
             
-            # Swap some axis to make the visualization nicer
-            # points_buffer[:,0] = temp[:,0]
-            # points_buffer[:,1] = temp[:,2]
-            # points_buffer[:,2] = -temp[:,1]
+            # if snapshot[0]:
+            perception.update(data.sensordata[0:3], p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3))
+                # snapshot[0] = False
+            # else:
+            #     perception.update_sdf_index(data.sensordata[0:3])
 
+                # vis = o3d.visualization.Visualizer()
+                # vis.create_window(height=480, width=640)
+                # pcd = o3d.geometry.PointCloud()
+                # pcd.points = o3d.utility.Vector3dVector(p.reshape(RES_X*RES_Y,3))
+                # vis.add_geometry(pcd)
+                # vis.add_geometry(o3d.geometry.TriangleMesh.create_coordinate_frame(15))
+                # keep_running = True
+                # while keep_running:
+                #     keep_running = vis.poll_events()
+                # vis.destroy_window()
+                # snapshot[0] = False
 
             k = 0
         k += 1
