@@ -16,11 +16,11 @@ def update_points_buffer(sdf_index, sdf_buffer, pcd):
         index[2][:] = (index[2][:] + sdf_index[2])%SDF_EXTENTS
         # index_flat = index[0][:] + index[1][:]*SDF_EXTENTS + index[2][:]*SDF_EXTENTS*SDF_EXTENTS
         points = np.transpose(index)/DIVISIOINS - EXTENTS/2
-        pos3 = np.array(points)
-        pos3[:,0] = -points[:,0]
-        pos3[:,1] = -points[:,1]
-        pos3[:,2] = -points[:,2]
-        pcd.points = o3d.utility.Vector3dVector(pos3)
+        # pos3 = np.array(points)
+        # pos3[:,0] = -points[:,0]
+        # pos3[:,1] = -points[:,1]
+        # pos3[:,2] = -points[:,2]
+        pcd.points = o3d.utility.Vector3dVector(-points)
 
 
 
