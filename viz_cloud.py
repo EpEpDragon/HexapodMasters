@@ -11,12 +11,12 @@ keep_running = True
 def update_points_buffer(sdf_index, sdf_buffer, pcd, erase_markers):
     if sdf_buffer.min() <= 0:
         index = np.where(sdf_buffer <= 0)
-        # index[0][:] = (index[0][:] + sdf_index[0])%SDF_EXTENTS
-        # index[1][:] = (index[1][:] + sdf_index[1])%SDF_EXTENTS
-        # index[2][:] = (index[2][:] + sdf_index[2])%SDF_EXTENTS
-        index[0][:] = (index[0][:])%SDF_EXTENTS
-        index[1][:] = (index[1][:])%SDF_EXTENTS
-        index[2][:] = (index[2][:])%SDF_EXTENTS
+        index[0][:] = (index[0][:] + sdf_index[0])%SDF_EXTENTS
+        index[1][:] = (index[1][:] + sdf_index[1])%SDF_EXTENTS
+        index[2][:] = (index[2][:] + sdf_index[2])%SDF_EXTENTS
+        # index[0][:] = (index[0][:])%SDF_EXTENTS
+        # index[1][:] = (index[1][:])%SDF_EXTENTS
+        # index[2][:] = (index[2][:])%SDF_EXTENTS
         points = np.transpose(index)/DIVISIOINS - EXTENTS/2
         
         x = (sdf_index[0]-SDF_EXTENTS/2)/DIVISIOINS

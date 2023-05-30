@@ -48,18 +48,36 @@ class Perception():
         diff = local_new - self.sdf_index
         # Clear required cells
         #-------------------------------------------------------------
-        # X axis
-        # print(self.sdf_index)
-        start = -self.sdf_index[0]
-        end = min(max(start + diff[0], -SDF_EXTENTS), SDF_EXTENTS)
-        print(f"{start} -- {end}")
-        # if end == 0:
-        #     end = SDF_EXTENTS
-        self.sdf_buffer[start:end,:,:] = 100
-
+        if diff[0] != 0:
+            x1 = -self.sdf_index[0]
+            x2 = x1 + diff[0]
+            if x1 > x2:
+                x1, x2 = swap(x1,x2)
+            self.sdf_buffer[x1:x2,:,:] = 100
+            print(f"{x1} -- {x2}")
+        if diff[1] != 0:
+            y1 = -self.sdf_index[1]
+            y2 = y1 + diff[1]
+            if y1 > y2:
+                y1, y2 = swap(y1,y2)
+            self.sdf_buffer[:,y1:y2,:] = 100
+            print(f"{y1} -- {y2}")
+        if diff[2] != 0:
+            z1 = -self.sdf_index[2]
+            z2 = z1 + diff[2]
+            if z1 > z2:
+                z1, z2 = swap(z1,z2)
+            self.sdf_buffer[:,:,z1:z2] = 100
+            print(f"{z1} -- {z2}")
+        
         #-------------------------------------------------------------
 
         self.sdf_index += diff
         # print(f"Global: {np.array2string(global_pos,precision=2, floatmode='fixed')}        Index: {self.sdf_index}         Offset: {np.array2string(self.cell_offset,precision=2,floatmode='fixed')}")
         # print(diff)
 
+def swap(a,b):
+    t = a
+    a = b
+    b = t
+    return a, b
