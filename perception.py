@@ -41,11 +41,12 @@ class Perception():
         
 
     def update_sdf_index(self, global_pos):
-        """Update local pos to match the global pos"""
+        """Update local pos to match the global pos and clear old data"""
         local_new = to_sdf_index(global_pos)
         self.cell_offset = local_new % 1
         local_new = local_new.astype(int)
         diff = local_new - self.sdf_index
+        self.sdf_index += diff
         # Clear required cells
         #-------------------------------------------------------------
         if diff[0] != 0:
@@ -72,7 +73,7 @@ class Perception():
         
         #-------------------------------------------------------------
 
-        self.sdf_index += diff
+        
         # print(f"Global: {np.array2string(global_pos,precision=2, floatmode='fixed')}        Index: {self.sdf_index}         Offset: {np.array2string(self.cell_offset,precision=2,floatmode='fixed')}")
         # print(diff)
 
