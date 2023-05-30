@@ -50,10 +50,11 @@ class Perception():
         #-------------------------------------------------------------
         # X axis
         # print(self.sdf_index)
-        start = self.sdf_index[0]
-        end = start + diff[0]
-        if end == 0:
-            end = SDF_EXTENTS
+        start = -self.sdf_index[0]
+        end = min(max(start + diff[0], -SDF_EXTENTS), SDF_EXTENTS)
+        print(f"{start} -- {end}")
+        # if end == 0:
+        #     end = SDF_EXTENTS
         self.sdf_buffer[start:end,:,:] = 100
 
         #-------------------------------------------------------------
