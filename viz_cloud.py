@@ -8,7 +8,7 @@ import threading
 
 keep_running = True
 
-def update_points_buffer(sdf_index, sdf_buffer, pcd):
+def update_points_buffer(sdf_index, sdf_buffer, pcd, erase_markers):
     if sdf_buffer.min() <= 0:
         index = np.where(sdf_buffer <= 0)
         index[0][:] = (index[0][:] + sdf_index[0])%SDF_EXTENTS
@@ -20,6 +20,9 @@ def update_points_buffer(sdf_index, sdf_buffer, pcd):
         # pos3[:,0] = -points[:,0]
         # pos3[:,1] = -points[:,1]
         # pos3[:,2] = -points[:,2]
+        x = (sdf_index[0]-SDF_EXTENTS/2)/DIVISIOINS
+        y = (sdf_index[1]-SDF_EXTENTS/2)/DIVISIOINS
+        erase_markers.points = o3d.utility.Vector3dVector(np.array([[x,50,0],[x,-50,0], [50,y,0],[-50,y,0]]))
         pcd.points = o3d.utility.Vector3dVector(-points)
 
 
@@ -67,6 +70,15 @@ def start(sdf_shmn, sdf_index_shmn):
     # include it in the visualizer before non-blocking visualization.
     vis.add_geometry(pcd)
     vis.add_geometry(o3d.geometry.TriangleMesh.create_coordinate_frame(15))
+    markers = o3d.geometry.LineSet()
+    markers.points = o3d.utility.Vector3dVector(np.array([[-EXTENTS/2,50,0], [-EXTENTS/2,-50,0], [EXTENTS/2,50,0], [EXTENTS/2,-50,0], [50,-EXTENTS/2,0], [-50,-EXTENTS/2,0], [-50,EXTENTS/2,0], [50,EXTENTS/2,0]]))
+    markers.lines = o3d.utility.Vector2iVector(np.array([[0,1],[2,3],[4,5],[6,7]], dtype=np.int32))
+    erase_markers = o3d.geometry.LineSet()
+    erase_markers.points = o3d.utility.Vector3dVector(np.array([[0,0,0],[0,0,0], [0,0,0],[0,0,0]]))
+    erase_markers.colors = o3d.utility.Vector3dVector(np.array([[0,1,0],[1,0,0]]))
+    erase_markers.lines = o3d.utility.Vector2iVector(np.array([[0,1],[2,3]], dtype=np.int32))
+    vis.add_geometry(markers)
+    vis.add_geometry(erase_markers)
 
     # to add new points each dt secs.
     dt = 0.02
@@ -78,9 +90,10 @@ def start(sdf_shmn, sdf_index_shmn):
     while keep_running:
         # if time.time() - previous_t > dt:
         # print(f"Index: {sdf_index}")
-        update_points_buffer(sdf_index, sdf_buffer, pcd)
+        update_points_buffer(sdf_index, sdf_buffer, pcd, erase_markers)
             
         vis.update_geometry(pcd)
+        vis.update_geometry(erase_markers)
         # previous_t = time.time()
 
         keep_running = vis.poll_events()

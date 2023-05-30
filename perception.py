@@ -46,52 +46,19 @@ class Perception():
         self.cell_offset = local_new % 1
         local_new = local_new.astype(int)
         diff = local_new - self.sdf_index
+        # Clear required cells
+        #-------------------------------------------------------------
+        # X axis
+        # print(self.sdf_index)
+        start = self.sdf_index[0]
+        end = start + diff[0]
+        if end == 0:
+            end = SDF_EXTENTS
+        self.sdf_buffer[start:end,:,:] = 100
+
+        #-------------------------------------------------------------
+
         self.sdf_index += diff
         # print(f"Global: {np.array2string(global_pos,precision=2, floatmode='fixed')}        Index: {self.sdf_index}         Offset: {np.array2string(self.cell_offset,precision=2,floatmode='fixed')}")
         # print(diff)
 
-        # Clear required cells
-        #-------------------------------------------------------------
-        # Y axis
-        # print(self.sdf_index)
-        # if diff[0] > 0:
-        #     start = int(self.sdf_index[0] - diff[0])
-        #     end = int(self.sdf_index[0])
-        #     # if end == 0:
-        #     #     end = SDF_EXTENTS
-        #     self.sdf_buffer[start:end,:,:] = 100
-        # elif diff[0] < 0:
-        #     start = int(SDF_EXTENTS+diff[0])
-        #     end = int(SDF_EXTENTS)
-        #     # if end == 0:
-        #     #     end = SDF_EXTENTS
-        #     self.sdf_buffer[start:end,:,:] = 100
-        
-        # # X axis
-        # if diff[1] > 0:
-        #     start = int(self.sdf_index[1]+SDF_EXTENTS-diff[1])%(SDF_EXTENTS)
-        #     end = int(self.sdf_index[1]+SDF_EXTENTS)%(SDF_EXTENTS)
-        #     if end == 0:
-        #         end = SDF_EXTENTS
-        #     self.sdf_buffer[:,start:end,:] = 100
-        # elif diff[1] < 0:
-        #     start = int(self.sdf_index[1])%(SDF_EXTENTS)
-        #     end = int(self.sdf_index[1]-diff[1])%(SDF_EXTENTS)
-        #     if end == 0:
-        #         end = SDF_EXTENTS
-        #     self.sdf_buffer[:,start:end,:] = 100
-
-        # # Z axis
-        # if diff[2] > 0:
-        #     start = int(self.sdf_index[2]+SDF_EXTENTS-diff[2])%(SDF_EXTENTS)
-        #     end = int(self.sdf_index[2]+SDF_EXTENTS)%(SDF_EXTENTS)
-        #     if end == 0:
-        #         end = SDF_EXTENTS
-        #     self.sdf_buffer[:,:,start:end] = 100
-        # elif diff[2] < 0:
-        #     start = int(self.sdf_index[2])%(SDF_EXTENTS)
-        #     end = int(self.sdf_index[2]-diff[2])%(SDF_EXTENTS)
-        #     if end == 0:
-        #         end = SDF_EXTENTS
-        #     self.sdf_buffer[:,:,start:end] = 100
-        #-------------------------------------------------------------
