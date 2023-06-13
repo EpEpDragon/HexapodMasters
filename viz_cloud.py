@@ -4,7 +4,6 @@ import time
 from perception import SDF_EXTENTS, EXTENTS, DIVISIOINS
 
 from multiprocessing import shared_memory
-import threading
 
 keep_running = True
 

@@ -145,7 +145,7 @@ if __name__ == '__main__':
         
         step_start = time.perf_counter()
         walk_machine.update(timestep)
-        # Move actuators
+        # Move actuators-
         movement_handler.set_targets(walk_machine.foot_pos_post_yaw)
         movement_handler.update_moves()
 
@@ -170,7 +170,7 @@ if __name__ == '__main__':
             
             # For visualization
             depth_linear[depth_linear > model.vis.map.zfar - 0.0005] = 0 # Zero out depths farther than the z buffer
-            depth_linear[depth_linear < 3] = 0
+            depth_linear[depth_linear < 2.5] = 0
             
             # Show the simulated camera image
             if view[0] == 0:
@@ -178,17 +178,17 @@ if __name__ == '__main__':
             elif view[0] == 1:
                 cv2.imshow('Camera', depth_linear / np.max(depth_linear))
             cv2.waitKey(1)
-
             p_X = cam_x_over_z * depth_linear
             p_Y = cam_y_over_z * depth_linear
             p_Z = depth_linear
-            p = np.dstack((p_X, p_Y, p_Z))
+            p_F = np.logical_and(np.logical_and(p_X[:][:] != 0, p_Y[:][:] != 0), p_Z[:][:] != 0)
+            points = np.dstack((-p_X, p_Y, p_Z))[p_F]
 
             
             # Update perception module
             
             # if snapshot[0]:
-            perception.update(data.sensordata[0:3], data.sensordata[3:7], p[0::POINT_CLOUD_DIVISOR].reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3))
+            perception.update(data.sensordata[0:3], data.sensordata[3:7], points[0::POINT_CLOUD_DIVISOR])
                 # snapshot[0] = False
             # else:
             #     perception.update_sdf_index(data.sensordata[0:3])
