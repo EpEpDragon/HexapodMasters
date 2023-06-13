@@ -171,6 +171,6 @@
 
   <sensor>
     <framepos name="cam_position" objtype="camera" objname="cam"/>
-    <framequat name="cam_quaternion" objtype="camera" objname="cam"/>
+    <framequat name="cam_quaternion" objtype="body" objname="torso"/>
   </sensor>
 </mujoco>
