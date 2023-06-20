@@ -1,6 +1,13 @@
 import numpy as np
 from multiprocessing import shared_memory
 from roboMath import rotate_vec, rotate_vec_quat
+# from simLaunch import RES_X, RES_Y, POINT_CLOUD_DIVISOR
+import time
+from OpenGL.GL import *
+from OpenGL.GL.shaders import compileProgram,compileShader
+import numpy as np
+import glfw
+
 EXTENTS = 30                        # Extents of SDF block, in distance units
 DIVISIOINS = 4                      # Cells per distance unit
 SDF_EXTENTS = EXTENTS*DIVISIOINS    # Extents of SDF block, in number of cells
@@ -10,10 +17,8 @@ def to_sdf_index(global_pos):
     return ((global_pos)%(EXTENTS))*DIVISIOINS
 
 
-
 class Perception():
-    
-    def __init__(self) -> None:
+    def __init__(self, n_points) -> None:
         # Shared Memory buffers for communication with 3D visualisation process
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
@@ -30,7 +35,23 @@ class Perception():
         
         self.cell_offset = np.zeros(3) # Position offset from cell origin
 
-    
+
+    # initialise compute shader
+    def init_shader(self, n_points):
+        compute_src = open('voxel_trace.glsl','r').readlines()
+        shader = compileProgram(compileShader(compute_src, GL_COMPUTE_SHADER))
+        glUseProgram(shader)
+        self.glbuffers  = glGenBuffers(3)
+        # SDF_index GPU buffer
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[0])
+        glBufferData(GL_SHADER_STORAGE_BUFFER, self.sdf_index.nbytes, self.sdf_index, GL_DYNAMIC_READ)
+        # Points buffer
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[1])
+        glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4, self.sdf_index, GL_DYNAMIC_READ)
+        # SDF GPU buffer
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[2])
+        glBufferData(GL_SHADER_STORAGE_BUFFER, self.sdf_buffer.nbytes, self.sdf_buffer, GL_DYNAMIC_READ)
+
     def update(self, global_pos, body_quaternion, points):
         # f = lambda x: rotate_vec(x, np.array([1,0,0]), -0.54)
         f2 = lambda x: rotate_vec_quat(x, body_quaternion)
@@ -73,9 +94,16 @@ class Perception():
         
         #-------------------------------------------------------------
 
+    def trace_voxels(self):
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.sdf_index.nbytes, self.sdf_index)
         
-        # print(f"Global: {np.array2string(global_pos,precision=2, floatmode='fixed')}        Index: {self.sdf_index}         Offset: {np.array2string(self.cell_offset,precision=2,floatmode='fixed')}")
-        # print(diff)
+        glDispatchCompute(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
+        self.sdf_buffer = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.sdf_buffer.nbytes), self.sdf_buffer.dtype)
+
 
 def swap(a,b):
     t = a

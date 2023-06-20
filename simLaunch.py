@@ -58,12 +58,20 @@ if __name__ == '__main__':
     walk_machine = WalkCycleMachine()
     walk_machine.speed = 0.5
 
+    # Start contorl interface
+    # control_interface = ControInterface(walk_machine)
+    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,view,snapshot))
+    control_interface_thread.start()
+    
+    # Start movement handler
+    movement_handler = motion.MovementHandler(data.ctrl, data.qpos)
+    
 
-# Visual sensors
+    # Visual sensors
     # -------------------------------------------------------------------------------------------------------
     if READ_CAMERA:
         # Perception memory
-        perception = Perception()
+        perception = Perception(int(RES_Y*RES_X/POINT_CLOUD_DIVISOR))
 
         # a = np.random.rand(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS,3)
         # a = np.zeros((SDF_EXTENTS*SDF_EXTENTS*SDF_EXTENTS,3))
@@ -121,18 +129,10 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------------------------------------
 
 
-    # Start contorl interface
-    # control_interface = ControInterface(walk_machine)
-    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,view,snapshot))
-    control_interface_thread.start()
-    
-    # Start movement handler
-    movement_handler = motion.MovementHandler(data.ctrl, data.qpos)
-    
-
     # Start simulation
     viewer.launch_passive(model, data)
     time.sleep(1)
+    perception.init_shader(int(RES_Y*RES_X/POINT_CLOUD_DIVISOR))
 
     # Used for real time sim
     error = 0.0 # Timestep error integrator
