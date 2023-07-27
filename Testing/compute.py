@@ -20,6 +20,8 @@ compute_source = """
 
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
+layout(location = 1) uniform float multiplier;
+
 layout(std430, binding = 0) buffer multipliers
 {
     float multipliers_SSBO[];
@@ -31,7 +33,7 @@ layout(std430, binding = 1) buffer numbers
 };
 
 void main() {
-    numbers_SSBO[gl_GlobalInvocationID.x] = 2 * multipliers_SSBO[gl_GlobalInvocationID.x];
+    numbers_SSBO[gl_GlobalInvocationID.x] *= multiplier;
 }
 """
 
@@ -62,6 +64,7 @@ compute_program = compileProgram(compileShader(compute_source, GL_COMPUTE_SHADER
 
 # Select program to use
 glUseProgram(compute_program)
+glUniform1f(1,2.0)
 
 # Dispatch current program as a compute shader, with 3 workgroups cuz 3 floats in array 
 glDispatchCompute(3,1,1)
@@ -75,11 +78,12 @@ bytes = glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, numbers.nbytes)
 
 # Convert bytes to float32 and print6
 print(np.frombuffer(bytes, dtype=np.float32))
+
 while True:
     if input() == 'q':
-        multipliers *= 2
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer[0])
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, multipliers.nbytes, multipliers)
+        # multipliers *= 2
+        # glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer[0])
+        # glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, multipliers.nbytes, multipliers)
         
         glDispatchCompute(3,1,1)
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)

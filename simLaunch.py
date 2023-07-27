@@ -132,7 +132,7 @@ if __name__ == '__main__':
     # Start simulation
     viewer.launch_passive(model, data)
     time.sleep(1)
-    perception.init_shader(int(RES_Y*RES_X/POINT_CLOUD_DIVISOR))
+    # perception.init_shader(int(RES_Y*RES_X/POINT_CLOUD_DIVISOR))
 
     # Used for real time sim
     error = 0.0 # Timestep error integrator
@@ -170,7 +170,7 @@ if __name__ == '__main__':
             
             # For visualization
             depth_linear[depth_linear > model.vis.map.zfar - 0.0005] = 0 # Zero out depths farther than the z buffer
-            depth_linear[depth_linear < 2.5] = 0
+            # depth_linear[depth_linear < 2.5] = 0
             
             # Show the simulated camera image
             if view[0] == 0:
@@ -182,7 +182,7 @@ if __name__ == '__main__':
             p_Y = cam_y_over_z * depth_linear
             p_Z = depth_linear
             p_F = np.logical_and(np.logical_and(p_X[:][:] != 0, p_Y[:][:] != 0), p_Z[:][:] != 0)
-            points = np.dstack((-p_X, p_Y, p_Z))[p_F]
+            points = np.dstack((-p_X, p_Y, p_Z))
 
             
             # Update perception module

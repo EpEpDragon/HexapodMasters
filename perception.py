@@ -41,24 +41,37 @@ class Perception():
         compute_src = open('voxel_trace.glsl','r').readlines()
         shader = compileProgram(compileShader(compute_src, GL_COMPUTE_SHADER))
         glUseProgram(shader)
-        self.glbuffers  = glGenBuffers(3)
-        # SDF_index GPU buffer
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[0])
-        glBufferData(GL_SHADER_STORAGE_BUFFER, self.sdf_index.nbytes, self.sdf_index, GL_DYNAMIC_READ)
+        self.glbuffers  = glGenBuffers(2)
         # Points buffer
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[1])
-        glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4, self.sdf_index, GL_DYNAMIC_READ)
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[0])
+        glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4, None, GL_DYNAMIC_READ)
         # SDF GPU buffer
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[2])
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, self.glbuffers[1])
         glBufferData(GL_SHADER_STORAGE_BUFFER, self.sdf_buffer.nbytes, self.sdf_buffer, GL_DYNAMIC_READ)
+ 
+ 
+    def trace_voxels(self, points):
+        # Set current sdf index
+        glUniform3i(0, self.sdf_index.x, self.sdf_index.y, self.sdf_index.z)
+        
+        # Set point cloud buffer
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, points.nbytes, points)
+        
+        glDispatchCompute(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
 
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
+        self.sdf_buffer = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.sdf_buffer.nbytes), self.sdf_buffer.dtype)
+    
+ 
     def update(self, global_pos, body_quaternion, points):
         # f = lambda x: rotate_vec(x, np.array([1,0,0]), -0.54)
         f2 = lambda x: rotate_vec_quat(x, body_quaternion)
         self.update_sdf_index(global_pos)
-        indices = ((f2(points) + EXTENTS/2)*DIVISIOINS).astype(int)
+        points = ((f2(points) + EXTENTS/2)*DIVISIOINS).astype(int)
         # self.sdf_buffer[:] = 100
-        self.sdf_buffer[(indices[:,0] - self.sdf_index[0])%SDF_EXTENTS, (indices[:,1] - self.sdf_index[1])%SDF_EXTENTS, (indices[:,2] - self.sdf_index[2])%SDF_EXTENTS] = 0.0
+        self.sdf_buffer[(points[:,0] - self.sdf_index[0])%SDF_EXTENTS, (points[:,1] - self.sdf_index[1])%SDF_EXTENTS, (points[:,2] - self.sdf_index[2])%SDF_EXTENTS] = 0.0
         
 
     def update_sdf_index(self, global_pos):
@@ -93,16 +106,6 @@ class Perception():
             print(f"{z1} -- {z2}")
         
         #-------------------------------------------------------------
-
-    def trace_voxels(self):
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.sdf_index.nbytes, self.sdf_index)
-        
-        glDispatchCompute(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
-        self.sdf_buffer = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.sdf_buffer.nbytes), self.sdf_buffer.dtype)
 
 
 def swap(a,b):
