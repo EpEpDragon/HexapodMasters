@@ -7,6 +7,7 @@ from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram,compileShader
 import numpy as np
 import glfw
+import cv2
 
 EXTENTS = 30                        # Extents of SDF block, in distance units
 DIVISIOINS = 4                      # Cells per distance unit
@@ -44,22 +45,24 @@ class Perception():
         self.glbuffers  = glGenBuffers(2)
         # Points buffer
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[0])
-        glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 3 * 4, None, GL_DYNAMIC_READ)
+        glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4, None, GL_DYNAMIC_READ)
         # SDF GPU buffer
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, self.glbuffers[1])
         glBufferData(GL_SHADER_STORAGE_BUFFER, self.sdf_buffer.nbytes, self.sdf_buffer, GL_DYNAMIC_READ)
  
  
-    def trace_voxels(self, points):
+    def trace_voxels(self, depth):
         # Set current sdf index
         glUniform3i(0, self.sdf_index[0], self.sdf_index[1], self.sdf_index[2])
         
         # Set point cloud buffer
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, points.nbytes, points)
-        
-        glDispatchCompute(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
+        # glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, points.size*4*4, points)
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, depth.nbytes, depth)
+
+        # glDispatchCompute(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)
+        glDispatchCompute(1280,720,1)
+        # glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
         self.sdf_buffer = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.sdf_buffer.nbytes), dtype=self.sdf_buffer.dtype).reshape(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)
@@ -69,12 +72,15 @@ class Perception():
         # f = lambda x: rotate_vec(x, np.array([1,0,0]), -0.54)
         f2 = lambda x: rotate_vec_quat(x, body_quaternion)
         self.update_sdf_index(global_pos)
-        # points = ((f2(points) + EXTENTS/2)*DIVISIOINS).astype(np.float32)
+        # points = ((f2(points) + EXTENTS/2.0)*DIVISIOINS).astype(np.float32)
         points = ((f2(points) + EXTENTS/2)*DIVISIOINS).astype(int)
         # self.trace_voxels(points)
         # self.sdf_buffer[:] = 100
         self.sdf_buffer[(points[:,0] - self.sdf_index[0])%SDF_EXTENTS, (points[:,1] - self.sdf_index[1])%SDF_EXTENTS, (points[:,2] - self.sdf_index[2])%SDF_EXTENTS] = 0.0
-        
+    
+    def update_new(self, global_pos, body_quaternion, depth):
+        self.trace_voxels(depth)
+    
 
     def update_sdf_index(self, global_pos):
         """Update local pos to match the global pos and clear old data"""

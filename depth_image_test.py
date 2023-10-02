@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import open3d as o3d
 from perception import Perception, SDF_EXTENTS, EXTENTS, DIVISIOINS
+import glfw
 
 def linearize_depth(depth, znear, zfar):
     zlinear = (znear * zfar) / (zfar + depth * (znear - zfar))
@@ -24,9 +25,10 @@ def points_from_depth(depth_linear):
     p_X = cam_x_over_z * depth_linear
     p_Y = cam_y_over_z * depth_linear
     p_Z = depth_linear
-    return np.dstack((p_X, p_Y, p_Z))
+    p_F = np.logical_and(np.logical_and(p_X[:][:] != 0, p_Y[:][:] != 0), p_Z[:][:] != 0)
+    return np.dstack((p_X, p_Y, p_Z))[p_F]
 
-def show_points(p):  
+def show_points(p):
     vis = o3d.visualization.Visualizer()
     vis.create_window(height=480, width=640)
     pcd = o3d.geometry.PointCloud()
@@ -58,25 +60,38 @@ def show_points(p):
         keep_running = vis.poll_events()
     vis.destroy_window()
 
-def sdf_to_points(sdf, sdf_points):
+def sdf_to_points(sdf):
     index = np.where(sdf <= 0)
-    index_flat = index[0][:] + index[1][:]*SDF_EXTENTS + index[2][:]*SDF_EXTENTS*SDF_EXTENTS
-    sdf_points[index_flat] = np.transpose(index)/DIVISIOINS - EXTENTS/2
+    # index_flat = index[0][:] + index[1][:]*SDF_EXTENTS + index[2][:]*SDF_EXTENTS*SDF_EXTENTS
+    index[0][:] = (index[0][:])%SDF_EXTENTS
+    index[1][:] = (index[1][:])%SDF_EXTENTS
+    index[2][:] = (index[2][:])%SDF_EXTENTS
+    # sdf_points[index_flat] = np.transpose(index)/DIVISIOINS - EXTENTS/2
+    return np.transpose(index)/DIVISIOINS - EXTENTS/2
+
 
 if __name__ == '__main__':
+
+    DISPLAY_WIDTH = 900
+    DISPLAY_HEIGHT = 900
+    glfw.init()
+    glfw.window_hint(glfw.VISIBLE, False)
+    window = glfw.create_window(DISPLAY_WIDTH, DISPLAY_HEIGHT, "hidden window", None, None)
+    glfw.make_context_current(window)
+
     perception = Perception()
+    perception.init_shader(int(1280*720))
     
-    img = (cv2.imread('depth_img.png')/255)[:,:,0]
+    img = (cv2.imread('depth_img.png')/255)[:,:,0].astype(np.float32)
     cv2.imshow('img', img)
     cv2.waitKey(0)
     depth = img*10
     p = points_from_depth(depth)
-    show_points(p)
-    perception.update(np.array([0,0,0]),np.array([1,0,0,0]),p)
+    # show_points(p)
+    perception.update_new(np.array([0,0,0]),np.array([1,0,0,0]),depth.reshape(1280*720))
+    # perception.update(np.array([0,0,0]),np.array([1,0,0,0]),p)
     sdf = perception.sdf_buffer
     sdf_points = np.ones((sdf.shape[0]*sdf.shape[1]*sdf.shape[2],3))
-    sdf_to_points(sdf, sdf_points)
+    sdf_points = sdf_to_points(sdf)
 
     show_points(sdf_points)
-
-
