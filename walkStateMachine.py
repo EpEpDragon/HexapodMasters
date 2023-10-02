@@ -43,7 +43,7 @@ class WalkCycleMachine(StateMachine):
     def __init__(self):
         self.active = np.full(6, False)
         self.speed = 0.5
-        self.yaw_rate = deg2rad(10)
+        self.yaw_rate = deg2rad(25)
         self.height = REST_Z*2
         self.height_offsets = np.zeros(6)
         self.pitch = 0.0
@@ -215,4 +215,4 @@ class WalkCycleMachine(StateMachine):
 
 if __name__ == '__main__':
     sm = WalkCycleMachine()
-    sm._graph().write_png("machine.png")
+    sm._graph().write_svg("machine.svg")

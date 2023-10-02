@@ -2,11 +2,11 @@
 
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
-layout(location = 0) uniform vec3 sdf_index;
+layout(location = 0) uniform ivec3 sdf_index;
 
 layout(std430, binding = 0) buffer points
 {
-    float surface_points[];
+    vec3 surface_points[];
 };
 
 layout(std430, binding = 1) buffer sdf
@@ -18,8 +18,9 @@ const int SDF_EXTENTS = 120;
 
 void main() {
     float t = 0.0; // Total fraction to surface point
-    vec3 to = vec3(surface_points[gl_GlobalInvocationID.x * 3], surface_points[gl_GlobalInvocationID.x * 3 + 1], surface_points[gl_GlobalInvocationID.x * 3 + 2]);
-    vec3 ray = to - sdf_index;
+    // vec3 to = vec3(surface_points[gl_GlobalInvocationID.x * 3], surface_points[gl_GlobalInvocationID.x * 3 + 1], surface_points[gl_GlobalInvocationID.x * 3 + 2]);
+    // vec3 ray = to - sdf_index;
+    vec3 ray = surface_points[gl_GlobalInvocationID.x] - sdf_index;
     vec3 dXYZ = normalize(ray);
 
     int X = int(sdf_index.x);
@@ -71,10 +72,10 @@ void main() {
             }
         }
         // Set occupancy
-        if (t < 1.0) {
-            sdf_buffer[X][Y][Z] = 1.0;
-        } else {
-            sdf_buffer[X][Y][Z] = -1.0;
-        }
+        // if (t < 1.0) {
+        //     sdf_buffer[X][Y][Z] = 1.0;
+        // } else {
+        //     sdf_buffer[X][Y][Z] = -1.0;
+        // }
     }
 }

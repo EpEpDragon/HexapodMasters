@@ -67,7 +67,7 @@ def start(sdf_shmn, sdf_index_shmn):
 
     # include it in the visualizer before non-blocking visualization.
     vis.add_geometry(pcd)
-    vis.add_geometry(o3d.geometry.TriangleMesh.create_coordinate_frame(15))
+    vis.add_geometry(o3d.geometry.TriangleMesh.create_coordinate_frame(6))
     markers = o3d.geometry.LineSet()
     markers.points = o3d.utility.Vector3dVector(np.array([[-EXTENTS/2,50,0], [-EXTENTS/2,-50,0], [EXTENTS/2,50,0], [EXTENTS/2,-50,0], [50,-EXTENTS/2,0], [-50,-EXTENTS/2,0], [-50,EXTENTS/2,0], [50,EXTENTS/2,0]]))
     markers.lines = o3d.utility.Vector2iVector(np.array([[0,1],[2,3],[4,5],[6,7]], dtype=np.int32))
