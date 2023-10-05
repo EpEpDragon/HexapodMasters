@@ -62,6 +62,7 @@ class Perception():
 
         # glDispatchCompute(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)
         glDispatchCompute(1280,720,1)
+        # glDispatchCompute(1,1,1)
         # glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
@@ -79,6 +80,7 @@ class Perception():
         self.sdf_buffer[(points[:,0] - self.sdf_index[0])%SDF_EXTENTS, (points[:,1] - self.sdf_index[1])%SDF_EXTENTS, (points[:,2] - self.sdf_index[2])%SDF_EXTENTS] = 0.0
     
     def update_new(self, global_pos, body_quaternion, depth):
+        self.sdf_index = to_sdf_index(global_pos)
         self.trace_voxels(depth)
     
 

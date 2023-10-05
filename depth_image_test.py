@@ -52,7 +52,7 @@ def show_points(p):
 
     pcd.points = o3d.utility.Vector3dVector(pos3)
     vis.add_geometry(pcd)
-    vis.add_geometry(o3d.geometry.TriangleMesh.create_coordinate_frame(15))
+    # vis.add_geometry(o3d.geometry.TriangleMesh.create_coordinate_frame(15))
     keep_running = True
 
     while keep_running:
@@ -83,12 +83,12 @@ if __name__ == '__main__':
     perception.init_shader(int(1280*720))
     
     img = (cv2.imread('depth_img.png')/255)[:,:,0].astype(np.float32)
-    cv2.imshow('img', img)
-    cv2.waitKey(0)
+    # cv2.imshow('img', img)
+    # cv2.waitKey(0)
     depth = img*10
     p = points_from_depth(depth)
     # show_points(p)
-    perception.update_new(np.array([0,0,0]),np.array([1,0,0,0]),depth.reshape(1280*720))
+    perception.update_new(np.array([1,1,1])*int(EXTENTS/2),np.array([1,0,0,0]),depth.reshape(1280*720))
     # perception.update(np.array([0,0,0]),np.array([1,0,0,0]),p)
     sdf = perception.sdf_buffer
     sdf_points = np.ones((sdf.shape[0]*sdf.shape[1]*sdf.shape[2],3))
