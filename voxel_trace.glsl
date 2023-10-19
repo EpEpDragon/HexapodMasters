@@ -3,6 +3,7 @@
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 layout(location = 0) uniform ivec3 sdf_index;
+layout(location = 1) uniform vec4 camera_quat;
 
 layout(std430, binding = 0) buffer image
 {
@@ -29,7 +30,12 @@ const ivec3 ORIGIN = ivec3(SDF_EXTENTS/2);      // Origin of camera in SDF grid
 //     zlinear = (ZNEAR * ZFAR) / (ZFAR + depth * (ZNEAR - ZFAR));
 //     return zlinear
 
-vec4 compute_point() {
+vec3 rotate(vec4 q, vec3 p) {
+  return p + 2.0*cross(q.xyz,cross(q.xyz,p)+q.w*p);
+}
+
+vec4 compute_point()
+{
     int i = int(gl_GlobalInvocationID.y);
     int j = int(gl_GlobalInvocationID.x);
     float z = depth_image[i][j];
@@ -42,12 +48,13 @@ vec4 compute_point() {
     };
     float x = (j - CX) * z / FX;
     float y = (i - CY) * z / FY;
-    // return vec3(x,y,z);
-    return (vec4((vec3(x,y,z) + EXTENTS/2)*DIVISIOINS, clip));
+    // vec3 point = vec3(x,y,z); 
+    return (vec4((rotate(camera_quat, vec3(x,y,z)) + EXTENTS/2)*DIVISIOINS, clip));
 }
 
 void main() {
     vec4 point = compute_point();
+    // point.xyz = rotate(camera_quat, point.xyz);
     bool far_clip_point = false; // Indicates point is not on surfaced but on far clipping plane
     // if (point.z == ZFAR) { far_clip_point = true; }
     // vec3 point = vec3(60.0);

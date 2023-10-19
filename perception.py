@@ -51,10 +51,11 @@ class Perception():
         glBufferData(GL_SHADER_STORAGE_BUFFER, self.sdf_buffer.nbytes, self.sdf_buffer, GL_DYNAMIC_READ)
  
  
-    def trace_voxels(self, depth):
-        # Set current sdf index
+    def trace_voxels(self, depth, camera_quat):
+        # Set Uniform
         glUniform3i(0, self.sdf_index[0], self.sdf_index[1], self.sdf_index[2])
-        
+        glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])
+
         # Set point cloud buffer
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])
         # glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, points.size*4*4, points)
@@ -79,9 +80,9 @@ class Perception():
         # self.sdf_buffer[:] = 100
         self.sdf_buffer[(points[:,0] - self.sdf_index[0])%SDF_EXTENTS, (points[:,1] - self.sdf_index[1])%SDF_EXTENTS, (points[:,2] - self.sdf_index[2])%SDF_EXTENTS] = 0.0
     
-    def update_new(self, global_pos, body_quaternion, depth):
+    def update_new(self, global_pos, camera_quat, depth):
         self.sdf_index = to_sdf_index(global_pos)
-        self.trace_voxels(depth)
+        self.trace_voxels(depth, camera_quat)
     
 
     def update_sdf_index(self, global_pos):

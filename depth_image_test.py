@@ -88,7 +88,7 @@ if __name__ == '__main__':
     depth = img*10
     p = points_from_depth(depth)
     # show_points(p)
-    perception.update_new(np.array([0, 0, 0]),np.array([1,0,0,0]),depth.reshape(1280*720))
+    perception.update_new(np.array([0,0,0]),np.array([0,0.17,0,0.98]),depth.reshape(1280*720))
     # perception.update(np.array([0,0,0]),np.array([1,0,0,0]),p)
     sdf = perception.sdf_buffer
     sdf_points = np.ones((sdf.shape[0]*sdf.shape[1]*sdf.shape[2],3))
