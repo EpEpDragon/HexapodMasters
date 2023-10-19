@@ -18,45 +18,56 @@ const float FX = 623.533;
 const float FY = 623.533;
 const float CX = 639.5;
 const float CY = 359.5;
+const float ZFAR = 10.0;
 
 const int EXTENTS = 30;                        // Extents of SDF block, in distance units
 const int DIVISIOINS = 4;                      // Cells per distance unit
 const int SDF_EXTENTS = EXTENTS*DIVISIOINS;    // Extents of SDF block, in number of cells
-
+const float PENETRATION_DEPTH = 20.0;
 // float linearize_depth(depth):
 //     zlinear = (ZNEAR * ZFAR) / (ZFAR + depth * (ZNEAR - ZFAR));
 //     return zlinear
 
-vec3 compute_point() {
+vec4 compute_point() {
     int i = int(gl_GlobalInvocationID.y);
     int j = int(gl_GlobalInvocationID.x);
     float z = depth_image[i][j];
+    // if(z > ZFAR - 0.0005) { z = ZFAR; }
+    float clip = 0.0;
+    if(z == 0.0 ) 
+    { 
+        z = ZFAR;
+        clip = 1.0;
+    };
     float x = (j - CX) * z / FX;
     float y = (i - CY) * z / FY;
     // return vec3(x,y,z);
-    return ((vec3(x,y,z)*1.5 + EXTENTS/2)*DIVISIOINS);
+    return (vec4((vec3(x,y,z) + EXTENTS/2)*DIVISIOINS, clip));
 }
 
 void main() {
-    vec3 point = compute_point();
+    vec4 point = compute_point();
+    bool far_clip_point = false; // Indicates point is not on surfaced but on far clipping plane
+    // if (point.z == ZFAR) { far_clip_point = true; }
     // vec3 point = vec3(60.0);
-    int X = int(point.x);
-    int Y = int(point.y);
-    int Z = int(point.z);
-    sdf_buffer[X][Y][Z] = 0.0;
+    // int X = int(point.x);
+    // int Y = int(point.y);
+    // int Z = int(point.z);
+    // sdf_buffer[X][Y][Z] = 0.0;
 
     float t = 0.0; // Total fraction to surface point
     // vec3 to = vec3(surface_points[gl_GlobalInvocationID.x * 3], surface_points[gl_GlobalInvocationID.x * 3 + 1], surface_points[gl_GlobalInvocationID.x * 3 + 2]);
-    // vec3 ray = to - sdf_index;
-    ivec3 sdf_index_test = ivec3(60.0, 60.0, 60.0);
-    // vec3 ray = point - sdf_index_test;
-    vec3 dXYZ = 1/normalize(point - sdf_index_test);
+    // vec3 ray = point - sdf_index;
+    ivec3 sdf_index_test = ivec3(42.0, 71.0, 33.0);
+    vec3 ray = point.xyz - sdf_index_test;
+    vec3 dXYZ = 1/normalize(ray);
+    float surface_depht2 = dot(ray,ray);
     // vec3 dXYZ = vec3(1/0.936, -1/0.351 , 0.0);
 
-    X = int(sdf_index_test.x);
-    Y = int(sdf_index_test.y);
-    Z = int(sdf_index_test.z);
-    sdf_buffer[X][Y][Z] = 0.0;
+    int X = int(sdf_index_test.x);
+    int Y = int(sdf_index_test.y);
+    int Z = int(sdf_index_test.z);
+    // sdf_buffer[X][Y][Z] = 0.0;
 
     int stepX = int(sign(dXYZ.x));
     int stepY = int(sign(dXYZ.y));
@@ -71,9 +82,11 @@ void main() {
     // float tMaxZ = (Z*ceil(Z*to.z) - Z*to.z) / dXYZ.z;
 
     // TODO Change this to terminate farther away
-    int i = 0;
-    while(abs(point.x - X) >= 1 || abs(point.y - Y) >= 1 || abs(point.z - Z) >= 1)
-    // while(i<10)
+    
+    bool past_clip_plane = false;
+    float penetration_depth2 = 0.0;
+    // while(abs(point.x - X) >= 2 || abs(point.y - Y) >= 2 || abs(point.z - Z) >= 2)
+    while(!past_clip_plane && penetration_depth2 < PENETRATION_DEPTH*PENETRATION_DEPTH)
     {
         if(tMaxX < tMaxY)
         {
@@ -115,8 +128,24 @@ void main() {
         // } else {
         //     sdf_buffer[X][Y][Z] = -1.0;
         // }
-        sdf_buffer[X][Y][Z] = 0.0;
-        // i += 1;
         
+        penetration_depth2 = dot(sdf_index_test - vec3(X,Y,Z), sdf_index_test - vec3(X,Y,Z)) - surface_depht2;
+        if(penetration_depth2 < 0)
+        {
+            sdf_buffer[X][Y][Z] = 1.0;
+        }
+        else
+        {
+            // Terminate if far clip plane reached
+            if (point.a == 1.0) 
+            { 
+                past_clip_plane = true; 
+            }
+            else
+            {
+                sdf_buffer[X][Y][Z] = -1.0;
+            }
+            
+        }
     }
 }
