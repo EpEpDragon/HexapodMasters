@@ -20,10 +20,11 @@ const float CX = 639.5;
 const float CY = 359.5;
 const float ZFAR = 10.0;
 
-const int EXTENTS = 30;                        // Extents of SDF block, in distance units
-const int DIVISIOINS = 4;                      // Cells per distance unit
-const int SDF_EXTENTS = EXTENTS*DIVISIOINS;    // Extents of SDF block, in number of cells
+const int EXTENTS = 30;                         // Extents of SDF block, in distance units
+const int DIVISIOINS = 4;                       // Cells per distance unit
+const int SDF_EXTENTS = EXTENTS*DIVISIOINS;     // Extents of SDF block, in number of cells
 const float PENETRATION_DEPTH = 20.0;
+const ivec3 ORIGIN = ivec3(SDF_EXTENTS/2);      // Origin of camera in SDF grid
 // float linearize_depth(depth):
 //     zlinear = (ZNEAR * ZFAR) / (ZFAR + depth * (ZNEAR - ZFAR));
 //     return zlinear
@@ -58,16 +59,20 @@ void main() {
     float t = 0.0; // Total fraction to surface point
     // vec3 to = vec3(surface_points[gl_GlobalInvocationID.x * 3], surface_points[gl_GlobalInvocationID.x * 3 + 1], surface_points[gl_GlobalInvocationID.x * 3 + 2]);
     // vec3 ray = point - sdf_index;
-    ivec3 sdf_index_test = ivec3(42.0, 71.0, 33.0);
-    vec3 ray = point.xyz - sdf_index_test;
+    ivec3 sdf_index_test = ivec3(10.0, 0.0, 10.0);
+    sdf_index_test = sdf_index;
+    vec3 ray = point.xyz - ORIGIN;
     vec3 dXYZ = 1/normalize(ray);
     float surface_depht2 = dot(ray,ray);
     // vec3 dXYZ = vec3(1/0.936, -1/0.351 , 0.0);
 
-    int X = int(sdf_index_test.x);
-    int Y = int(sdf_index_test.y);
-    int Z = int(sdf_index_test.z);
-    // sdf_buffer[X][Y][Z] = 0.0;
+    // int X = int(sdf_index_test.x);
+    // int Y = int(sdf_index_test.y);
+    // int Z = int(sdf_index_test.z);
+    int X = ORIGIN.x;
+    int Y = ORIGIN.y;
+    int Z = ORIGIN.z;
+    sdf_buffer[X][Y][Z] = 0.0;
 
     int stepX = int(sign(dXYZ.x));
     int stepY = int(sign(dXYZ.y));
@@ -92,15 +97,15 @@ void main() {
         {
             if(tMaxX < tMaxZ)
             {
-                // X = int(mod(X + stepX, SDF_EXTENTS));
-                X = X + stepX;
+                X = int(mod(X + stepX, SDF_EXTENTS));
+                // X = X + stepX;
                 tMaxX += dXYZ.x;
                 t += dXYZ.x;
             } 
             else 
             {
-                // Z = int(mod(Z + stepZ, SDF_EXTENTS));
-                Z = Z + stepZ;
+                Z = int(mod(Z + stepZ, SDF_EXTENTS));
+                // Z = Z + stepZ;
                 tMaxZ += dXYZ.z;
                 t += dXYZ.z;
             }
@@ -109,15 +114,15 @@ void main() {
         {
             if(tMaxY < tMaxZ)
             {
-                // Y = int(mod(Y + stepY, SDF_EXTENTS));
-                Y = Y + stepY;
+                Y = int(mod(Y + stepY, SDF_EXTENTS));
+                // Y = Y + stepY;
                 tMaxY += dXYZ.y;
                 t += dXYZ.y;
             }
             else
             {
-                // Z = int(mod(Z + stepZ, SDF_EXTENTS));
-                Z = Z + stepZ;
+                Z = int(mod(Z + stepZ, SDF_EXTENTS));
+                // Z = Z + stepZ;
                 tMaxZ += dXYZ.z;
                 t += dXYZ.z;
             }
@@ -129,10 +134,10 @@ void main() {
         //     sdf_buffer[X][Y][Z] = -1.0;
         // }
         
-        penetration_depth2 = dot(sdf_index_test - vec3(X,Y,Z), sdf_index_test - vec3(X,Y,Z)) - surface_depht2;
+        penetration_depth2 = dot(ORIGIN - vec3(X,Y,Z), ORIGIN - vec3(X,Y,Z)) - surface_depht2;
         if(penetration_depth2 < 0)
         {
-            sdf_buffer[X][Y][Z] = 1.0;
+            sdf_buffer[int(mod((X-sdf_index_test.x), SDF_EXTENTS))][int(mod((Y-sdf_index_test.y), SDF_EXTENTS))][int(mod((Z-sdf_index_test.z), SDF_EXTENTS))] = 1.0;
         }
         else
         {
@@ -143,7 +148,7 @@ void main() {
             }
             else
             {
-                sdf_buffer[X][Y][Z] = -1.0;
+                sdf_buffer[int(mod((X-sdf_index_test.x), SDF_EXTENTS))][int(mod((Y-sdf_index_test.y), SDF_EXTENTS))][int(mod((Z-sdf_index_test.z), SDF_EXTENTS))] = -1.0;
             }
             
         }
