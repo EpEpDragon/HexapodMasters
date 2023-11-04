@@ -7,22 +7,22 @@ layout(location = 0) uniform ivec3 sdf_index;
 layout(location = 1) uniform vec4 camera_quat;
 
 // CPU Shared Buffers 
-layout(std430, binding = 0) buffer image { float depth_image[720][1280]; };
-layout(std430, binding = 1) buffer sdf { float sdf_buffer[120][120][120]; };
+layout(std430, binding = 0) readonly restrict buffer image { float depth_image[720][1280]; };
+layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[120][120][120]; };
 
 // GPU Internal Buffers
-layout(std430, binding = 2) buffer surface_points { vec3 surface_points[720][1280]; };
+layout(std430, binding = 2) writeonly restrict buffer points { vec4 surface_points[720][1280]; };
 
-const float FX = 623.533;
-const float FY = 623.533;
-const float CX = 639.5;
-const float CY = 359.5;
-const float ZFAR = 10.0;
+const float FX = 554.2562584220408;//277.1281292110204;
+const float FY = 554.2562584220408;//277.1281292110204;
+const float CX = 639.5;//319.5;
+const float CY = 319.5;//159.5;
+const float ZFAR = 5.0;
 const float ZNEAR = 0.05;
 
 // TODO Make these uniforms
-const int EXTENTS = 30;                         // Extents of SDF block, in distance units
-const int DIVISIOINS = 4;                       // Cells per distance unit
+const int EXTENTS = 15;                         // Extents of SDF block, in distance units
+const int DIVISIOINS = 8;                       // Cells per distance unit
 const int SDF_EXTENTS = EXTENTS*DIVISIOINS;     // Extents of SDF block, in number of cells
 
 const float PENETRATION_DEPTH = 2*DIVISIOINS;
@@ -43,11 +43,13 @@ vec4 compute_point()
     int i = int(gl_GlobalInvocationID.y);
     int j = int(gl_GlobalInvocationID.x);
     float z = depth_image[i][j];
-    // if(z > ZFAR - 0.0005) { z = ZFAR; }
-    float clip = 0.0;
+    
+    // Terminate if too close to camera
     if(z < 2.5){
         return(vec4(0,0,0,2));
     }
+
+    float clip = 0.0;
     if(z > ZFAR-0.0005) 
     { 
         z = ZFAR;
@@ -58,12 +60,13 @@ vec4 compute_point()
     // vec3 point = vec3(x,y,z); 
     return (vec4((rotate(camera_quat, vec3(-x,y,z)) + EXTENTS/2)*DIVISIOINS, clip));
 }
-void trace(vec4 point) {
+void trace(vec4 point) 
+{
     float t = 0.0; // Total fraction to surface point
     // vec3 to = vec3(surface_points[gl_GlobalInvocationID.x * 3], surface_points[gl_GlobalInvocationID.x * 3 + 1], surface_points[gl_GlobalInvocationID.x * 3 + 2]);
     // vec3 ray = point - sdf_index;
-    ivec3 sdf_index_test = ivec3(10.0, 0.0, 10.0);
-    sdf_index_test = sdf_index;
+    // ivec3 sdf_index_test = ivec3(10.0, 0.0, 10.0);
+    // sdf_index_test = sdf_index;
     vec3 ray = point.xyz - ORIGIN;
     vec3 dXYZ = 1/normalize(ray);
     float surface_depht2 = dot(ray,ray);
@@ -94,7 +97,7 @@ void trace(vec4 point) {
     bool past_clip_plane = false;
     float penetration_depth2 = 0.0;
     // while(abs(point.x - X) >= 2 || abs(point.y - Y) >= 2 || abs(point.z - Z) >= 2)
-    while(!past_clip_plane && penetration_depth2 < PENETRATION_DEPTH*PENETRATION_DEPTH)
+    while(penetration_depth2 < PENETRATION_DEPTH*PENETRATION_DEPTH)
     {
         if(tMaxX < tMaxY)
         {
@@ -138,20 +141,21 @@ void trace(vec4 point) {
         // }
         
         penetration_depth2 = dot(ORIGIN - vec3(X,Y,Z), ORIGIN - vec3(X,Y,Z)) - surface_depht2;
+        ivec3 trace_index = ivec3(int(mod((X-sdf_index.x), SDF_EXTENTS)), int(mod((Y-sdf_index.y), SDF_EXTENTS)), int(mod((Z-sdf_index.z), SDF_EXTENTS)));
         if(penetration_depth2 < 0)
         {
-            sdf_buffer[int(mod((X-sdf_index_test.x), SDF_EXTENTS))][int(mod((Y-sdf_index_test.y), SDF_EXTENTS))][int(mod((Z-sdf_index_test.z), SDF_EXTENTS))] *= 1.0;
+            sdf_buffer[trace_index.x][trace_index.y][trace_index.z] = 1.0;//abs(sdf_buffer[trace_index.x][trace_index.y][trace_index.z]);
         }
         else
         {
             // Terminate if far clip plane reached
-            if (point.a == 1.0) 
+            if (point.w == 1.0) 
             { 
-                past_clip_plane = true; 
+                return;
             }
             else
             {
-                sdf_buffer[int(mod((X-sdf_index_test.x), SDF_EXTENTS))][int(mod((Y-sdf_index_test.y), SDF_EXTENTS))][int(mod((Z-sdf_index_test.z), SDF_EXTENTS))] *= -1.0;
+                sdf_buffer[trace_index.x][trace_index.y][trace_index.z] = -1.0;//-abs(sdf_buffer[trace_index.x][trace_index.y][trace_index.z]);
             }
             
         }
@@ -159,7 +163,10 @@ void trace(vec4 point) {
 }
 void main() {
     vec4 point = compute_point();
+    // surface_points[gl_GlobalInvocationID.y][gl_GlobalInvocationID.x] = point;
+    // Trace if point is not too close to camera
     if (point.w != 2.0) {
+        
         trace(point);
     }
 }

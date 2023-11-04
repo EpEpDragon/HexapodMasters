@@ -78,16 +78,16 @@ bytes = glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, numbers.nbytes)
 
 # Convert bytes to float32 and print6
 print(np.frombuffer(bytes, dtype=np.float32))
-
-while True:
-    if input() == 'q':
-        # multipliers *= 2
-        # glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer[0])
-        # glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, multipliers.nbytes, multipliers)
+print(glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0))
+# while True:
+#     if input() == 'q':
+#         # multipliers *= 2
+#         # glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer[0])
+#         # glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, multipliers.nbytes, multipliers)
         
-        glDispatchCompute(3,1,1)
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
+#         glDispatchCompute(3,1,1)
+#         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
 
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer[1])
-        bytes = glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, numbers.nbytes)
-        print(np.frombuffer(bytes, dtype=np.float32))
+#         glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer[1])
+#         bytes = glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, numbers.nbytes)
+#         print(np.frombuffer(bytes, dtype=np.float32))

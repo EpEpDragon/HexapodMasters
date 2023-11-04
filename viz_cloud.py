@@ -20,7 +20,6 @@ def update_points_buffer(sdf_index, sdf_buffer, pcd, erase_markers):
         
         x = (sdf_index[0]-SDF_EXTENTS/2)/DIVISIOINS
         y = (sdf_index[1]-SDF_EXTENTS/2)/DIVISIOINS
-        print(y)
         erase_markers.points = o3d.utility.Vector3dVector(np.array([[x,50,0],[x,-50,0], [50,y,0],[-50,y,0]]))
         pcd.points = o3d.utility.Vector3dVector(-points)
 

@@ -9,8 +9,8 @@ import numpy as np
 import glfw
 import cv2
 
-EXTENTS = 30                        # Extents of SDF block, in distance units
-DIVISIOINS = 4                      # Cells per distance unit
+EXTENTS = 15                        # Extents of SDF block, in distance units
+DIVISIOINS = 8                      # Cells per distance unit
 SDF_EXTENTS = EXTENTS*DIVISIOINS    # Extents of SDF block, in number of cells
 
 VOXEL_TRACE_INVOCAIONS = 32         # NB This must match the x and y invocations specified in voxel_trace.glsl
@@ -38,42 +38,65 @@ class Perception():
         #---------------------------------------------------------------------------------
         
         self.cell_offset = np.zeros(3) # Position offset from cell origin
-
+        self.trace_program = glCreateProgram()
+        self.distance_program = glCreateProgram()
 
     # initialise compute shader
     def init_shader(self, n_points):
-        # Compile shader program
-        trace_src = open('voxel_trace.glsl','r').readlines()
-        trace_shader = compileProgram(compileShader(trace_src, GL_COMPUTE_SHADER))
+        # Compile cell trace program
+        trace_src = open('compute/voxel_trace.glsl','r').readlines()
+        self.trace_program = compileProgram(compileShader(trace_src, GL_COMPUTE_SHADER))
+
+        # Compile cell distance program
+        distance_src = open('compute/set_cell_distance.glsl','r').readlines()
+        self.distance_program = compileProgram(compileShader(distance_src, GL_COMPUTE_SHADER))
         
-        glUseProgram(trace_shader)
         self.glbuffers  = glGenBuffers(3)
 
-        # Bind Points buffer
+        # Bind image buffer
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[0])
-        glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4, None, GL_DYNAMIC_READ)
+        glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4, None, GL_DYNAMIC_DRAW)
         
-        # Bind SDF GPU buffer
+        # Bind SDF buffer
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, self.glbuffers[1])
         glBufferData(GL_SHADER_STORAGE_BUFFER, self.sdf_buffer.nbytes, self.sdf_buffer, GL_DYNAMIC_READ)
+        
+        # Bind points buffer
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, self.glbuffers[2])
+        glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4 * 4, None, GL_DYNAMIC_COPY)
  
  
-    def trace_voxels(self, depth, camera_quat):
-        # Set Uniform
+    def trace_voxels(self, depth, camera_quat, erase_range):
+        # Set depth image data
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])        
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, depth.nbytes, depth)
+        ################### Trace stage ##################
+        glUseProgram(self.trace_program)
+        
+        # Set Uniforms
         glUniform3i(0, self.sdf_index[0], self.sdf_index[1], self.sdf_index[2])
         glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])
 
-        # Set point cloud buffer
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])
-        # glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, points.size*4*4, points)
+        glDispatchCompute(int(640*2/VOXEL_TRACE_INVOCAIONS), int(320*2/VOXEL_TRACE_INVOCAIONS), 1)
         
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, depth.nbytes, depth)
+        # Sync
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
 
-        # glDispatchCompute(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)
-        glDispatchCompute(int(1280/VOXEL_TRACE_INVOCAIONS), int(720/VOXEL_TRACE_INVOCAIONS), 1)
-        # glDispatchCompute(1,1,1)
+        # ################# Distance stage ##################
+        # glUseProgram(self.distance_program)
+        
+        # # Set Uniforms
+        # glUniform1i(0,erase_range[0])
+        # glUniform1i(1,erase_range[1])
+        # glUniform1i(2,erase_range[2])
+        # glUniform1i(3,erase_range[3])
+        # glUniform1i(4,erase_range[4])
+        # glUniform1i(5,erase_range[5])
+        
+        # glDispatchCompute(int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS))
+
+        # # Sync, read SDF
         # glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
-
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
         self.sdf_buffer[:] = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.sdf_buffer.nbytes), dtype=self.sdf_buffer.dtype).reshape(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)[:]
     
@@ -89,9 +112,7 @@ class Perception():
         self.sdf_buffer[(points[:,0] - self.sdf_index[0])%SDF_EXTENTS, (points[:,1] - self.sdf_index[1])%SDF_EXTENTS, (points[:,2] - self.sdf_index[2])%SDF_EXTENTS] = 0.0
     
     def update_new(self, global_pos, camera_quat, depth):
-        # self.sdf_index = to_sdf_index(global_pos)
-        self.update_sdf_index(global_pos)
-        self.trace_voxels(depth, camera_quat)
+        self.trace_voxels(depth, camera_quat, self.update_sdf_index(global_pos))
     
 
     def update_sdf_index(self, global_pos):
@@ -101,31 +122,35 @@ class Perception():
         local_new = local_new.astype(int)
         diff = local_new - self.sdf_index
         self.sdf_index += diff
-        # Clear required cells
+        # Find clear range
         #-------------------------------------------------------------
+        x1=x2=y1=y2=z1=z2=0
         if diff[0] != 0:
             x1 = -self.sdf_index[0]
             x2 = x1 + diff[0]
             if x1 > x2:
                 x1, x2 = swap(x1,x2)
-            self.sdf_buffer[x1:x2,:,:] = 100
+            # self.sdf_buffer[x1:x2,:,:] = 100
             # print(f"{x1} -- {x2}")
         if diff[1] != 0:
             y1 = -self.sdf_index[1]
             y2 = y1 + diff[1]
             if y1 > y2:
                 y1, y2 = swap(y1,y2)
-            self.sdf_buffer[:,y1:y2,:] = 100
+            # self.sdf_buffer[:,y1:y2,:] = 100
             # print(f"{y1} -- {y2}")
         if diff[2] != 0:
             z1 = -self.sdf_index[2]
             z2 = z1 + diff[2]
             if z1 > z2:
                 z1, z2 = swap(z1,z2)
-            self.sdf_buffer[:,:,z1:z2] = 100
+            # self.sdf_buffer[:,:,z1:z2] = 100
             # print(f"{z1} -- {z2}")
-        
         #-------------------------------------------------------------
+        # print(np.array([x1,x2,y1,y2,z1,z2], dtype=int)+120)
+        
+        return np.array([x1,x2,y1,y2,z1,z2], dtype=int)+120
+
 
 
 def swap(a,b):

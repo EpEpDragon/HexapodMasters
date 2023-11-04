@@ -26,8 +26,8 @@ from roboMath import rotate_vec
 READ_CAMERA = True
 
 # Camera
-RES_X = 1280
-RES_Y = 720
+RES_X = 640*2
+RES_Y = 320*2
 POINT_CLOUD_DIVISOR = 10
 # Changed from control interface thread, thus list for mutable
 view = [0]
@@ -168,11 +168,12 @@ if __name__ == '__main__':
             znear = model.vis.map.znear * model.stat.extent
             depth_linear = linearize_depth(depth, znear=znear, zfar=zfar)
             
+            
             # For visualization
             # depth_linear[depth_linear > model.vis.map.zfar - 0.0005] = 0#model.vis.map.zfar - 0.0005 # Set depths farther than the z buffer to max z buffer
 
             # TODO Implement better filteringh method
-            # depth_linear[depth_linear < 2.5] = 0 # Zero out depth that would fall on robot
+            depth_linear[depth_linear < 2.5] = 0 # Zero out depth that would fall on robot
             
             # Show the simulated camera image
             if view[0] == 0:
