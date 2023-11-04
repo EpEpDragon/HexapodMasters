@@ -20,9 +20,11 @@ const float CY = 359.5;
 const float ZFAR = 10.0;
 const float ZNEAR = 0.05;
 
+// TODO Make these uniforms
 const int EXTENTS = 30;                         // Extents of SDF block, in distance units
 const int DIVISIOINS = 4;                       // Cells per distance unit
 const int SDF_EXTENTS = EXTENTS*DIVISIOINS;     // Extents of SDF block, in number of cells
+
 const float PENETRATION_DEPTH = 2*DIVISIOINS;
 const ivec3 ORIGIN = ivec3(SDF_EXTENTS/2);      // Origin of camera in SDF grid
 // float linearize_depth(depth):
@@ -138,7 +140,7 @@ void trace(vec4 point) {
         penetration_depth2 = dot(ORIGIN - vec3(X,Y,Z), ORIGIN - vec3(X,Y,Z)) - surface_depht2;
         if(penetration_depth2 < 0)
         {
-            sdf_buffer[int(mod((X-sdf_index_test.x), SDF_EXTENTS))][int(mod((Y-sdf_index_test.y), SDF_EXTENTS))][int(mod((Z-sdf_index_test.z), SDF_EXTENTS))] = 1.0;
+            sdf_buffer[int(mod((X-sdf_index_test.x), SDF_EXTENTS))][int(mod((Y-sdf_index_test.y), SDF_EXTENTS))][int(mod((Z-sdf_index_test.z), SDF_EXTENTS))] *= 1.0;
         }
         else
         {
@@ -149,7 +151,7 @@ void trace(vec4 point) {
             }
             else
             {
-                sdf_buffer[int(mod((X-sdf_index_test.x), SDF_EXTENTS))][int(mod((Y-sdf_index_test.y), SDF_EXTENTS))][int(mod((Z-sdf_index_test.z), SDF_EXTENTS))] = -1.0;
+                sdf_buffer[int(mod((X-sdf_index_test.x), SDF_EXTENTS))][int(mod((Y-sdf_index_test.y), SDF_EXTENTS))][int(mod((Z-sdf_index_test.z), SDF_EXTENTS))] *= -1.0;
             }
             
         }
@@ -160,12 +162,4 @@ void main() {
     if (point.w != 2.0) {
         trace(point);
     }
-    // point.xyz = rotate(camera_quat, point.xyz);
-    // bool far_clip_point = false; // Indicates point is not on surfaced but on far clipping plane
-    // if (point.z == ZFAR) { far_clip_point = true; }
-    // vec3 point = vec3(60.0);
-    // int X = int(point.x);
-    // int Y = int(point.y);
-    // int Z = int(point.z);
-    // sdf_buffer[X][Y][Z] = 0.0;
 }
