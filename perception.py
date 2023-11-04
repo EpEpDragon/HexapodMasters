@@ -1,7 +1,7 @@
 import numpy as np
 from multiprocessing import shared_memory
 from roboMath import rotate_vec, rotate_vec_quat
-# from simLaunch import RES_X, RES_Y, POINT_CLOUD_DIVISOR
+# from simLaunch import RES_X, RES_Y
 import time
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram,compileShader
@@ -13,9 +13,12 @@ EXTENTS = 30                        # Extents of SDF block, in distance units
 DIVISIOINS = 4                      # Cells per distance unit
 SDF_EXTENTS = EXTENTS*DIVISIOINS    # Extents of SDF block, in number of cells
 
+VOXEL_TRACE_INVOCAIONS = 32         # NB This must match the x and y invocations specified in voxel_trace.glsl
+CELL_DISTANCE_INVOCAIONS = 10       # NB This must match the x and y invocations specified in set_cell_distance.glsl
+
 def to_sdf_index(global_pos):
     """Convert global position to position in SDF grid, which has its corner at 0,0,0"""
-    return ((global_pos)%(EXTENTS))*DIVISIOINS
+    return (((global_pos)%(EXTENTS))*DIVISIOINS).astype(np.int32)
 
 
 class Perception():
@@ -28,9 +31,9 @@ class Perception():
         self.sdf_buffer = np.ndarray(sdf_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.sdf_buffer[:] = sdf_buffer[:]
         # Index of current cell
-        sdf_index = np.zeros(3, dtype=np.int8)
+        sdf_index = np.zeros(3, dtype=np.int32)
         self.sdf_index_shm = shared_memory.SharedMemory(create=True,size=sdf_index.nbytes)
-        self.sdf_index = np.ndarray(sdf_index.shape, dtype=np.int8, buffer=self.sdf_index_shm.buf)
+        self.sdf_index = np.ndarray(sdf_index.shape, dtype=np.int32, buffer=self.sdf_index_shm.buf)
         self.sdf_index[:] = sdf_index[:]
         #---------------------------------------------------------------------------------
         
@@ -39,14 +42,18 @@ class Perception():
 
     # initialise compute shader
     def init_shader(self, n_points):
-        compute_src = open('voxel_trace.glsl','r').readlines()
-        shader = compileProgram(compileShader(compute_src, GL_COMPUTE_SHADER))
-        glUseProgram(shader)
-        self.glbuffers  = glGenBuffers(2)
-        # Points buffer
+        # Compile shader program
+        trace_src = open('voxel_trace.glsl','r').readlines()
+        trace_shader = compileProgram(compileShader(trace_src, GL_COMPUTE_SHADER))
+        
+        glUseProgram(trace_shader)
+        self.glbuffers  = glGenBuffers(3)
+
+        # Bind Points buffer
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[0])
         glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4, None, GL_DYNAMIC_READ)
-        # SDF GPU buffer
+        
+        # Bind SDF GPU buffer
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, self.glbuffers[1])
         glBufferData(GL_SHADER_STORAGE_BUFFER, self.sdf_buffer.nbytes, self.sdf_buffer, GL_DYNAMIC_READ)
  
@@ -59,15 +66,16 @@ class Perception():
         # Set point cloud buffer
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])
         # glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, points.size*4*4, points)
+        
         glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, depth.nbytes, depth)
 
         # glDispatchCompute(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)
-        glDispatchCompute(1280,720,1)
+        glDispatchCompute(int(1280/VOXEL_TRACE_INVOCAIONS), int(720/VOXEL_TRACE_INVOCAIONS), 1)
         # glDispatchCompute(1,1,1)
         # glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
-        self.sdf_buffer = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.sdf_buffer.nbytes), dtype=self.sdf_buffer.dtype).reshape(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)
+        self.sdf_buffer[:] = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.sdf_buffer.nbytes), dtype=self.sdf_buffer.dtype).reshape(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)[:]
     
  
     def update(self, global_pos, body_quaternion, points):
@@ -81,7 +89,8 @@ class Perception():
         self.sdf_buffer[(points[:,0] - self.sdf_index[0])%SDF_EXTENTS, (points[:,1] - self.sdf_index[1])%SDF_EXTENTS, (points[:,2] - self.sdf_index[2])%SDF_EXTENTS] = 0.0
     
     def update_new(self, global_pos, camera_quat, depth):
-        self.sdf_index = to_sdf_index(global_pos)
+        # self.sdf_index = to_sdf_index(global_pos)
+        self.update_sdf_index(global_pos)
         self.trace_voxels(depth, camera_quat)
     
 
@@ -100,21 +109,21 @@ class Perception():
             if x1 > x2:
                 x1, x2 = swap(x1,x2)
             self.sdf_buffer[x1:x2,:,:] = 100
-            print(f"{x1} -- {x2}")
+            # print(f"{x1} -- {x2}")
         if diff[1] != 0:
             y1 = -self.sdf_index[1]
             y2 = y1 + diff[1]
             if y1 > y2:
                 y1, y2 = swap(y1,y2)
             self.sdf_buffer[:,y1:y2,:] = 100
-            print(f"{y1} -- {y2}")
+            # print(f"{y1} -- {y2}")
         if diff[2] != 0:
             z1 = -self.sdf_index[2]
             z2 = z1 + diff[2]
             if z1 > z2:
                 z1, z2 = swap(z1,z2)
             self.sdf_buffer[:,:,z1:z2] = 100
-            print(f"{z1} -- {z2}")
+            # print(f"{z1} -- {z2}")
         
         #-------------------------------------------------------------
 

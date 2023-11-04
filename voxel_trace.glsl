@@ -1,39 +1,41 @@
 # version 430
 
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
+// Uniforms
 layout(location = 0) uniform ivec3 sdf_index;
 layout(location = 1) uniform vec4 camera_quat;
 
-layout(std430, binding = 0) buffer image
-{
-    float depth_image[720][1280];
-};
+// CPU Shared Buffers 
+layout(std430, binding = 0) buffer image { float depth_image[720][1280]; };
+layout(std430, binding = 1) buffer sdf { float sdf_buffer[120][120][120]; };
 
-layout(std430, binding = 1) buffer sdf
-{
-    float sdf_buffer[120][120][120];
-};
+// GPU Internal Buffers
+layout(std430, binding = 2) buffer surface_points { vec3 surface_points[720][1280]; };
 
 const float FX = 623.533;
 const float FY = 623.533;
 const float CX = 639.5;
 const float CY = 359.5;
 const float ZFAR = 10.0;
+const float ZNEAR = 0.05;
 
 const int EXTENTS = 30;                         // Extents of SDF block, in distance units
 const int DIVISIOINS = 4;                       // Cells per distance unit
 const int SDF_EXTENTS = EXTENTS*DIVISIOINS;     // Extents of SDF block, in number of cells
-const float PENETRATION_DEPTH = 20.0;
+const float PENETRATION_DEPTH = 2*DIVISIOINS;
 const ivec3 ORIGIN = ivec3(SDF_EXTENTS/2);      // Origin of camera in SDF grid
 // float linearize_depth(depth):
 //     zlinear = (ZNEAR * ZFAR) / (ZFAR + depth * (ZNEAR - ZFAR));
 //     return zlinear
 
-vec3 rotate(vec4 q, vec3 p) {
+// Rotate a vector p by quaternion q
+vec3 rotate(vec4 q, vec3 p) 
+{
   return p + 2.0*cross(q.xyz,cross(q.xyz,p)+q.w*p);
 }
 
+// Compute point in SDF grid based on depth and and rotation of camera
 vec4 compute_point()
 {
     int i = int(gl_GlobalInvocationID.y);
@@ -41,7 +43,10 @@ vec4 compute_point()
     float z = depth_image[i][j];
     // if(z > ZFAR - 0.0005) { z = ZFAR; }
     float clip = 0.0;
-    if(z == 0.0 ) 
+    if(z < 2.5){
+        return(vec4(0,0,0,2));
+    }
+    if(z > ZFAR-0.0005) 
     { 
         z = ZFAR;
         clip = 1.0;
@@ -49,20 +54,9 @@ vec4 compute_point()
     float x = (j - CX) * z / FX;
     float y = (i - CY) * z / FY;
     // vec3 point = vec3(x,y,z); 
-    return (vec4((rotate(camera_quat, vec3(x,y,z)) + EXTENTS/2)*DIVISIOINS, clip));
+    return (vec4((rotate(camera_quat, vec3(-x,y,z)) + EXTENTS/2)*DIVISIOINS, clip));
 }
-
-void main() {
-    vec4 point = compute_point();
-    // point.xyz = rotate(camera_quat, point.xyz);
-    bool far_clip_point = false; // Indicates point is not on surfaced but on far clipping plane
-    // if (point.z == ZFAR) { far_clip_point = true; }
-    // vec3 point = vec3(60.0);
-    // int X = int(point.x);
-    // int Y = int(point.y);
-    // int Z = int(point.z);
-    // sdf_buffer[X][Y][Z] = 0.0;
-
+void trace(vec4 point) {
     float t = 0.0; // Total fraction to surface point
     // vec3 to = vec3(surface_points[gl_GlobalInvocationID.x * 3], surface_points[gl_GlobalInvocationID.x * 3 + 1], surface_points[gl_GlobalInvocationID.x * 3 + 2]);
     // vec3 ray = point - sdf_index;
@@ -160,4 +154,18 @@ void main() {
             
         }
     }
+}
+void main() {
+    vec4 point = compute_point();
+    if (point.w != 2.0) {
+        trace(point);
+    }
+    // point.xyz = rotate(camera_quat, point.xyz);
+    // bool far_clip_point = false; // Indicates point is not on surfaced but on far clipping plane
+    // if (point.z == ZFAR) { far_clip_point = true; }
+    // vec3 point = vec3(60.0);
+    // int X = int(point.x);
+    // int Y = int(point.y);
+    // int Z = int(point.z);
+    // sdf_buffer[X][Y][Z] = 0.0;
 }

@@ -20,6 +20,7 @@ def update_points_buffer(sdf_index, sdf_buffer, pcd, erase_markers):
         
         x = (sdf_index[0]-SDF_EXTENTS/2)/DIVISIOINS
         y = (sdf_index[1]-SDF_EXTENTS/2)/DIVISIOINS
+        print(y)
         erase_markers.points = o3d.utility.Vector3dVector(np.array([[x,50,0],[x,-50,0], [50,y,0],[-50,y,0]]))
         pcd.points = o3d.utility.Vector3dVector(-points)
 
@@ -31,7 +32,7 @@ def start(sdf_shmn, sdf_index_shmn):
     sdf_buffer = np.ndarray((SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS), dtype=np.float32, buffer=sdf_shm.buf)
     
     sdf_index_shm = shared_memory.SharedMemory(name=sdf_index_shmn)
-    sdf_index = np.ndarray(3, dtype=np.int8, buffer=sdf_index_shm.buf)
+    sdf_index = np.ndarray(3, dtype=np.int32, buffer=sdf_index_shm.buf)
 
     # create visualizer and window.
     vis = o3d.visualization.Visualizer()

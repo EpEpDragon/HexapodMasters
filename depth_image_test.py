@@ -86,7 +86,7 @@ if __name__ == '__main__':
     # cv2.imshow('img', img)
     # cv2.waitKey(0)
     depth = img*10
-    p = points_from_depth(depth)
+    # p = points_from_depth(depth)
     # show_points(p)
     perception.update_new(np.array([0,0,0]),np.array([0,0.17,0,0.98]),depth.reshape(1280*720))
     # perception.update(np.array([0,0,0]),np.array([1,0,0,0]),p)
