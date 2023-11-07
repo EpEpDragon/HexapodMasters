@@ -2,6 +2,7 @@ import open3d as o3d
 import numpy as np
 import time
 from perception import SDF_EXTENTS, EXTENTS, DIVISIOINS
+import cv2
 
 from multiprocessing import shared_memory
 
@@ -17,7 +18,17 @@ def update_points_buffer(sdf_index, sdf_buffer, pcd, erase_markers):
         # index[1][:] = (index[1][:])%SDF_EXTENTS
         # index[2][:] = (index[2][:])%SDF_EXTENTS
         points = np.transpose(index)/DIVISIOINS - EXTENTS/2
-        print(points.shape)
+        print(sdf_index)
+        slice_i = np.indices((120,120))
+        slice_i[0] = (slice_i[0] - sdf_index[0])%SDF_EXTENTS
+        slice_i[1] = (slice_i[1] - sdf_index[1])%SDF_EXTENTS
+        slice = sdf_buffer[slice_i[0],slice_i[1],50] / EXTENTS*1.4142 #diagonal distance
+        slice = cv2.rotate(slice, cv2.ROTATE_90_CLOCKWISE)
+        cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('SDF Slice', 512,512)
+        cv2.imshow('SDF Slice', slice)
+        cv2.waitKey(1)
+
         
         x = (sdf_index[0]-SDF_EXTENTS/2)/DIVISIOINS
         y = (sdf_index[1]-SDF_EXTENTS/2)/DIVISIOINS

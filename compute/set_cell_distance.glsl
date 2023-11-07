@@ -49,28 +49,28 @@ void main()
     // uint z = gl_GlobalInvocationID.z;
 
     // Calculate cell position in world space
-    vec3 cell_position = (gl_GlobalInvocationID - EXTENTS/2) / DIVISIOINS;
+    // vec3 cell_position = (gl_GlobalInvocationID - EXTENTS/2) / DIVISIOINS;
     
-    float sdf_dist = sdf_buffer[gl_GlobalInvocationID.x][gl_GlobalInvocationID.y][gl_GlobalInvocationID.z];
+    // float sdf_dist = sdf_buffer[gl_GlobalInvocationID.x][gl_GlobalInvocationID.y][gl_GlobalInvocationID.z];
     
-    // Initialise min distance to absolute sdf distance squared (optimisation)
-    float min_dist2 = sdf_dist*sdf_dist;
+    // // Initialise min distance to absolute sdf distance squared (optimisation)
+    // float min_dist2 = sdf_dist*sdf_dist;
     
-    // Find min distance to surface
-    float current_dist2;
-    for (int y = 0; y < 90/DIV; y++)
-    {
-        for (int x = 0; x < 160/DIV; x++)
-        {
-            if (surface_points[y*DIV][x*DIV].w != 2.0)
-            {
-                vec3 diff = surface_points[y*DIV][x*DIV].xyz - cell_position;
-                current_dist2 = dot( diff, diff );
-                min_dist2 = min( current_dist2, min_dist2 );
-            }
-        }
-    }
+    // // Find min distance to surface
+    // float current_dist2;
+    // for (int y = 0; y < 90/DIV; y++)
+    // {
+    //     for (int x = 0; x < 160/DIV; x++)
+    //     {
+    //         if (surface_points[y*DIV][x*DIV].w != 2.0)
+    //         {
+    //             vec3 diff = surface_points[y*DIV][x*DIV].xyz - cell_position;
+    //             current_dist2 = dot( diff, diff );
+    //             min_dist2 = min( current_dist2, min_dist2 );
+    //         }
+    //     }
+    // }
 
-    sdf_buffer[gl_GlobalInvocationID.x][gl_GlobalInvocationID.y][gl_GlobalInvocationID.z] = sign(sdf_dist) * sqrt( min_dist2 );
+    // sdf_buffer[gl_GlobalInvocationID.x][gl_GlobalInvocationID.y][gl_GlobalInvocationID.z] = sign(sdf_dist) * sqrt( min_dist2 );
     erase_out_of_range(gl_GlobalInvocationID.x,gl_GlobalInvocationID.y,gl_GlobalInvocationID.z);
 }
