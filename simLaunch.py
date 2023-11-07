@@ -27,7 +27,7 @@ READ_CAMERA = True
 
 # Camera
 RES_X = 640*2
-RES_Y = 320*2
+RES_Y = 360*2
 POINT_CLOUD_DIVISOR = 10
 # Changed from control interface thread, thus list for mutable
 view = [0]

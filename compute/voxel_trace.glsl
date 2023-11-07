@@ -13,11 +13,11 @@ layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[120][120][120
 // GPU Internal Buffers
 layout(std430, binding = 2) writeonly restrict buffer points { vec4 surface_points[720][1280]; };
 
-const float FX = 554.2562584220408;//277.1281292110204;
-const float FY = 554.2562584220408;//277.1281292110204;
+const float FX = 623.533;//277.1281292110204;
+const float FY = 623.533;//277.1281292110204;
 const float CX = 639.5;//319.5;
-const float CY = 319.5;//159.5;
-const float ZFAR = 5.0;
+const float CY = 359.5;//159.5;
+const float ZFAR = 4.7;
 const float ZNEAR = 0.05;
 
 // TODO Make these uniforms
@@ -50,6 +50,7 @@ vec4 compute_point()
     }
 
     float clip = 0.0;
+    // HACK Make this not use only z, it should clip by distance
     if(z > ZFAR-0.0005) 
     { 
         z = ZFAR;
