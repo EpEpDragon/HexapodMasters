@@ -17,6 +17,7 @@ def update_points_buffer(sdf_index, sdf_buffer, pcd, erase_markers):
         # index[1][:] = (index[1][:])%SDF_EXTENTS
         # index[2][:] = (index[2][:])%SDF_EXTENTS
         points = np.transpose(index)/DIVISIOINS - EXTENTS/2
+        print(points.shape)
         
         x = (sdf_index[0]-SDF_EXTENTS/2)/DIVISIOINS
         y = (sdf_index[1]-SDF_EXTENTS/2)/DIVISIOINS
@@ -59,11 +60,11 @@ def start(sdf_shmn, sdf_index_shmn):
     pos3[:,2] = -points_buffer[:,0]
 
     # Coordinate Frame Colors
-    color_buffer = np.zeros((SDF_EXTENTS*SDF_EXTENTS*SDF_EXTENTS + 8, 3))
-    color_buffer[0:9] = np.array([1,0.5,0.5])
+    # color_buffer = np.zeros((SDF_EXTENTS*SDF_EXTENTS*SDF_EXTENTS + 8, 3))
+    # color_buffer[0:9] = np.array([1,0.5,0.5])
 
     pcd.points = o3d.utility.Vector3dVector(pos3)
-    pcd.colors = o3d.utility.Vector3dVector(color_buffer)
+    # pcd.colors = o3d.utility.Vector3dVector(color_buffer)
 
     # include it in the visualizer before non-blocking visualization.
     vis.add_geometry(pcd)

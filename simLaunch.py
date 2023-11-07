@@ -26,8 +26,8 @@ from roboMath import rotate_vec
 READ_CAMERA = True
 
 # Camera
-RES_X = 640*2
-RES_Y = 360*2
+RES_X = 160
+RES_Y = 90
 POINT_CLOUD_DIVISOR = 10
 # Changed from control interface thread, thus list for mutable
 view = [0]
@@ -106,7 +106,8 @@ if __name__ == '__main__':
         mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, ctx)
 
         viewport = mujoco.MjrRect(0, 0, RES_X, RES_Y)
-
+        cv2.namedWindow("Camera", cv2.WINDOW_NORMAL)
+        cv2.resizeWindow("Camera", 960, 540)
         yfov = model.cam_fovy[cam.fixedcamid]
         fy = (RES_Y/2) / np.tan(yfov * np.pi / 180 / 2)
         fx = fy

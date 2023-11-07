@@ -3,7 +3,7 @@
   <compiler angle="degree" coordinate="local"/>
   
   <visual>
-    <global  offwidth="1280" offheight="720"/>
+    <global  offwidth="160" offheight="90"/>
     <map znear="0.05" zfar="10.0"/>
     <rgba haze=".3 .3 .3 1"/>
   </visual>

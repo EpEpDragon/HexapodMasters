@@ -8,6 +8,7 @@ from OpenGL.GL.shaders import compileProgram,compileShader
 import numpy as np
 import glfw
 import cv2
+# from scipy.spatial import Octree
 
 EXTENTS = 15                        # Extents of SDF block, in distance units
 DIVISIOINS = 8                      # Cells per distance unit
@@ -77,28 +78,33 @@ class Perception():
         glUniform3i(0, self.sdf_index[0], self.sdf_index[1], self.sdf_index[2])
         glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])
 
-        glDispatchCompute(int(640*2/VOXEL_TRACE_INVOCAIONS), int(320*2/VOXEL_TRACE_INVOCAIONS), 1)
+        glDispatchCompute(int(160/VOXEL_TRACE_INVOCAIONS), int(90/VOXEL_TRACE_INVOCAIONS), 1)
         
         # Sync
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
+        # glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
 
         # ################# Distance stage ##################
-        # glUseProgram(self.distance_program)
+        glUseProgram(self.distance_program)
         
         # # Set Uniforms
-        # glUniform1i(0,erase_range[0])
-        # glUniform1i(1,erase_range[1])
-        # glUniform1i(2,erase_range[2])
-        # glUniform1i(3,erase_range[3])
-        # glUniform1i(4,erase_range[4])
-        # glUniform1i(5,erase_range[5])
+        glUniform1i(0,erase_range[0])
+        glUniform1i(1,erase_range[1])
+        glUniform1i(2,erase_range[2])
+        glUniform1i(3,erase_range[3])
+        glUniform1i(4,erase_range[4])
+        glUniform1i(5,erase_range[5])
         
         # glDispatchCompute(int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS))
-
-        # # Sync, read SDF
-        # glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
+        glDispatchCompute(int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS))
+        # Sync, read SDF
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
         self.sdf_buffer[:] = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.sdf_buffer.nbytes), dtype=self.sdf_buffer.dtype).reshape(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)[:]
+        # glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[2])
+        # points = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, 160*90*4*4), dtype=np.float32).reshape((160*90,4))
+        # points_tree = KDTree(points)
+        # test = np.indices(self.sdf_buffer.shape)
+        # points_tree.query()
     
  
     def update(self, global_pos, body_quaternion, points):
