@@ -11,7 +11,7 @@ layout(std430, binding = 0) readonly restrict buffer image { float depth_image[9
 layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[120][120][120]; };
 
 // GPU Internal Buffers
-layout(std430, binding = 2) writeonly restrict buffer points { vec4 surface_points[90][160]; };
+layout(std430, binding = 2) buffer points { vec4 surface_points[90][160]; };
 
 const float FOV = 60;
 const float FX = (90/2) / tan(FOV * 3.141 / 180 / 2);
