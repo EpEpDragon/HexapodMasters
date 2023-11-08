@@ -42,6 +42,9 @@ class Perception():
         self.trace_program = glCreateProgram()
         self.distance_program = glCreateProgram()
 
+        # visualize REMOVE THIS IN PRODUCTION
+        self.vslice = 50
+
     # initialise compute shader
     def init_shader(self, n_points):
         # Compile cell trace program
@@ -119,6 +122,16 @@ class Perception():
     
     def update_new(self, global_pos, camera_quat, depth):
         self.trace_voxels(depth, camera_quat, self.update_sdf_index(global_pos))
+            
+        slice_i = np.indices((120,120))
+        slice_i[0] = (slice_i[0] - self.sdf_index[0])%SDF_EXTENTS
+        slice_i[1] = (slice_i[1] - self.sdf_index[1])%SDF_EXTENTS
+        slice = self.sdf_buffer[slice_i[0],slice_i[1],self.vslice] / EXTENTS*1.4142 #diagonal distance
+        slice = cv2.rotate(slice, cv2.ROTATE_90_CLOCKWISE)
+        cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('SDF Slice', 512,512)
+        cv2.imshow('SDF Slice', slice)
+        cv2.waitKey(1)
     
 
     def update_sdf_index(self, global_pos):

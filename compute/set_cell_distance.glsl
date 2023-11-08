@@ -62,7 +62,7 @@ void main()
     {
         for (int x = 0; x < 160/DIV; x++)
         {
-            if (surface_points[y*DIV][x*DIV].w != 2.0)
+            if (surface_points[y*DIV][x*DIV].w < 1)
             {
                 vec3 diff = surface_points[y*DIV][x*DIV].xyz - gl_GlobalInvocationID;
                 current_dist2 = dot( diff, diff );

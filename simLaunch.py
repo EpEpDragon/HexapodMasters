@@ -58,15 +58,6 @@ if __name__ == '__main__':
     walk_machine = WalkCycleMachine()
     walk_machine.speed = 0.5
 
-    # Start contorl interface
-    # control_interface = ControInterface(walk_machine)
-    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,view,snapshot))
-    control_interface_thread.start()
-    
-    # Start movement handler
-    movement_handler = motion.MovementHandler(data.ctrl, data.qpos)
-    
-
     # Visual sensors0
     # -------------------------------------------------------------------------------------------------------
     if READ_CAMERA:
@@ -129,6 +120,14 @@ if __name__ == '__main__':
         sample_list = []
     # -------------------------------------------------------------------------------------------------------
 
+    # Start contorl interface
+    # control_interface = ControInterface(walk_machine)
+    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,perception,view,snapshot))
+    control_interface_thread.start()
+    
+    # Start movement handler
+    movement_handler = motion.MovementHandler(data.ctrl, data.qpos)
+    
 
     # Start simulation
     viewer.launch_passive(model, data)

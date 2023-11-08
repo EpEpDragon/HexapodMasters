@@ -166,7 +166,7 @@ void trace(vec4 point)
 }
 void main() {
     vec4 point = compute_point();
-    surface_points[gl_GlobalInvocationID.y][gl_GlobalInvocationID.x] = point;
+    surface_points[gl_GlobalInvocationID.y][gl_GlobalInvocationID.x] = vec4(mod((point.x-sdf_index.x), SDF_EXTENTS), mod((point.y-sdf_index.y), SDF_EXTENTS), mod((point.z-sdf_index.z), SDF_EXTENTS),point.w);
     // Trace if point is not too close to camera
     if (point.w != 2.0) {
         
