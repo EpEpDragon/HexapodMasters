@@ -188,29 +188,8 @@ if __name__ == '__main__':
             # p_F = np.logical_and(np.logical_and(p_X[:][:] != 0, p_Y[:][:] != 0), p_Z[:][:] != 0)
             # points = np.dstack((-p_X, p_Y, p_Z))[p_F]
 
-            
             # Update perception module
-            
-            # if snapshot[0]:
-            # perception.update(data.sensordata[0:3], data.sensordata[3:7], points[0::POINT_CLOUD_DIVISOR])
-            # perception.update(data.sensordata[0:3], data.sensordata[3:7], points[0::POINT_CLOUD_DIVISOR])#.reshape(int((RES_X*RES_Y)/POINT_CLOUD_DIVISOR),3))
             perception.update_new(data.sensordata[0:3], data.sensordata[[4,5,6,3]], depth_linear.reshape(RES_X*RES_Y))
-                # snapshot[0] = False
-            # else:
-            #     perception.update_sdf_index(data.sensordata[0:3])
-
-                # vis = o3d.visualization.Visualizer()
-                # vis.create_window(height=480, width=640)
-                # pcd = o3d.geometry.PointCloud()
-                # pcd.points = o3d.utility.Vector3dVector(p.reshape(RES_X*RES_Y,3))
-                # vis.add_geometry(pcd)
-                # vis.add_geometry(o3d.geometry.TriangleMesh.create_coordinate_frame(15))
-                # keep_running = True
-                # while keep_running:
-                #     keep_running = vis.poll_events()
-                # vis.destroy_window()
-                # snapshot[0] = False
-
             k = 0
         k += 1
         # ----------------------------------------------------------------------------------------------------

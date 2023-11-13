@@ -145,9 +145,10 @@ void trace(vec4 point)
         
         penetration_depth2 = dot(ORIGIN - vec3(X,Y,Z), ORIGIN - vec3(X,Y,Z)) - surface_depht2;
         ivec3 trace_index = ivec3(int(mod((X-sdf_index.x), SDF_EXTENTS)), int(mod((Y-sdf_index.y), SDF_EXTENTS)), int(mod((Z-sdf_index.z), SDF_EXTENTS)));
-        if(penetration_depth2 < 0)
+        float trace_value = sdf_buffer[trace_index.x][trace_index.y][trace_index.z];
+        if(penetration_depth2 < 0 && abs(trace_value) > 0.1)
         {
-            sdf_buffer[trace_index.x][trace_index.y][trace_index.z] = abs(sdf_buffer[trace_index.x][trace_index.y][trace_index.z]);
+            sdf_buffer[trace_index.x][trace_index.y][trace_index.z] = abs(trace_value);
         }
         else
         {
@@ -156,9 +157,9 @@ void trace(vec4 point)
             { 
                 return;
             }
-            else
+            else if(abs(trace_value) == 1000)
             {
-                sdf_buffer[trace_index.x][trace_index.y][trace_index.z] = -abs(sdf_buffer[trace_index.x][trace_index.y][trace_index.z]);
+                sdf_buffer[trace_index.x][trace_index.y][trace_index.z] = -1000;
             }
             
         }

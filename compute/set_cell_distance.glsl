@@ -38,7 +38,7 @@ void erase_out_of_range(uint x, uint y, uint z)
         (erase.y.start <= y && y <= erase.y.end) ||
         (erase.z.start <= z && z <= erase.z.end))
     {
-        sdf_buffer[x][y][z] = 10000;
+        sdf_buffer[x][y][z] = 1000;
     }
 }
 

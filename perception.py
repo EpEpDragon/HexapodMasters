@@ -2,13 +2,11 @@ import numpy as np
 from multiprocessing import shared_memory
 from roboMath import rotate_vec, rotate_vec_quat
 # from simLaunch import RES_X, RES_Y
-import time
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram,compileShader
+
 import numpy as np
-import glfw
 import cv2
-# from scipy.spatial import Octree
 
 EXTENTS = 15                        # Extents of SDF block, in distance units
 DIVISIOINS = 8                      # Cells per distance unit
@@ -21,13 +19,12 @@ def to_sdf_index(global_pos):
     """Convert global position to position in SDF grid, which has its corner at 0,0,0"""
     return (((global_pos)%(EXTENTS))*DIVISIOINS).astype(np.int32)
 
-
 class Perception():
     def __init__(self) -> None:
         # Shared Memory buffers for communication with 3D visualisation process
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
-        sdf_buffer = np.ones((SDF_EXTENTS, SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32)
+        sdf_buffer = np.ones((SDF_EXTENTS, SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32)*1000
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=sdf_buffer.nbytes)
         self.sdf_buffer = np.ndarray(sdf_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.sdf_buffer[:] = sdf_buffer[:]
@@ -132,7 +129,6 @@ class Perception():
         cv2.resizeWindow('SDF Slice', 512,512)
         cv2.imshow('SDF Slice', slice)
         cv2.waitKey(1)
-    
 
     def update_sdf_index(self, global_pos):
         """Update local pos to match the global pos and clear old data"""
