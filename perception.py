@@ -10,8 +10,8 @@ import glfw
 import cv2
 # from scipy.spatial import Octree
 
-EXTENTS = 15                        # Extents of SDF block, in distance units
-DIVISIOINS = 8                      # Cells per distance unit
+EXTENTS = 16                        # Extents of SDF block, in distance units
+DIVISIOINS = 10                      # Cells per distance unit
 SDF_EXTENTS = EXTENTS*DIVISIOINS    # Extents of SDF block, in number of cells
 
 VOXEL_TRACE_INVOCAIONS = 32         # NB This must match the x and y invocations specified in voxel_trace.glsl
@@ -82,7 +82,13 @@ class Perception():
         glUniform3i(0, self.sdf_index[0], self.sdf_index[1], self.sdf_index[2])         # Robot position
         # print(self.sdf_index)
         glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])  # Robot rotation
-
+        
+        # Erase range
+        glUniform1i(2,erase_range[0])
+        glUniform1i(3,erase_range[1])
+        glUniform1i(4,erase_range[2])
+        glUniform1i(5,erase_range[3])
+        
         glDispatchCompute(int(160/VOXEL_TRACE_INVOCAIONS), int(90/VOXEL_TRACE_INVOCAIONS), 1)
         
         # Sync
@@ -155,26 +161,26 @@ class Perception():
             x2 = x1 + diff[0]
             if x1 > x2:
                 x1, x2 = swap(x1,x2)
-            # self.sdf_buffer[x1:x2,:,:] = 100
+            # self.sdf_buffer[x1:x2,:] = SDF_EXTENTS/2
             # print(f"{x1} -- {x2}")
         if diff[1] != 0:
             y1 = -self.sdf_index[1]
             y2 = y1 + diff[1]
             if y1 > y2:
                 y1, y2 = swap(y1,y2)
-            # self.sdf_buffer[:,y1:y2,:] = 100
+            # self.sdf_buffer[:,y1:y2] = SDF_EXTENTS/2
             # print(f"{y1} -- {y2}")
-        if diff[2] != 0:
-            z1 = -self.sdf_index[2]
-            z2 = z1 + diff[2]
-            if z1 > z2:
-                z1, z2 = swap(z1,z2)
+        # if diff[2] != 0:
+        #     z1 = -self.sdf_index[2]
+        #     z2 = z1 + diff[2]
+        #     if z1 > z2:
+        #         z1, z2 = swap(z1,z2)
             # self.sdf_buffer[:,:,z1:z2] = 100
             # print(f"{z1} -- {z2}")
         #-------------------------------------------------------------
         # print(np.array([x1,x2,y1,y2,z1,z2], dtype=int)+120)
         
-        return np.array([x1,x2,y1,y2,z1,z2], dtype=int)+120
+        return np.array([x1,x2,y1,y2], dtype=int) + SDF_EXTENTS
 
 
 

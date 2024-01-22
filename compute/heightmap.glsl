@@ -2,13 +2,26 @@
 
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
+struct Range
+{
+    int start;
+    int end;
+};
+
+struct EraseRange 
+{
+    Range x;
+    Range y;
+};
+
 // Uniforms
 layout(location = 0) uniform ivec3 sdf_index;
 layout(location = 1) uniform vec4 camera_quat;
+layout(location = 2) uniform EraseRange erase;
 
 // CPU Shared Buffers 
 layout(std430, binding = 0) readonly restrict buffer image { float depth_image[90][160]; };
-layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[120][120]; };
+layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[160][160]; };
 
 const float FOV = 60;
 const float FX = (90/2) / tan(FOV * 3.141 / 180 / 2);
@@ -20,12 +33,14 @@ const float ZNEAR = 0.05;
 
 
 // TODO Make these uniforms
-const int EXTENTS = 15;                         // Extents of SDF block, in distance units
-const int DIVISIOINS = 8;                       // Cells per distance unit
+const int EXTENTS = 16;                         // Extents of SDF block, in distance units
+const int DIVISIOINS = 10;                       // Cells per distance unit
 const int SDF_EXTENTS = EXTENTS*DIVISIOINS;     // Extents of SDF block, in number of cells
 
 const float PENETRATION_DEPTH = 2*DIVISIOINS;
 const ivec3 ORIGIN = ivec3(SDF_EXTENTS/2);      // Origin of camera in SDF grid
+
+
 // float linearize_depth(depth):
 //     zlinear = (ZNEAR * ZFAR) / (ZFAR + depth * (ZNEAR - ZFAR));
 //     return zlinear
@@ -70,6 +85,16 @@ void draw_to_height(vec4 point)
     }
 }
 
+void erase_out_of_range(uint x, uint y, uint z)
+{
+    if ((erase.x.start <= x && x <= erase.x.end) ||
+        (erase.y.start <= y && y <= erase.y.end))
+    {
+        sdf_buffer[x][y] = 0;
+    }
+}
+
 void main() {
     draw_to_height(compute_point());
+    erase_out_of_range(gl_GlobalInvocationID.x,gl_GlobalInvocationID.y,gl_GlobalInvocationID.z);
 }
