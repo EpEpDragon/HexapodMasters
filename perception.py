@@ -27,7 +27,7 @@ class Perception():
         # Shared Memory buffers for communication with 3D visualisation process
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
-        sdf_buffer = np.ones((SDF_EXTENTS, SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32)
+        sdf_buffer = np.zeros((SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32)
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=sdf_buffer.nbytes)
         self.sdf_buffer = np.ndarray(sdf_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.sdf_buffer[:] = sdf_buffer[:]
@@ -39,7 +39,7 @@ class Perception():
         #---------------------------------------------------------------------------------
         
         self.cell_offset = np.zeros(3) # Position offset from cell origin
-        self.trace_program = glCreateProgram()
+        self.heightmap_program = glCreateProgram()
         self.distance_program = glCreateProgram()
 
         # visualize REMOVE THIS IN PRODUCTION
@@ -48,14 +48,14 @@ class Perception():
     # initialise compute shader
     def init_shader(self, n_points):
         # Compile cell trace program
-        trace_src = open('compute/voxel_trace.glsl','r').readlines()
-        self.trace_program = compileProgram(compileShader(trace_src, GL_COMPUTE_SHADER))
+        heightmap_src = open('compute/heightmap.glsl','r').readlines()
+        self.heightmap_program = compileProgram(compileShader(heightmap_src, GL_COMPUTE_SHADER))
 
         # Compile cell distance program
-        distance_src = open('compute/set_cell_distance.glsl','r').readlines()
-        self.distance_program = compileProgram(compileShader(distance_src, GL_COMPUTE_SHADER))
+        # distance_src = open('compute/set_cell_distance.glsl','r').readlines()
+        # self.distance_program = compileProgram(compileShader(distance_src, GL_COMPUTE_SHADER))
         
-        self.glbuffers  = glGenBuffers(3)
+        self.glbuffers  = glGenBuffers(2)
 
         # Bind image buffer
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[0])
@@ -66,20 +66,22 @@ class Perception():
         glBufferData(GL_SHADER_STORAGE_BUFFER, self.sdf_buffer.nbytes, self.sdf_buffer, GL_DYNAMIC_READ)
         
         # Bind points buffer
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, self.glbuffers[2])
-        glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4 * 4, None, GL_DYNAMIC_COPY)
+        # glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, self.glbuffers[2])
+        # glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4 * 4, None, GL_DYNAMIC_COPY)
  
  
-    def trace_voxels(self, depth, camera_quat, erase_range):
+    def generate_heightmap(self, depth, camera_quat, erase_range):
         # Set depth image data
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])        
         glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, depth.nbytes, depth)
+
         ################### Trace stage ##################
-        glUseProgram(self.trace_program)
+        glUseProgram(self.heightmap_program)
         
         # Set Uniforms
-        glUniform3i(0, self.sdf_index[0], self.sdf_index[1], self.sdf_index[2])
-        glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])
+        glUniform3i(0, self.sdf_index[0], self.sdf_index[1], self.sdf_index[2])         # Robot position
+        # print(self.sdf_index)
+        glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])  # Robot rotation
 
         glDispatchCompute(int(160/VOXEL_TRACE_INVOCAIONS), int(90/VOXEL_TRACE_INVOCAIONS), 1)
         
@@ -87,22 +89,21 @@ class Perception():
         # glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
 
         # ################# Distance stage ##################
-        glUseProgram(self.distance_program)
+        # glUseProgram(self.distance_program)
         
-        # # Set Uniforms
-        glUniform1i(0,erase_range[0])
-        glUniform1i(1,erase_range[1])
-        glUniform1i(2,erase_range[2])
-        glUniform1i(3,erase_range[3])
-        glUniform1i(4,erase_range[4])
-        glUniform1i(5,erase_range[5])
+        # # # Set Uniforms
+        # glUniform1i(0,erase_range[0])
+        # glUniform1i(1,erase_range[1])
+        # glUniform1i(2,erase_range[2])
+        # glUniform1i(3,erase_range[3])
+        # glUniform1i(4,erase_range[4])
+        # glUniform1i(5,erase_range[5])
         
-        # glDispatchCompute(int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS))
-        glDispatchCompute(int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS))
+        # glDispatchCompute(int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS))
         # Sync, read SDF
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
-        self.sdf_buffer[:] = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.sdf_buffer.nbytes), dtype=self.sdf_buffer.dtype).reshape(SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS)[:]
+        self.sdf_buffer[:] = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.sdf_buffer.nbytes), dtype=self.sdf_buffer.dtype).reshape(SDF_EXTENTS,SDF_EXTENTS)[:]
         # glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[2])
         # points = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, 160*90*4*4), dtype=np.float32).reshape((160*90,4))
         # points_tree = KDTree(points)
@@ -116,21 +117,26 @@ class Perception():
         self.update_sdf_index(global_pos)
         # points = ((f2(points) + EXTENTS/2.0)*DIVISIOINS).astype(np.float32)
         points = ((f2(points) + EXTENTS/2)*DIVISIOINS).astype(int)
-        # self.trace_voxels(points)
+        # self.generate_heightmap(points)
         # self.sdf_buffer[:] = 100
         self.sdf_buffer[(points[:,0] - self.sdf_index[0])%SDF_EXTENTS, (points[:,1] - self.sdf_index[1])%SDF_EXTENTS, (points[:,2] - self.sdf_index[2])%SDF_EXTENTS] = 0.0
     
     def update_new(self, global_pos, camera_quat, depth):
-        self.trace_voxels(depth, camera_quat, self.update_sdf_index(global_pos))
+        self.generate_heightmap(depth, camera_quat, self.update_sdf_index(global_pos))
             
-        slice_i = np.indices((120,120))
-        slice_i[0] = (slice_i[0] - self.sdf_index[0])%SDF_EXTENTS
-        slice_i[1] = (slice_i[1] - self.sdf_index[1])%SDF_EXTENTS
-        slice = self.sdf_buffer[slice_i[0],slice_i[1],self.vslice] / EXTENTS*1.4142 #diagonal distance
-        slice = cv2.rotate(slice, cv2.ROTATE_90_CLOCKWISE)
+        # slice_i = np.indices((120,120))
+        # slice_i[0] = (slice_i[0] - self.sdf_index[0])%SDF_EXTENTS
+        # slice_i[1] = (slice_i[1] - self.sdf_index[1])%SDF_EXTENTS
+        # slice = self.sdf_buffer[slice_i[0],slice_i[1],self.vslice] / EXTENTS*1.4142 #diagonal distance
+        
+        img = np.zeros(self.sdf_buffer.shape)
+        for x in range(SDF_EXTENTS):
+            for y in range(SDF_EXTENTS):
+                img[x,y] = self.sdf_buffer[(x-self.sdf_index[0])%SDF_EXTENTS, (y-self.sdf_index[1])%SDF_EXTENTS] / 100
+        img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
         cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
         cv2.resizeWindow('SDF Slice', 512,512)
-        cv2.imshow('SDF Slice', slice)
+        cv2.imshow('SDF Slice', img)
         cv2.waitKey(1)
     
 
