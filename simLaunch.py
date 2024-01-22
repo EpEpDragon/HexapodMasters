@@ -131,7 +131,7 @@ if __name__ == '__main__':
     
 
     # Start simulation
-    viewer.launch_passive(model, data)
+    viewer_handle = viewer.launch_passive(model, data)
     time.sleep(1)
     perception.init_shader(int(RES_Y*RES_X))
 
@@ -152,6 +152,8 @@ if __name__ == '__main__':
 
         # Step by integrating timestep error to simulation in (approximatley) real time
         mujoco.mj_step(model, data)
+
+        viewer_handle.sync()
 
         # Render camera every X timesteps(k)
         # ----------------------------------------------------------------------------------------------------
