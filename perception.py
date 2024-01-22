@@ -155,21 +155,21 @@ class Perception():
         self.sdf_index += diff
         # Find clear range
         #-------------------------------------------------------------
-        x1=x2=y1=y2=z1=z2=0
+        x1=x2=y1=y2=0
         if diff[0] != 0:
             x1 = -self.sdf_index[0]
             x2 = x1 + diff[0]
             if x1 > x2:
                 x1, x2 = swap(x1,x2)
             # self.sdf_buffer[x1:x2,:] = SDF_EXTENTS/2
-            # print(f"{x1} -- {x2}")
+            print(f"{x1} -- {x2}")
         if diff[1] != 0:
             y1 = -self.sdf_index[1]
             y2 = y1 + diff[1]
             if y1 > y2:
                 y1, y2 = swap(y1,y2)
             # self.sdf_buffer[:,y1:y2] = SDF_EXTENTS/2
-            # print(f"{y1} -- {y2}")
+            print(f"{y1} -- {y2}")
         # if diff[2] != 0:
         #     z1 = -self.sdf_index[2]
         #     z2 = z1 + diff[2]

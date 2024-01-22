@@ -85,7 +85,7 @@ void draw_to_height(vec4 point)
     }
 }
 
-void erase_out_of_range(uint x, uint y, uint z)
+void erase_out_of_range(uint x, uint y)
 {
     if ((erase.x.start <= x && x <= erase.x.end) ||
         (erase.y.start <= y && y <= erase.y.end))
@@ -96,5 +96,5 @@ void erase_out_of_range(uint x, uint y, uint z)
 
 void main() {
     draw_to_height(compute_point());
-    erase_out_of_range(gl_GlobalInvocationID.x,gl_GlobalInvocationID.y,gl_GlobalInvocationID.z);
+    erase_out_of_range(gl_GlobalInvocationID.x,gl_GlobalInvocationID.y);
 }

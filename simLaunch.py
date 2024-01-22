@@ -124,13 +124,14 @@ if __name__ == '__main__':
     # control_interface = ControInterface(walk_machine)
     control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,perception,view,snapshot))
     control_interface_thread.start()
+    # walk_machine.set_walk_direction(np.array([0,-1,0]))
     
     # Start movement handler
     movement_handler = motion.MovementHandler(data.ctrl, data.qpos)
     
 
     # Start simulation
-    # viewer.launch_passive(model, data)
+    viewer.launch_passive(model, data)
     time.sleep(1)
     perception.init_shader(int(RES_Y*RES_X))
 
