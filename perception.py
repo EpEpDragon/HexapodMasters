@@ -45,6 +45,8 @@ class Perception():
 
         # visualize REMOVE THIS IN PRODUCTION
         self.vslice = 50
+        cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
+
 
     # initialise compute shader
     def init_shader(self, n_points):
@@ -120,15 +122,13 @@ class Perception():
     def display_heightmap(self):
 
         img = np.zeros(self.sdf_buffer.shape)
-        low = self.sdf_buffer.min()
-        diff = self.sdf_buffer.max() - low
+        low = self.sdf_buffer.max()
+        diff = self.sdf_buffer.min() - low
         for x in range(SDF_EXTENTS):
             for y in range(SDF_EXTENTS):
                 img[x,y] = (self.sdf_buffer[(x-self.sdf_index[0])%SDF_EXTENTS, (y-self.sdf_index[1])%SDF_EXTENTS] - low) / diff
                 # img[x,y] = self.sdf_buffer[(x-self.sdf_index[0])%SDF_EXTENTS, (y-self.sdf_index[1])%SDF_EXTENTS]
         img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
-        cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('SDF Slice', 512,512)
         cv2.imshow('SDF Slice', img)
         cv2.waitKey(1)
 

@@ -79,10 +79,11 @@ def start_interface(walk_machine, perception, view, snapshot):
             cam_size = wf.get_window_size('Camera')
             centerX = (wf.get_monitor(0).width - margins[0] - cam_size[0])/(wf.get_monitor(0).width - margins[0]) - ctrl_x_rel
             centerY = (wf.get_monitor(0).height - margins[1] - cam_size[1])/(wf.get_monitor(0).height - margins[1])
-            # wf.move_size_window("MuJoCo : MuJoCo Model", -1, 0, 0, centerX, 1)
+            wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0, 0, 1, 0.5)
             # wf.move_size_window("Open3D", -1, centerX, 0, 1-centerX-ctrl_x_rel, centerY)
-            wf.move_size_window("Control Interface", -1, 1-ctrl_x_rel, 0, ctrl_x_rel, 1)
-            wf.move_size_window("Camera", -1, centerX, centerY, is_cv2=True)
+            wf.move_size_window("Control Interface", 1, 0.7, 0, 0.3, 1)
+            wf.move_size_window("SDF Slice", 0, 0, 0.5, 1, 0.5)
+            wf.move_size_window("Camera", 1, 0, 0, 0.7, 1)
         else:
             wf.move_size_window("MuJoCo : MuJoCo Model", -1, 0, 0, 1-ctrl_x_rel, 1)
             wf.move_size_window("Control Interface", -1, 1-ctrl_x_rel, 0, ctrl_x_rel, 1)
