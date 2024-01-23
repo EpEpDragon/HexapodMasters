@@ -148,12 +148,16 @@ class Perception():
         
     
     def update_sdf_index(self, global_pos):
-        """Update local pos to match the global pos and clear old data"""
+        """Update map index and calculate range of map to clear"""
         local_new = to_sdf_index(global_pos)
         self.cell_offset = local_new % 1
         local_new = local_new.astype(int)
         diff = local_new - self.sdf_index
-        self.sdf_index += diff
+        
+        # Why does this make it run much faster?? One addition??
+        # self.sdf_index += diff
+        self.sdf_index = local_new
+
         # Find clear range
         #-------------------------------------------------------------
         x1=x2=y1=y2=0
