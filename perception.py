@@ -27,7 +27,7 @@ class Perception():
         # Shared Memory buffers for communication with 3D visualisation process
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
-        sdf_buffer = np.zeros((SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32)
+        sdf_buffer = np.ones((SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32) * SDF_EXTENTS/2
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=sdf_buffer.nbytes)
         self.sdf_buffer = np.ndarray(sdf_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.sdf_buffer[:] = sdf_buffer[:]
@@ -127,25 +127,26 @@ class Perception():
         # self.sdf_buffer[:] = 100
         self.sdf_buffer[(points[:,0] - self.sdf_index[0])%SDF_EXTENTS, (points[:,1] - self.sdf_index[1])%SDF_EXTENTS, (points[:,2] - self.sdf_index[2])%SDF_EXTENTS] = 0.0
     
-    def update_new(self, global_pos, camera_quat, depth):
-        self.generate_heightmap(depth, camera_quat, self.update_sdf_index(global_pos))
-            
-        # slice_i = np.indices((120,120))
-        # slice_i[0] = (slice_i[0] - self.sdf_index[0])%SDF_EXTENTS
-        # slice_i[1] = (slice_i[1] - self.sdf_index[1])%SDF_EXTENTS
-        # slice = self.sdf_buffer[slice_i[0],slice_i[1],self.vslice] / EXTENTS*1.4142 #diagonal distance
-        
+    def display_heightmap(self):
+
         img = np.zeros(self.sdf_buffer.shape)
+        low = self.sdf_buffer.min()
+        diff = self.sdf_buffer.max() - low
         for x in range(SDF_EXTENTS):
             for y in range(SDF_EXTENTS):
-                img[x,y] = self.sdf_buffer[(x-self.sdf_index[0])%SDF_EXTENTS, (y-self.sdf_index[1])%SDF_EXTENTS] / 100
+                img[x,y] = (self.sdf_buffer[(x-self.sdf_index[0])%SDF_EXTENTS, (y-self.sdf_index[1])%SDF_EXTENTS] - low) / diff
+                # img[x,y] = self.sdf_buffer[(x-self.sdf_index[0])%SDF_EXTENTS, (y-self.sdf_index[1])%SDF_EXTENTS]
         img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
         cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
         cv2.resizeWindow('SDF Slice', 512,512)
         cv2.imshow('SDF Slice', img)
         cv2.waitKey(1)
-    
 
+    def update_new(self, global_pos, camera_quat, depth):
+        self.generate_heightmap(depth, camera_quat, self.update_sdf_index(global_pos))
+        self.display_heightmap()
+        
+    
     def update_sdf_index(self, global_pos):
         """Update local pos to match the global pos and clear old data"""
         local_new = to_sdf_index(global_pos)

@@ -90,7 +90,7 @@ void erase_out_of_range(uint x, uint y)
     if ((erase.x.start <= x && x <= erase.x.end) ||
         (erase.y.start <= y && y <= erase.y.end))
     {
-        sdf_buffer[x][y] = 0;
+        sdf_buffer[x][y] = SDF_EXTENTS/2.0;
     }
 }
 

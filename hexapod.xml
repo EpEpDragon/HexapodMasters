@@ -46,9 +46,16 @@
   <worldbody>
     <light diffuse="0.5 0.5 0.5" pos="0 0 3" dir="0 0 -1"/>
     <!-- Floor -->
-    <geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 -1" rgba="0.8 0.9 0.8 1" size="40 40 40" type="hfield" hfield="HMap"/>
-    <geom name="cube1" pos="3 4 1" size="1 1 1" type="box"/>
+    <geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 -1" rgba="0.8 0.9 0.8 1" size="40 40 40" type="plane"/>
+    <geom name="cube1" pos="5 4 1" size="1 1 1" type="box"/>
     <geom name="cube2" pos="4 -4 1" size="1 1 1" type="box"/>
+
+    <!-- Stairs -->
+    <geom pos="0 4 -0.9" size="4 0.5 0.1" type="box"/>
+    <geom pos="0 5 -0.9" size="4 0.5 0.3" type="box"/>
+    <geom pos="0 6 -0.9" size="4 0.5 0.5" type="box"/>
+    <geom pos="0 7 -0.9" size="4 0.5 0.7" type="box"/>
+    <geom pos="0 9 -0.9" size="4 2 0.7" type="box"/>
 
     <body name="torso" childclass="body" pos="0 0 1">
       <!-- Body -->
@@ -56,7 +63,7 @@
       <geom type="cylinder" size="0.7 0.15" rgba="0.9 0.9 0.5 1"/>
 
       <!-- Camera -->
-      <body name="camera" pos="0 0 1" xyaxes="1 0 0 0 0.8 1.6">
+      <body name="camera" pos="0.5 0 1.5" xyaxes="0 -1 0 0.5 0 0.5">
         <camera name="cam" mode="fixed" fovy="60"/>
       </body>
 
