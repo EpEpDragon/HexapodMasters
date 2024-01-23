@@ -176,7 +176,7 @@ if __name__ == '__main__':
             # depth_linear[depth_linear > model.vis.map.zfar - 0.0005] = 0#model.vis.map.zfar - 0.0005 # Set depths farther than the z buffer to max z buffer
 
             # TODO Implement better filteringh method
-            depth_linear[depth_linear < 2.5] = 0 # Zero out depth that would fall on robot
+            depth_linear[depth_linear < 1.9] = 0 # Zero out depth that would fall on robot
             
             # Show the simulated camera image
             if view[0] == 0:

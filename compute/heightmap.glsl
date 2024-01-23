@@ -2,39 +2,26 @@
 
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
-struct Range
-{
-    int start;
-    int end;
-};
-
-struct EraseRange 
-{
-    Range x;
-    Range y;
-};
-
 // Uniforms
 layout(location = 0) uniform ivec3 sdf_index;
 layout(location = 1) uniform vec4 camera_quat;
-layout(location = 2) uniform EraseRange erase;
 
 // CPU Shared Buffers 
 layout(std430, binding = 0) readonly restrict buffer image { float depth_image[90][160]; };
-layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[160][160]; };
+layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[128][128]; };
 
 const float FOV = 60;
 const float FX = (90/2) / tan(FOV * 3.141 / 180 / 2);
 const float FY = FX;
 const float CX = (160-1) / 2.0;
 const float CY = (90-1) / 2.0;
-const float ZFAR = 4.7;
+const float ZFAR = 5.4;
 const float ZNEAR = 0.05;
 
 
 // TODO Make these uniforms
 const int EXTENTS = 16;                         // Extents of SDF block, in distance units
-const int DIVISIOINS = 10;                       // Cells per distance unit
+const int DIVISIOINS = 8;                       // Cells per distance unit
 const int SDF_EXTENTS = EXTENTS*DIVISIOINS;     // Extents of SDF block, in number of cells
 
 const float PENETRATION_DEPTH = 2*DIVISIOINS;
@@ -81,20 +68,24 @@ void draw_to_height(vec4 point)
     if (point.w != 1.0) 
     {
         ivec2 index = ivec2(int(mod((point.x-sdf_index.x), SDF_EXTENTS)), int(mod((point.y-sdf_index.y), SDF_EXTENTS)));
-        sdf_buffer[index[0]][index[1]] = max(point.z-sdf_index.z, sdf_buffer[index[0]][index[1]]);
+        // sdf_buffer[index[0]][index[1]] = max(point.z-sdf_index.z, sdf_buffer[index[0]][index[1]]);
+        sdf_buffer[index[0]][index[1]] = point.z-sdf_index.z;
     }
 }
 
-void erase_out_of_range(uint x, uint y)
+void erase_out_of_range()
 {
-    if ((erase.x.start <= x && x <= erase.x.end) ||
-        (erase.y.start <= y && y <= erase.y.end))
+    // if ((erase.x.start <= x && x <= erase.x.end) ||
+    //     (erase.y.start <= y && y <= erase.y.end))
+    // {
+    //     sdf_buffer[x][y] = SDF_EXTENTS/2.0;
+    // }
+    if (sdf_index.x == gl_GlobalInvocationID.x || sdf_index.y == gl_GlobalInvocationID.y)
     {
-        sdf_buffer[x][y] = SDF_EXTENTS/2.0;
+        sdf_buffer[gl_GlobalInvocationID.x][gl_GlobalInvocationID.y] = float(SDF_EXTENTS)/2.0;
     }
 }
 
 void main() {
     draw_to_height(compute_point());
-    erase_out_of_range(gl_GlobalInvocationID.x,gl_GlobalInvocationID.y);
 }

@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from math import copysign
 
 size = 512
 
@@ -15,3 +16,6 @@ cv2.imshow("img", hmap)
 cv2.waitKey(0)
 
 cv2.imwrite("hmap.png", hmap*255)
+
+# diff = np.array([-1])
+# print(copysign(abs(diff)%-160,diff))

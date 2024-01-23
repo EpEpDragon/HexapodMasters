@@ -8,14 +8,15 @@ from OpenGL.GL.shaders import compileProgram,compileShader
 import numpy as np
 import glfw
 import cv2
+from math import copysign
 # from scipy.spatial import Octree
 
 EXTENTS = 16                        # Extents of SDF block, in distance units
-DIVISIOINS = 10                      # Cells per distance unit
+DIVISIOINS = 8                      # Cells per distance unit
 SDF_EXTENTS = EXTENTS*DIVISIOINS    # Extents of SDF block, in number of cells
 
 VOXEL_TRACE_INVOCAIONS = 32         # NB This must match the x and y invocations specified in voxel_trace.glsl
-CELL_DISTANCE_INVOCAIONS = 10       # NB This must match the x and y invocations specified in set_cell_distance.glsl
+CELL_DISTANCE_INVOCAIONS = 32       # NB This must match the x and y invocations specified in set_cell_distance.glsl
 
 def to_sdf_index(global_pos):
     """Convert global position to position in SDF grid, which has its corner at 0,0,0"""
@@ -27,7 +28,7 @@ class Perception():
         # Shared Memory buffers for communication with 3D visualisation process
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
-        sdf_buffer = np.ones((SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32) * SDF_EXTENTS/2
+        sdf_buffer = np.ones((SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32) * SDF_EXTENTS/2.0
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=sdf_buffer.nbytes)
         self.sdf_buffer = np.ndarray(sdf_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.sdf_buffer[:] = sdf_buffer[:]
@@ -40,7 +41,7 @@ class Perception():
         
         self.cell_offset = np.zeros(3) # Position offset from cell origin
         self.heightmap_program = glCreateProgram()
-        self.distance_program = glCreateProgram()
+        self.clean_heightmap_program = glCreateProgram()
 
         # visualize REMOVE THIS IN PRODUCTION
         self.vslice = 50
@@ -51,9 +52,9 @@ class Perception():
         heightmap_src = open('compute/heightmap.glsl','r').readlines()
         self.heightmap_program = compileProgram(compileShader(heightmap_src, GL_COMPUTE_SHADER))
 
-        # Compile cell distance program
-        # distance_src = open('compute/set_cell_distance.glsl','r').readlines()
-        # self.distance_program = compileProgram(compileShader(distance_src, GL_COMPUTE_SHADER))
+        # Compile map cleaning program
+        clean_heightmap_src = open('compute/clean_heightmap.glsl','r').readlines()
+        self.clean_heightmap_program = compileProgram(compileShader(clean_heightmap_src, GL_COMPUTE_SHADER))
         
         self.glbuffers  = glGenBuffers(2)
 
@@ -70,7 +71,7 @@ class Perception():
         # glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4 * 4, None, GL_DYNAMIC_COPY)
  
  
-    def generate_heightmap(self, depth, camera_quat, erase_range):
+    def generate_heightmap(self, depth, camera_quat):
         # Set depth image data
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])        
         glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, depth.nbytes, depth)
@@ -80,14 +81,7 @@ class Perception():
         
         # Set Uniforms
         glUniform3i(0, self.sdf_index[0], self.sdf_index[1], self.sdf_index[2])         # Robot position
-        # print(self.sdf_index)
         glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])  # Robot rotation
-        
-        # Erase range
-        glUniform1i(2,erase_range[0])
-        glUniform1i(3,erase_range[1])
-        glUniform1i(4,erase_range[2])
-        glUniform1i(5,erase_range[3])
         
         glDispatchCompute(int(160/VOXEL_TRACE_INVOCAIONS), int(90/VOXEL_TRACE_INVOCAIONS), 1)
         
@@ -95,17 +89,13 @@ class Perception():
         # glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
 
         # ################# Distance stage ##################
-        # glUseProgram(self.distance_program)
+        glUseProgram(self.clean_heightmap_program)
         
         # # # Set Uniforms
-        # glUniform1i(0,erase_range[0])
-        # glUniform1i(1,erase_range[1])
-        # glUniform1i(2,erase_range[2])
-        # glUniform1i(3,erase_range[3])
-        # glUniform1i(4,erase_range[4])
-        # glUniform1i(5,erase_range[5])
+        glUniform3i(0, self.sdf_index[0], self.sdf_index[1], self.sdf_index[2])         # Robot position
         
-        # glDispatchCompute(int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS))
+        glDispatchCompute(int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(SDF_EXTENTS/CELL_DISTANCE_INVOCAIONS), 1)
+
         # Sync, read SDF
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
@@ -143,51 +133,9 @@ class Perception():
         cv2.waitKey(1)
 
     def update_new(self, global_pos, camera_quat, depth):
-        self.generate_heightmap(depth, camera_quat, self.update_sdf_index(global_pos))
+        self.sdf_index = to_sdf_index(global_pos)
+        self.generate_heightmap(depth, camera_quat)
         self.display_heightmap()
-        
-    
-    def update_sdf_index(self, global_pos):
-        """Update map index and calculate range of map to clear"""
-        local_new = to_sdf_index(global_pos)
-        self.cell_offset = local_new % 1
-        local_new = local_new.astype(int)
-        diff = local_new - self.sdf_index
-        
-        # Why does this make it run much faster?? One addition??
-        # self.sdf_index += diff
-        self.sdf_index = local_new
-
-        # Find clear range
-        #-------------------------------------------------------------
-        x1=x2=y1=y2=0
-        if diff[0] != 0:
-            x1 = -self.sdf_index[0]
-            x2 = x1 + diff[0]
-            if x1 > x2:
-                x1, x2 = swap(x1,x2)
-            # self.sdf_buffer[x1:x2,:] = SDF_EXTENTS/2
-            print(f"{x1} -- {x2}")
-        if diff[1] != 0:
-            y1 = -self.sdf_index[1]
-            y2 = y1 + diff[1]
-            if y1 > y2:
-                y1, y2 = swap(y1,y2)
-            # self.sdf_buffer[:,y1:y2] = SDF_EXTENTS/2
-            print(f"{y1} -- {y2}")
-        # if diff[2] != 0:
-        #     z1 = -self.sdf_index[2]
-        #     z2 = z1 + diff[2]
-        #     if z1 > z2:
-        #         z1, z2 = swap(z1,z2)
-            # self.sdf_buffer[:,:,z1:z2] = 100
-            # print(f"{z1} -- {z2}")
-        #-------------------------------------------------------------
-        # print(np.array([x1,x2,y1,y2,z1,z2], dtype=int)+120)
-        
-        return np.array([x1,x2,y1,y2], dtype=int) + SDF_EXTENTS
-
-
 
 def swap(a,b):
     t = a
