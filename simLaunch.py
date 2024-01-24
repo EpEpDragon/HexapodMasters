@@ -19,8 +19,8 @@ import motion
 READ_CAMERA = True
 
 # Camera
-RES_X = 160
-RES_Y = 90
+RES_X = int(160)
+RES_Y = int(90)
 POINT_CLOUD_DIVISOR = 10
 # Changed from control interface thread, thus list for mutable
 view = [0]
@@ -48,7 +48,7 @@ def init_sim_camera():
 
     viewport = mujoco.MjrRect(0, 0, RES_X, RES_Y)
     cv2.namedWindow("Camera", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Camera", 960, 540)
+    # cv2.resizeWindow("Camera", 960, 540)
 
     return scn, vopt, pert, viewport, cam, ctx
 
@@ -84,9 +84,7 @@ if __name__ == '__main__':
     data = mujoco.MjData(model)
     timestep = model.opt.timestep
 
-    # Start walkin state machine
-    walk_machine = WalkCycleMachine()
-    walk_machine.speed = 0.5
+
 
     # Visual sensors0
     # -------------------------------------------------------------------------------------------------------
@@ -103,13 +101,19 @@ if __name__ == '__main__':
     # Start sim viewer
     viewer_handle = mujoco.viewer.launch_passive(model, data)
     
+    # Start perception
+    perception = Perception(int(RES_Y*RES_X))
+    
+    # Start walkin state machine
+    walk_machine = WalkCycleMachine(perception)
+    walk_machine.speed = 0.5
+    
     # Start contorl interface
     # controlInterface.start_interface(walk_machine,perception,view)
     control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,view))
     control_interface_thread.start()
     
-    # Start perception
-    perception = Perception(int(RES_Y*RES_X))
+ 
 
     # Used for real time sim
     error = 0.0 # Timestep error integrator
@@ -144,4 +148,3 @@ if __name__ == '__main__':
         dt = time.perf_counter() - step_start
         error +=  (dt - timestep)*3 # Integrate error
         error = min(max(error,0), 0.002)
-        print(dt)

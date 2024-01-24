@@ -28,7 +28,7 @@ class Perception():
         # Shared Memory buffers for communication with 3D visualisation process
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
-        hmap_buffer = np.ones((HMAP_EXTENTS, HMAP_EXTENTS), dtype=np.float32) * HMAP_EXTENTS/2.0
+        hmap_buffer = np.zeros((HMAP_EXTENTS, HMAP_EXTENTS), dtype=np.float32)
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=hmap_buffer.nbytes)
         self.hmap_buffer = np.ndarray(hmap_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.hmap_buffer[:] = hmap_buffer[:]
@@ -37,6 +37,7 @@ class Perception():
         self.hmap_index_shm = shared_memory.SharedMemory(create=True,size=hmap_index.nbytes)
         self.hmap_index = np.ndarray(hmap_index.shape, dtype=np.int32, buffer=self.hmap_index_shm.buf)
         self.hmap_index[:] = hmap_index[:]
+        self.position = np.zeros(3)
         #---------------------------------------------------------------------------------
         
         self.cell_offset = np.zeros(3) # Position offset from cell origin
@@ -85,7 +86,7 @@ class Perception():
         glUniform3i(0, self.hmap_index[0], self.hmap_index[1], self.hmap_index[2])         # Robot position
         glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])  # Robot rotation
         
-        glDispatchCompute(int(160/VOXEL_TRACE_INVOCAIONS), int(90/VOXEL_TRACE_INVOCAIONS), 1)
+        glDispatchCompute(int((160)/VOXEL_TRACE_INVOCAIONS), int((90)/VOXEL_TRACE_INVOCAIONS), 1)
         
         # Sync
         # glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
@@ -122,11 +123,13 @@ class Perception():
 
     def update(self, global_pos, camera_quat, depth):
         self.hmap_index = to_hmap_index(global_pos)
+        self.position = global_pos%EXTENTS
         self._generate_heightmap(depth, camera_quat)
         self._display_heightmap()
 
 
     def get_height_at_point(self, point):
         """Returns the height at a point relative to the robot center"""
-        hmap_i = (to_hmap_index(point) + self.hmap_index) % HMAP_EXTENTS # Transfer point to hmap space
-        return self.hmap_buffer[hmap_i[0], hmap_i[1]]
+        hmap_i = (to_hmap_index(point) + self.hmap_index) % HMAP_EXTENTS    # Transfer point to hmap space
+        h = self.hmap_buffer[hmap_i[0], hmap_i[1]]/DIVISIOINS               # Addition due to mismatched axis systems 
+        return h

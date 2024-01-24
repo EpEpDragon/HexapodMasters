@@ -7,14 +7,16 @@ layout(location = 0) uniform ivec3 sdf_index;
 layout(location = 1) uniform vec4 camera_quat;
 
 // CPU Shared Buffers 
-layout(std430, binding = 0) readonly restrict buffer image { float depth_image[90][160]; };
+layout(std430, binding = 0) readonly restrict buffer image { float depth_image[uint(90)][uint(160)]; };
 layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[128][128]; };
 
+const uint RES_Y = uint(160);
+const uint RES_X = uint(90);
 const float FOV = 60;
-const float FX = (90/2) / tan(FOV * 3.141 / 180 / 2);
+const float FX = (RES_X/2) / tan(FOV * 3.141 / 180 / 2);
 const float FY = FX;
-const float CX = (160-1) / 2.0;
-const float CY = (90-1) / 2.0;
+const float CX = (RES_Y-1) / 2.0;
+const float CY = (RES_X-1) / 2.0;
 const float ZFAR = 5.4;
 const float ZNEAR = 0.05;
 
@@ -60,7 +62,7 @@ vec4 compute_point()
     float x = (j - CX) * z / FX;
     float y = (i - CY) * z / FY;
     // vec3 point = vec3(x,y,z); 
-    return (vec4((rotate(camera_quat, vec3(-x,y,z)) + EXTENTS/2)*DIVISIOINS, clip));
+    return (vec4((rotate(camera_quat, vec3(-x,y,z)) + vec3(EXTENTS/2,EXTENTS/2,0))*DIVISIOINS, clip));
 }
 
 void draw_to_height() 

@@ -8,7 +8,7 @@ hmap = np.zeros((size,size,1), np.float32)
 
 for x in range(size):
     for y in range(size):
-        hmap[x,y] = (np.sin(x/(size/15))*np.sin(y/(size/15)) + 1)/2
+        hmap[x,y] = round((np.sin(x/(size/30))*np.sin(y/(size/30)) + 1)/2)
 
 
 cv2.namedWindow("img", cv2.WINDOW_NORMAL)
