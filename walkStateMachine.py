@@ -152,7 +152,7 @@ class WalkCycleMachine(StateMachine):
         if self.current_state == self.stepping:
             for i in range(6):
                 if not (self.targets[i] - self.foot_pos_pre_yaw[i] == 0).all():
-                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,2])*self.speed*dt)
+                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
 
         # Update foot position for local rotation
         for i in range(6):
@@ -166,12 +166,13 @@ class WalkCycleMachine(StateMachine):
                 diff = self.foot_pos_pre_yaw[i] - self.targets[i]
                 dist = sqrt(diff @ diff)
                 self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
+                
                 # If not walking means rotationg in place, thus set foot height based on rotation
                 if (self.walk_direction == 0).all() and self.centering_yaw[i]:
-                    self.targets[i][2] += self.height_offsets[i] - min(abs(self.current_yaw_local[i])*3, 0.1) - REST_POS[i][2] + self.height
+                    self.targets[i][2] += self.height_offsets[i] - min(abs(self.current_yaw_local[i])*3, 0.7) - REST_POS[i][2] + self.height
                 else:
                     pass
-                    self.targets[i][2] += self.height_offsets[i] - min(dist, 0.1) - REST_POS[i][2] + self.height
+                    self.targets[i][2] += self.height_offsets[i] - min(dist, 0.7) - REST_POS[i][2] + self.height
                     
                 if self.centering_yaw[i]:
                     self.target_yaw_local[i] = 0.0

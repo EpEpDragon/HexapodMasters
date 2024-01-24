@@ -22,10 +22,10 @@ const float ZNEAR = 0.05;
 // TODO Make these uniforms
 const int EXTENTS = 16;                         // Extents of SDF block, in distance units
 const int DIVISIOINS = 8;                       // Cells per distance unit
-const int SDF_EXTENTS = EXTENTS*DIVISIOINS;     // Extents of SDF block, in number of cells
+const int HMAP_EXTENTS = EXTENTS*DIVISIOINS;     // Extents of SDF block, in number of cells
 
 const float PENETRATION_DEPTH = 2*DIVISIOINS;
-const ivec3 ORIGIN = ivec3(SDF_EXTENTS/2);      // Origin of camera in SDF grid
+const ivec3 ORIGIN = ivec3(HMAP_EXTENTS/2);      // Origin of camera in SDF grid
 
 
 // float linearize_depth(depth):
@@ -68,7 +68,7 @@ void draw_to_height()
     vec4 point = compute_point();
     if (point.w != 1.0) 
     {
-        ivec2 index = ivec2(int(mod((point.x-sdf_index.x), SDF_EXTENTS)), int(mod((point.y-sdf_index.y), SDF_EXTENTS)));
+        ivec2 index = ivec2(int(mod((point.x-sdf_index.x), HMAP_EXTENTS)), int(mod((point.y-sdf_index.y), HMAP_EXTENTS)));
         // sdf_buffer[index[0]][index[1]] = max(point.z-sdf_index.z, sdf_buffer[index[0]][index[1]]);
         sdf_buffer[index[0]][index[1]] = point.z-sdf_index.z;
     }

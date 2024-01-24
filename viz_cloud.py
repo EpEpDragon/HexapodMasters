@@ -1,7 +1,7 @@
 import open3d as o3d
 import numpy as np
 import time
-from perception import SDF_EXTENTS, EXTENTS, DIVISIOINS
+from perception import HMAP_EXTENTS, EXTENTS, DIVISIOINS
 import cv2
 
 from multiprocessing import shared_memory
@@ -11,19 +11,19 @@ keep_running = True
 def update_points_buffer(sdf_index, sdf_buffer, pcd, erase_markers):
     if sdf_buffer.min() <= 0:
         index = np.where(sdf_buffer <= 0)
-        index[0][:] = (index[0][:] + sdf_index[0])%SDF_EXTENTS
-        index[1][:] = (index[1][:] + sdf_index[1])%SDF_EXTENTS
-        index[2][:] = (index[2][:] + sdf_index[2])%SDF_EXTENTS
-        # index[0][:] = (index[0][:])%SDF_EXTENTS
-        # index[1][:] = (index[1][:])%SDF_EXTENTS
-        # index[2][:] = (index[2][:])%SDF_EXTENTS
+        index[0][:] = (index[0][:] + sdf_index[0])%HMAP_EXTENTS
+        index[1][:] = (index[1][:] + sdf_index[1])%HMAP_EXTENTS
+        index[2][:] = (index[2][:] + sdf_index[2])%HMAP_EXTENTS
+        # index[0][:] = (index[0][:])%HMAP_EXTENTS
+        # index[1][:] = (index[1][:])%HMAP_EXTENTS
+        # index[2][:] = (index[2][:])%HMAP_EXTENTS
         points = np.transpose(index)/DIVISIOINS - EXTENTS/2
 
 
 
         
-        x = (sdf_index[0]-SDF_EXTENTS/2)/DIVISIOINS
-        y = (sdf_index[1]-SDF_EXTENTS/2)/DIVISIOINS
+        x = (sdf_index[0]-HMAP_EXTENTS/2)/DIVISIOINS
+        y = (sdf_index[1]-HMAP_EXTENTS/2)/DIVISIOINS
         erase_markers.points = o3d.utility.Vector3dVector(np.array([[x,50,0],[x,-50,0], [50,y,0],[-50,y,0]]))
         pcd.points = o3d.utility.Vector3dVector(-points)
 
@@ -32,7 +32,7 @@ def update_points_buffer(sdf_index, sdf_buffer, pcd, erase_markers):
 def start(sdf_shmn, sdf_index_shmn):
     sdf_shm = shared_memory.SharedMemory(name=sdf_shmn)
     # points_buffer = np.ndarray((int((1280*720)/4), 3,), dtype=np.float64, buffer=sdf_shm.buf)
-    sdf_buffer = np.ndarray((SDF_EXTENTS,SDF_EXTENTS,SDF_EXTENTS), dtype=np.float32, buffer=sdf_shm.buf)
+    sdf_buffer = np.ndarray((HMAP_EXTENTS,HMAP_EXTENTS,HMAP_EXTENTS), dtype=np.float32, buffer=sdf_shm.buf)
     
     sdf_index_shm = shared_memory.SharedMemory(name=sdf_index_shmn)
     sdf_index = np.ndarray(3, dtype=np.int32, buffer=sdf_index_shm.buf)
@@ -46,8 +46,8 @@ def start(sdf_shmn, sdf_index_shmn):
     pcd = o3d.geometry.PointCloud()
 
 
-    points_buffer = np.zeros((SDF_EXTENTS*SDF_EXTENTS*SDF_EXTENTS + 12, 3))
-    pos3 = np.zeros((SDF_EXTENTS*SDF_EXTENTS*SDF_EXTENTS + 12, 3))
+    points_buffer = np.zeros((HMAP_EXTENTS*HMAP_EXTENTS*HMAP_EXTENTS + 12, 3))
+    pos3 = np.zeros((HMAP_EXTENTS*HMAP_EXTENTS*HMAP_EXTENTS + 12, 3))
     points_buffer[0] = np.array([15.5, 15.5, 15.5])
     points_buffer[1] = np.array([15.5, 15.5, -15.5])
     points_buffer[2] = np.array([15.5, -15.5, -15.5])
@@ -63,7 +63,7 @@ def start(sdf_shmn, sdf_index_shmn):
     pos3[:,2] = -points_buffer[:,0]
 
     # Coordinate Frame Colors
-    # color_buffer = np.zeros((SDF_EXTENTS*SDF_EXTENTS*SDF_EXTENTS + 8, 3))
+    # color_buffer = np.zeros((HMAP_EXTENTS*HMAP_EXTENTS*HMAP_EXTENTS + 8, 3))
     # color_buffer[0:9] = np.array([1,0.5,0.5])
 
     pcd.points = o3d.utility.Vector3dVector(pos3)

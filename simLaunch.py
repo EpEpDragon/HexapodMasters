@@ -132,9 +132,9 @@ if __name__ == '__main__':
 
         # Render camera every X timesteps(k)
         # ----------------------------------------------------------------------------------------------------
-        if READ_CAMERA and k % 15 == 0:
+        if READ_CAMERA and k % 20 == 0:
             depth_linear = read_camera()
-            perception.update_new(data.sensordata[0:3], data.sensordata[[4,5,6,3]], depth_linear.reshape(RES_X*RES_Y))
+            perception.update(data.sensordata[0:3], data.sensordata[[4,5,6,3]], depth_linear.reshape(RES_X*RES_Y))
             k = 0
         k += 1
         # ----------------------------------------------------------------------------------------------------
@@ -144,3 +144,4 @@ if __name__ == '__main__':
         dt = time.perf_counter() - step_start
         error +=  (dt - timestep)*3 # Integrate error
         error = min(max(error,0), 0.002)
+        print(dt)

@@ -1,0 +1,1 @@
+A New Foot Trajectory Planning Method for Legged Robots and Its Application in Hexapod Robots (https://www.mdpi.com/2076-3417/11/19/9217)
