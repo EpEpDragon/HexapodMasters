@@ -24,7 +24,7 @@ def to_sdf_index(global_pos):
 
 
 class Perception():
-    def __init__(self) -> None:
+    def __init__(self, n_points) -> None:
         # Shared Memory buffers for communication with 3D visualisation process
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
@@ -43,9 +43,9 @@ class Perception():
         self.heightmap_program = glCreateProgram()
         self.clean_heightmap_program = glCreateProgram()
 
-        # visualize REMOVE THIS IN PRODUCTION
-        self.vslice = 50
+        # visualize window
         cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
+        self.init_shader(n_points)
 
 
     # initialise compute shader

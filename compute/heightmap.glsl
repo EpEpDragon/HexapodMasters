@@ -51,7 +51,7 @@ vec4 compute_point()
     }
 
     float clip = 0.0;
-    // HACK Make this not use only z, it should clip by distance
+    // TODO Make this not use only z, it should clip by distance? Maybe not for performance
     if(z > ZFAR-0.0005) 
     { 
         z = ZFAR;
@@ -63,8 +63,9 @@ vec4 compute_point()
     return (vec4((rotate(camera_quat, vec3(-x,y,z)) + EXTENTS/2)*DIVISIOINS, clip));
 }
 
-void draw_to_height(vec4 point) 
+void draw_to_height() 
 {   
+    vec4 point = compute_point();
     if (point.w != 1.0) 
     {
         ivec2 index = ivec2(int(mod((point.x-sdf_index.x), SDF_EXTENTS)), int(mod((point.y-sdf_index.y), SDF_EXTENTS)));
@@ -73,19 +74,6 @@ void draw_to_height(vec4 point)
     }
 }
 
-void erase_out_of_range()
-{
-    // if ((erase.x.start <= x && x <= erase.x.end) ||
-    //     (erase.y.start <= y && y <= erase.y.end))
-    // {
-    //     sdf_buffer[x][y] = SDF_EXTENTS/2.0;
-    // }
-    if (sdf_index.x == gl_GlobalInvocationID.x || sdf_index.y == gl_GlobalInvocationID.y)
-    {
-        sdf_buffer[gl_GlobalInvocationID.x][gl_GlobalInvocationID.y] = float(SDF_EXTENTS)/2.0;
-    }
-}
-
 void main() {
-    draw_to_height(compute_point());
+    draw_to_height();
 }
