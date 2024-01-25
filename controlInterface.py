@@ -6,7 +6,6 @@ import windowFuncs as wf
 
 from sys import platform
 import warnings
-from simLaunch import READ_CAMERA
 from math import cos, sin
 
 from raylib import (
@@ -71,15 +70,21 @@ def start_interface(walk_machine, view):
     else:
         margins = wf.get_screen_margins()
         ctrl_x_rel = 370/(wf.get_monitor(0).width - margins[0])
-        if READ_CAMERA:
-            cam_size = wf.get_window_size('Camera')
-            wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0, 0, 1, 0.2)
-            wf.move_size_window("Control Interface", 1, 0.8, 0, 0.2, 1)
-            wf.move_size_window("SDF Slice", 0, 0, 0.2, 1, 0.8)
-            wf.move_size_window("Camera", 1, 0, 0, 0.8-40/1920, 1)
-        else:
-            wf.move_size_window("MuJoCo : MuJoCo Model", -1, 0, 0, 1-ctrl_x_rel, 1)
-            wf.move_size_window("Control Interface", -1, 1-ctrl_x_rel, 0, ctrl_x_rel, 1)
+        # if READ_CAMERA:
+        # wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0, 0, 1, 0.2)
+        # wf.move_size_window("Control Interface", 1, 0.8, 0, 0.2, 1)
+        # wf.move_size_window("SDF Slice", 0, 0, 0.2, 1, 0.8)
+        # wf.move_size_window("Camera", 1, 0, 0, 0.8-40/1920, 1)
+
+        wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0.45, 0, 0.4, 0.5)
+        wf.move_size_window("Control Interface", 0, 0.85, 0, 0.15, 1)
+        wf.move_size_window("SDF Slice", 0, 0, 0, 0.45, 1)
+        wf.move_size_window("Camera", 0, 0.45, 0.5, 0.4, 0.5)
+
+            
+        # else:
+        #     wf.move_size_window("MuJoCo : MuJoCo Model", -1, 0, 0, 1-ctrl_x_rel, 1)
+        #     wf.move_size_window("Control Interface", -1, 1-ctrl_x_rel, 0, ctrl_x_rel, 1)
         
         
     control_interface.run()
@@ -140,7 +145,7 @@ class ControInterface():
             clear_background((64, 64, 64, 255))
             # Draw Legs
             for id in range(6):
-                if self.walk_machine.active[id]:
+                if self.walk_machine.is_supporting[id]:
                     color = Color.GREEN
                 else:
                     color = Color.RED

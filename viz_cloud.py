@@ -18,17 +18,12 @@ def update_points_buffer(sdf_index, sdf_buffer, pcd, erase_markers):
         # index[1][:] = (index[1][:])%HMAP_EXTENTS
         # index[2][:] = (index[2][:])%HMAP_EXTENTS
         points = np.transpose(index)/DIVISIOINS - EXTENTS/2
-<<<<<<< HEAD
-        x = (sdf_index[0]-SDF_EXTENTS/2)/DIVISIOINS
-        y = (sdf_index[1]-SDF_EXTENTS/2)/DIVISIOINS
-=======
 
 
 
         
         x = (sdf_index[0]-HMAP_EXTENTS/2)/DIVISIOINS
         y = (sdf_index[1]-HMAP_EXTENTS/2)/DIVISIOINS
->>>>>>> 82761bea7d66da5f543ff4cc52ceb95ac7a0a2f2
         erase_markers.points = o3d.utility.Vector3dVector(np.array([[x,50,0],[x,-50,0], [50,y,0],[-50,y,0]]))
         pcd.points = o3d.utility.Vector3dVector(-points)
 

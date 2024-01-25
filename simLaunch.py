@@ -107,6 +107,7 @@ if __name__ == '__main__':
     # Start walkin state machine
     walk_machine = WalkCycleMachine(perception)
     walk_machine.speed = 0.5
+    perception.add_walkmachine(walk_machine)
     
     # Start contorl interface
     # controlInterface.start_interface(walk_machine,perception,view)
@@ -119,7 +120,6 @@ if __name__ == '__main__':
     error = 0.0 # Timestep error integrator
     start_time = time.perf_counter()
     dt = 0.0
-
     k = 0
     while is_sim_running:
         # control_interface.update_input()
@@ -137,46 +137,9 @@ if __name__ == '__main__':
         # Render camera every X timesteps(k)
         # ----------------------------------------------------------------------------------------------------
         if READ_CAMERA and k % 20 == 0:
-<<<<<<< HEAD
-            mujoco.mjv_updateScene(model, data, vopt, pert, cam, mujoco.mjtCatBit.mjCAT_ALL, scn)
-            mujoco.mjr_render(viewport, scn, ctx)
-            image = np.empty((RES_Y, RES_X, 3), dtype=np.uint8)
-            depth = np.empty((RES_Y, RES_X, 1), dtype=np.float32)
-            mujoco.mjr_readPixels(image, depth, viewport, ctx)
-            image = cv2.flip(image, 0) # OpenGL renders with inverted y axis
-            depth = cv2.flip(depth, 0) # OpenGL renders with inverted y axis
-
-            # Check XML reference, choice of zfar and znear can have big effect on accuracy
-            zfar  = model.vis.map.zfar * model.stat.extent
-            znear = model.vis.map.znear * model.stat.extent
-            depth_linear = linearize_depth(depth, znear=znear, zfar=zfar)
-            
-            
-            # For visualization
-            # depth_linear[depth_linear > model.vis.map.zfar - 0.0005] = 0#model.vis.map.zfar - 0.0005 # Set depths farther than the z buffer to max z buffer
-
-            # TODO Implement better filteringh method
-            depth_linear[depth_linear < 2.5] = 0 # Zero out depth that would fall on robot
-            
-            # Show the simulated camera image
-            if view[0] == 0:
-                cv2.imshow('Camera', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
-            elif view[0] == 1:
-                cv2.imshow('Camera', depth_linear / np.max(depth_linear))
-            cv2.waitKey(1)
-
-            # p_X = cam_x_over_z * depth_linear
-            # p_Y = cam_y_over_z * depth_linear
-            # p_Z = depth_linear
-            # p_F = np.logical_and(np.logical_and(p_X[:][:] != 0, p_Y[:][:] != 0), p_Z[:][:] != 0)
-            # points = np.dstack((-p_X, p_Y, p_Z))[p_F]
-
-            # Update perception module
-            perception.update_new(data.sensordata[0:3], data.sensordata[[4,5,6,3]], depth_linear.reshape(RES_X*RES_Y))
-=======
             depth_linear = read_camera()
-            perception.update(data.sensordata[0:3], data.sensordata[[4,5,6,3]], depth_linear.reshape(RES_X*RES_Y))
->>>>>>> 82761bea7d66da5f543ff4cc52ceb95ac7a0a2f2
+            perception.update(data.sensordata[0:3], data.sensordata[[4,5,6,3]], depth_linear.reshape(RES_X*RES_Y), data.sensordata[[8,9,10,7]])
+            print(data.sensordata[0:3])
             k = 0
         k += 1
         # ----------------------------------------------------------------------------------------------------

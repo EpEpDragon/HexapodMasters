@@ -36,12 +36,12 @@ def normalize(v):
 class WalkCycleMachine(StateMachine):
     "A walk cycle machine"
     rest = State(initial=True, enter="deactivate_all")
-    stepping = State(enter="find_active")
+    stepping = State(enter="find_is_supporting")
 
     walk = rest.to(stepping, cond="should_adjust") | stepping.to(rest, cond="step_finished") | rest.to.itself(internal=True) | stepping.to.itself(internal=True)
 
     def __init__(self, perception):
-        self.active = np.full(6, False)
+        self.is_supporting = np.full(6, False) # List defining if a foot is is_supporting or swinging
         self.speed = 0.5
         self.yaw_rate = deg2rad(25)
         self.height = REST_Z
@@ -61,14 +61,14 @@ class WalkCycleMachine(StateMachine):
     # Enter actions
     # -------------------------------------------------------------------------------------------
     def deactivate_all(self):
-        self.active[0] = False
-        self.active[1] = False
-        self.active[2] = False
-        self.active[3] = False
-        self.active[4] = False
-        self.active[5] = False
+        self.is_supporting[0] = False
+        self.is_supporting[1] = False
+        self.is_supporting[2] = False
+        self.is_supporting[3] = False
+        self.is_supporting[4] = False
+        self.is_supporting[5] = False
 
-    def find_active(self):
+    def find_is_supporting(self):
         has_direction = not (self.walk_direction == 0).all()
         if not has_direction and not self.centering_yaw.any():
             self.deactivate_all()
@@ -94,29 +94,29 @@ class WalkCycleMachine(StateMachine):
         elif deg2rad(-60.0) <= angle and angle < 0.0:
             id = 1
         if id == 0 or id == 3 or id == 4:
-            self.active[0] = True
-            self.active[1] = False
-            self.active[2] = False
-            self.active[3] = True
-            self.active[4] = True
-            self.active[5] = False
+            self.is_supporting[0] = True
+            self.is_supporting[1] = False
+            self.is_supporting[2] = False
+            self.is_supporting[3] = True
+            self.is_supporting[4] = True
+            self.is_supporting[5] = False
         elif id == 1 or id == 2 or id == 5:
-            self.active[0] = False
-            self.active[1] = True
-            self.active[2] = True
-            self.active[3] = False
-            self.active[4] = False
-            self.active[5] = True
+            self.is_supporting[0] = False
+            self.is_supporting[1] = True
+            self.is_supporting[2] = True
+            self.is_supporting[3] = False
+            self.is_supporting[4] = False
+            self.is_supporting[5] = True
         else:
             print("id not found")
         
         # Check inversion required
         if has_direction:
             if self.is_long(id):
-                self.active = np.invert(self.active)
+                self.is_supporting = np.invert(self.is_supporting)
         else:
-            if not (self.active == self.centering_yaw).all():
-                self.active = np.invert(self.active)
+            if not (self.is_supporting == self.centering_yaw).all():
+                self.is_supporting = np.invert(self.is_supporting)
     # -------------------------------------------------------------------------------------------
 
     # Conditions
@@ -125,7 +125,7 @@ class WalkCycleMachine(StateMachine):
         for i in range(6):
             if not (abs(self.foot_pos_pre_yaw[i] - self.targets[i]) < PLACE_TOLERANCE).all():
                 return False
-            if self.active[i]:
+            if self.is_supporting[i]:
                 if self.centering_yaw[i] and not abs(self.current_yaw_local[i]) < 0.001:
                     return False
                 else:
@@ -163,7 +163,7 @@ class WalkCycleMachine(StateMachine):
 
     def _update_targets(self):
         for i in range(6):
-            if self.active[i]:
+            if self.is_supporting[i]:
                 diff = self.foot_pos_pre_yaw[i] - self.targets[i]
                 dist = sqrt(diff @ diff)
                 self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
@@ -173,7 +173,7 @@ class WalkCycleMachine(StateMachine):
                 if (self.walk_direction == 0).all() and self.centering_yaw[i]:
                     self.targets[i][2] += self.height_offsets[i] - min(abs(self.current_yaw_local[i])*3, 0.7) + self.height
                 else:
-                    self.targets[i][2] += self.height_offsets[i] - min(dist, 0.7) + self.height
+                    self.targets[i][2] += self.height_offsets[i] - min(dist, 0.7) +  self.height - self.perception.get_height_at_point(self.targets[i])
                     
                 if self.centering_yaw[i]:
                     self.target_yaw_local[i] = 0.0
@@ -210,7 +210,7 @@ class WalkCycleMachine(StateMachine):
 
     def adjust_local_yaw(self, value):
         for i in range(6):
-                # if not self.active[i]:
+                # if not self.is_supporting[i]:
                 if (-YAW_MAX <= self.target_yaw_local + value).all() and (self.target_yaw_local + value <= YAW_MAX).all():
                     self.target_yaw_local[i] += value
                     self.target_yaw_local[i] = min(max(self.target_yaw_local[i],-YAW_MAX),YAW_MAX)

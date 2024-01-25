@@ -7,11 +7,8 @@ from OpenGL.GL.shaders import compileProgram,compileShader
 
 import numpy as np
 import cv2
-<<<<<<< HEAD
-=======
 from math import copysign
 # from scipy.spatial import Octree
->>>>>>> 82761bea7d66da5f543ff4cc52ceb95ac7a0a2f2
 
 EXTENTS = 16                        # Extents of SDF block, in distance units
 DIVISIOINS = 8                      # Cells per distance unit
@@ -20,7 +17,10 @@ HMAP_EXTENTS = EXTENTS*DIVISIOINS    # Extents of SDF block, in number of cells
 VOXEL_TRACE_INVOCAIONS = 32         # NB This must match the x and y invocations specified in voxel_trace.glsl
 CELL_DISTANCE_INVOCAIONS = 32       # NB This must match the x and y invocations specified in set_cell_distance.glsl
 
-def to_hmap_index(global_pos):
+def rotate(q, p):
+    return p + 2.0*np.cross(q[0:3],np.cross(q[0:3],p)+q[3]*p)
+
+def global_to_hmap(global_pos):
     """Convert global position to position in SDF grid, which has its corner at 0,0,0"""
     return (((global_pos)%(EXTENTS))*DIVISIOINS).astype(np.int32)
 
@@ -29,17 +29,10 @@ class Perception():
         # Shared Memory buffers for communication with 3D visualisation process
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
-<<<<<<< HEAD
-        sdf_buffer = np.ones((SDF_EXTENTS, SDF_EXTENTS, SDF_EXTENTS), dtype=np.float32)*1000
-        self.sdf_shm = shared_memory.SharedMemory(create=True,size=sdf_buffer.nbytes)
-        self.sdf_buffer = np.ndarray(sdf_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
-        self.sdf_buffer[:] = sdf_buffer[:]
-=======
         hmap_buffer = np.zeros((HMAP_EXTENTS, HMAP_EXTENTS), dtype=np.float32)
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=hmap_buffer.nbytes)
         self.hmap_buffer = np.ndarray(hmap_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.hmap_buffer[:] = hmap_buffer[:]
->>>>>>> 82761bea7d66da5f543ff4cc52ceb95ac7a0a2f2
         # Index of current cell
         hmap_index = np.zeros(3, dtype=np.int32)
         self.hmap_index_shm = shared_memory.SharedMemory(create=True,size=hmap_index.nbytes)
@@ -111,33 +104,46 @@ class Perception():
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
         self.hmap_buffer[:] = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.hmap_buffer.nbytes), dtype=self.hmap_buffer.dtype).reshape(HMAP_EXTENTS,HMAP_EXTENTS)[:]
-        # glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[2])
-        # points = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, 160*90*4*4), dtype=np.float32).reshape((160*90,4))
-        # points_tree = KDTree(points)
-        # test = np.indices(self.hmap_buffer.shape)
-        # points_tree.query()
+
+    # HACK for visualisation of feet
+    def add_walkmachine(self, walkmachine):
+        self.walmachine = walkmachine
     
+    def _local_to_hmap(self, local_pos):
+        return (np.round(global_to_hmap(rotate(self.body_quat, local_pos))) + self.hmap_index + int(HMAP_EXTENTS/2)) % HMAP_EXTENTS    # Transfer point to hmap space
+
     def _display_heightmap(self):
-        img = np.zeros(self.hmap_buffer.shape)
+        img = np.ones((self.hmap_buffer.shape[0],self.hmap_buffer.shape[1],3))
         low = self.hmap_buffer.max()
         diff = self.hmap_buffer.min() - low
         for x in range(HMAP_EXTENTS):
             for y in range(HMAP_EXTENTS):
-                img[x,y] = (self.hmap_buffer[(x-self.hmap_index[0])%HMAP_EXTENTS, (y-self.hmap_index[1])%HMAP_EXTENTS] - low) / diff
+                img[x,y] *= (self.hmap_buffer[(x-self.hmap_index[0])%HMAP_EXTENTS, (y-self.hmap_index[1])%HMAP_EXTENTS] - low) / diff
                 # img[x,y] = self.hmap_buffer[(x-self.hmap_index[0])%HMAP_EXTENTS, (y-self.hmap_index[1])%HMAP_EXTENTS]
+
+        # Draw foot targets
+        for i in range(6):
+            hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
+            img_i = (hmap_i-self.hmap_index)%HMAP_EXTENTS   # Hold in center of centered image
+            if (self.walmachine.is_supporting[i]):
+                img[int(img_i[0]), int(img_i[1])] = np.array([0,1,0])
+            else:
+                img[int(img_i[0]), int(img_i[1])] = np.array([0,0,1])
+        
         img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
         cv2.imshow('SDF Slice', img)
         cv2.waitKey(1)
 
-    def update(self, global_pos, camera_quat, depth):
-        self.hmap_index = to_hmap_index(global_pos)
+    def update(self, global_pos, camera_quat, depth, body_quat):
+        self.body_quat = body_quat
+        self.hmap_index = global_to_hmap(global_pos)
         self.position = global_pos%EXTENTS
         self._generate_heightmap(depth, camera_quat)
         self._display_heightmap()
 
 
     def get_height_at_point(self, point):
-        """Returns the height at a point relative to the robot center"""
-        hmap_i = (to_hmap_index(point) + self.hmap_index) % HMAP_EXTENTS    # Transfer point to hmap space
-        h = self.hmap_buffer[hmap_i[0], hmap_i[1]]/DIVISIOINS               # Addition due to mismatched axis systems 
+        """Returns the height at a point relative to the robot center, the height is in world space"""
+        hmap_i= self._local_to_hmap(point)
+        h = self.hmap_buffer[hmap_i[0], hmap_i[1]]
         return h
