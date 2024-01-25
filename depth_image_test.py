@@ -65,7 +65,7 @@ def sdf_to_points(sdf):
     # index_flat = index[0][:] + index[1][:]*SDF_EXTENTS + index[2][:]*SDF_EXTENTS*SDF_EXTENTS
     index[0][:] = (index[0][:])%SDF_EXTENTS
     index[1][:] = (index[1][:])%SDF_EXTENTS
-    index[2][:] = (index[2][:])%SDF_EXTENTS
+    # index[2][:] = (index[2][:])%SDF_EXTENTS
     # sdf_points[index_flat] = np.transpose(index)/DIVISIOINS - EXTENTS/2
     return np.transpose(index)/DIVISIOINS - EXTENTS/2
 
@@ -80,18 +80,19 @@ if __name__ == '__main__':
     glfw.make_context_current(window)
 
     perception = Perception()
-    perception.init_shader(int(1280*720))
+    perception.init_shader(int(160*90))
     
-    img = (cv2.imread('depth_img.png')/255)[:,:,0].astype(np.float32)
+    img = (cv2.imread('depth_test.png')/255)[:,:,0].astype(np.float32)
     # cv2.imshow('img', img)
     # cv2.waitKey(0)
-    depth = img*10
+    depth = img*4
     # p = points_from_depth(depth)
     # show_points(p)
-    perception.update_new(np.array([0,0,0]),np.array([0,0.17,0,0.98]),depth.reshape(1280*720))
+    perception.update_new(np.array([0,0,0]),np.array([0,0.17,0,0.98]),depth.reshape(160*90))
     # perception.update(np.array([0,0,0]),np.array([1,0,0,0]),p)
-    sdf = perception.sdf_buffer
-    sdf_points = np.ones((sdf.shape[0]*sdf.shape[1]*sdf.shape[2],3))
-    sdf_points = sdf_to_points(sdf)
+    height = perception.sdf_buffer/10
+    print(height)
 
-    show_points(sdf_points)
+    cv2.namedWindow("output", cv2.WINDOW_NORMAL)    # Create window with freedom of dimensions
+    cv2.imshow("output", height)
+    cv2.waitKey(0)

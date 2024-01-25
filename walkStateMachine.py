@@ -5,10 +5,10 @@ from numpy import deg2rad, rad2deg
 from math import sin,cos,tan, acos, sqrt
 from roboMath import clerp, rotate_vec
 
-REST_Z = 0.6/2
-REST_POS = [a([0.866, 0.500, REST_Z])*2, a([0.866, -0.500, REST_Z])*2,
-            a([0.0, 1.000, REST_Z])*2, a([0.0, -1.00, REST_Z])*2,
-            a([-0.866, 0.500, REST_Z])*2, a([-0.866, -0.500, REST_Z])*2]
+REST_Z = 0.6
+REST_POS = [a([0.866, 0.500, 0.0])*2, a([0.866, -0.500, 0.0])*2,
+            a([0.0, 1.000, 0.0])*2, a([0.0, -1.00, 0.0])*2,
+            a([-0.866, 0.500, 0.0])*2, a([-0.866, -0.500, 0.0])*2]
 STRIDE_LENGTH = 0.3
 PLACE_TOLERANCE = 0.01
 UP = a([0,0,1])
@@ -40,11 +40,11 @@ class WalkCycleMachine(StateMachine):
 
     walk = rest.to(stepping, cond="should_adjust") | stepping.to(rest, cond="step_finished") | rest.to.itself(internal=True) | stepping.to.itself(internal=True)
 
-    def __init__(self):
+    def __init__(self, perception):
         self.active = np.full(6, False)
         self.speed = 0.5
         self.yaw_rate = deg2rad(25)
-        self.height = REST_Z*2
+        self.height = REST_Z
         self.height_offsets = np.zeros(6)
         self.pitch = 0.0
         self.target_yaw_local = np.zeros(6)
@@ -54,6 +54,7 @@ class WalkCycleMachine(StateMachine):
         self.foot_pos_pre_yaw = list(REST_POS)
         self.foot_pos_post_yaw = list(REST_POS)
         self.targets = list(REST_POS)
+        self.perception = perception
 
         super(WalkCycleMachine, self).__init__()
 
@@ -152,7 +153,7 @@ class WalkCycleMachine(StateMachine):
         if self.current_state == self.stepping:
             for i in range(6):
                 if not (self.targets[i] - self.foot_pos_pre_yaw[i] == 0).all():
-                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,2])*self.speed*dt)
+                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
 
         # Update foot position for local rotation
         for i in range(6):
@@ -166,20 +167,21 @@ class WalkCycleMachine(StateMachine):
                 diff = self.foot_pos_pre_yaw[i] - self.targets[i]
                 dist = sqrt(diff @ diff)
                 self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
+                # self.targets[i][2] += self.height - self.perception.get_height_at_point(self.targets[i])
+
                 # If not walking means rotationg in place, thus set foot height based on rotation
                 if (self.walk_direction == 0).all() and self.centering_yaw[i]:
-                    self.targets[i][2] += self.height_offsets[i] - min(abs(self.current_yaw_local[i])*3, 0.1) - REST_POS[i][2] + self.height
+                    self.targets[i][2] += self.height_offsets[i] - min(abs(self.current_yaw_local[i])*3, 0.7) + self.height
                 else:
-                    pass
-                    self.targets[i][2] += self.height_offsets[i] - min(dist, 0.1) - REST_POS[i][2] + self.height
+                    self.targets[i][2] += self.height_offsets[i] - min(dist, 0.7) + self.height
                     
                 if self.centering_yaw[i]:
                     self.target_yaw_local[i] = 0.0
-
             else:
                 # Rotate walk direction to account for pitch angle and add to targets
-                self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH) 
-                self.targets[i][2] += self.height_offsets[i] - REST_POS[i][2] + self.height
+                self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
+                # self.targets[i][2] += (self.height - self.perception.get_height_at_point(self.targets[i]))
+                self.targets[i][2] += self.height_offsets[i] + self.height
 
     # -------------------------------------------------------------------------------------------
 

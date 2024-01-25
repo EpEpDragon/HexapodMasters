@@ -3,7 +3,6 @@ from raylib import colors as Color
 from walkStateMachine import SPEED_MAX,HEIGHT_MAX
 
 import windowFuncs as wf
-import time
 
 from sys import platform
 import warnings
@@ -22,8 +21,6 @@ from raylib import (
     KEY_DOWN,
     KEY_Z,
     KEY_P,
-    KEY_KP_SUBTRACT,
-    KEY_KP_ADD,
 )
 
 from numpy import (
@@ -67,22 +64,19 @@ class ProgressBar():
         draw_text(v, self.v_x, self.v_y, self.v_size, self.t_color)                     # Value text
 
 
-def start_interface(walk_machine, perception, view, snapshot):
-    control_interface = ControInterface(walk_machine, perception, view, snapshot)
+def start_interface(walk_machine, view):
+    control_interface = ControInterface(walk_machine, view)
     if platform in ['Windows','win32','cywin']:
         warnings.warn("Not implemented on Windows OS")
     else:
-        time.sleep(3)
         margins = wf.get_screen_margins()
         ctrl_x_rel = 370/(wf.get_monitor(0).width - margins[0])
         if READ_CAMERA:
             cam_size = wf.get_window_size('Camera')
-            centerX = (wf.get_monitor(0).width - margins[0] - cam_size[0])/(wf.get_monitor(0).width - margins[0]) - ctrl_x_rel
-            centerY = (wf.get_monitor(0).height - margins[1] - cam_size[1])/(wf.get_monitor(0).height - margins[1])
-            wf.move_size_window("MuJoCo : MuJoCo Model", -1, 0, 0, centerX, 1)
-            wf.move_size_window("Open3D", -1, centerX, 0, 1-centerX-ctrl_x_rel, centerY)
-            wf.move_size_window("Control Interface", -1, 1-ctrl_x_rel, 0, ctrl_x_rel, 1)
-            wf.move_size_window("Camera", -1, centerX, centerY, is_cv2=True)
+            wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0, 0, 1, 0.2)
+            wf.move_size_window("Control Interface", 1, 0.8, 0, 0.2, 1)
+            wf.move_size_window("SDF Slice", 0, 0, 0.2, 1, 0.8)
+            wf.move_size_window("Camera", 1, 0, 0, 0.8-40/1920, 1)
         else:
             wf.move_size_window("MuJoCo : MuJoCo Model", -1, 0, 0, 1-ctrl_x_rel, 1)
             wf.move_size_window("Control Interface", -1, 1-ctrl_x_rel, 0, ctrl_x_rel, 1)
@@ -92,10 +86,8 @@ def start_interface(walk_machine, perception, view, snapshot):
 
 
 class ControInterface():
-    def __init__(self, walk_machine,perception, view, snapshot) -> None:
-        self.snapshot = snapshot
+    def __init__(self, walk_machine, view) -> None:
         self.walk_machine = walk_machine
-        self.perception = perception
         # self.cloud_vis = CloudVis()
         self.walk_direction = Vector2(0,0)
         self.speed_bar = ProgressBar(x=10, y=870, w=200, h=25, tab_x=100, c_front=Color.PURPLE, c_back=Color.DARKPURPLE, lable='Speed')
@@ -128,12 +120,7 @@ class ControInterface():
             if is_key_pressed(KEY_V):
                 self.view[0] += 1
                 self.view[0] = self.view[0] % (2)
-            if is_key_pressed(KEY_P):
-                self.snapshot[0] = True
-            if is_key_pressed(KEY_KP_SUBTRACT):
-                self.perception.vslice -= 1
-            if is_key_pressed(KEY_KP_ADD):
-                self.perception.vslice += 1
+
 
             self.walk_machine.set_speed(self.walk_machine.speed + get_mouse_wheel_move()*0.1)
             body_pos = Vector2(get_screen_width() / 2.0 , 210)
@@ -143,7 +130,7 @@ class ControInterface():
             if is_mouse_button_down(MOUSE_BUTTON_RIGHT):
                 if mouse_in_box(0,0,get_screen_width(),420):
                     self.walk_direction = Vector2(0,0)
-            self.walk_machine.set_walk_direction(a([self.walk_direction.x, -self.walk_direction.y, 0.0]))
+            self.walk_machine.set_walk_direction(a([-self.walk_direction.y, -self.walk_direction.x, 0.0]))
             # ----------------------------------------------------------------------------------
 
             # draw
@@ -157,11 +144,17 @@ class ControInterface():
                     color = Color.GREEN
                 else:
                     color = Color.RED
-                foot_pos_screen = self.walk_machine.foot_pos_pre_yaw[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
+                foot_pos_screen = self.walk_machine.foot_pos_pre_yaw[id][0:2]*SCREEN_SCALE*a([1,-1])
                 foot_pos_screen = Vector2(foot_pos_screen[0], foot_pos_screen[1])
-                foot_target_screen = self.walk_machine.targets[id][0:2]*SCREEN_SCALE*a([1,-1]) + a([body_pos.x, body_pos.y])
+                foot_pos_screen = vector2_add(vector2_rotate(foot_pos_screen, deg2rad(90)), Vector2(body_pos.x, body_pos.y))
+                
+                foot_target_screen = self.walk_machine.targets[id][0:2]*SCREEN_SCALE*a([1,-1])
+                foot_target_screen = Vector2(foot_target_screen[0], foot_target_screen[1])
+                foot_target_screen = vector2_add(vector2_rotate(foot_target_screen, deg2rad(90)),Vector2(body_pos.x, body_pos.y))
+                
+
                 draw_line_ex(body_pos, foot_pos_screen,2, color)
-                draw_circle_v(Vector2(foot_target_screen[0], foot_target_screen[1]), FOOT_RADIUS, Color.GRAY)
+                draw_circle_v(foot_target_screen, FOOT_RADIUS, Color.GRAY)
                 draw_circle_v(foot_pos_screen, FOOT_RADIUS, color)
 
             # Draw direction
@@ -172,7 +165,7 @@ class ControInterface():
             draw_circle_v(body_pos, BODY_RADIUS, Color.YELLOW)
             # Local yaw direction
             yaw = max(self.walk_machine.current_yaw_local)
-            draw_line_ex(body_pos, vector2_add(body_pos, Vector2(cos(yaw)*100, sin(yaw)*100)),3, Color.YELLOW)
+            draw_line_ex(body_pos, vector2_add(body_pos, Vector2(sin(yaw)*100, -cos(yaw)*100)),3, Color.YELLOW)
 
             # Divider
             draw_line(10,820,get_screen_width()-10,820,Color.GRAY)
@@ -193,5 +186,3 @@ class ControInterface():
 
     def set_window_size(self, width: int,height: int):
         set_window_size(width, height)
-
-

@@ -16,7 +16,7 @@ glfw.make_context_current(window)
 
 # Compute shader code
 compute_source = """
-# version 460
+# version 430
 
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
