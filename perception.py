@@ -39,6 +39,7 @@ class Perception():
         self.hmap_index = np.ndarray(hmap_index.shape, dtype=np.int32, buffer=self.hmap_index_shm.buf)
         self.hmap_index[:] = hmap_index[:]
         self.position = np.zeros(3)
+        self.body_quat = np.zeros(4)
         #---------------------------------------------------------------------------------
         
         self.cell_offset = np.zeros(3) # Position offset from cell origin
@@ -110,28 +111,33 @@ class Perception():
         self.walmachine = walkmachine
     
     def _local_to_hmap(self, local_pos):
-        return (np.round(global_to_hmap(rotate(self.body_quat, local_pos))) + self.hmap_index + int(HMAP_EXTENTS/2)) % HMAP_EXTENTS    # Transfer point to hmap space
+        return (np.round(global_to_hmap(rotate(self.body_quat, local_pos))) - self.hmap_index + int(HMAP_EXTENTS/2)) % HMAP_EXTENTS    # Transfer point to hmap space
 
     def _display_heightmap(self):
-        img = np.ones((self.hmap_buffer.shape[0],self.hmap_buffer.shape[1],3))
-        low = self.hmap_buffer.max()
-        diff = self.hmap_buffer.min() - low
-        for x in range(HMAP_EXTENTS):
-            for y in range(HMAP_EXTENTS):
-                img[x,y] *= (self.hmap_buffer[(x-self.hmap_index[0])%HMAP_EXTENTS, (y-self.hmap_index[1])%HMAP_EXTENTS] - low) / diff
+        # img = np.ones((self.hmap_buffer.shape[0],self.hmap_buffer.shape[1],3), dtype=np.float32)
+        img = self.hmap_buffer[..., np.newaxis]
+        img = np.concatenate((img,img,img), axis=2)
+        # low = self.hmap_buffer.min()
+        # diff = self.hmap_buffer.max() - low
+
+        # TODO ~70ms very slow, make better
+        # for x in range(HMAP_EXTENTS):
+            # for y in range(HMAP_EXTENTS):
+            #     img[x,y] *= (self.hmap_buffer[(x-self.hmap_index[0])%HMAP_EXTENTS, (y-self.hmap_index[1])%HMAP_EXTENTS] + 2) / 4
                 # img[x,y] = self.hmap_buffer[(x-self.hmap_index[0])%HMAP_EXTENTS, (y-self.hmap_index[1])%HMAP_EXTENTS]
 
-        # Draw foot targets
+        # # Draw foot targets
         for i in range(6):
             hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
-            img_i = (hmap_i-self.hmap_index)%HMAP_EXTENTS   # Hold in center of centered image
-            if (self.walmachine.is_supporting[i]):
-                img[int(img_i[0]), int(img_i[1])] = np.array([0,1,0])
+            # img_i = (hmap_i-self.hmap_index)%HMAP_EXTENTS   # Hold in center of centered image
+            if (self.walmachine.is_swinging[i]):
+                img[int(hmap_i[0]), int(hmap_i[1])] = np.array([0,1,0])
             else:
-                img[int(img_i[0]), int(img_i[1])] = np.array([0,0,1])
+                img[int(hmap_i[0]), int(hmap_i[1])] = np.array([0,0,1])
         
-        img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
-        cv2.imshow('SDF Slice', img)
+        # ~8ms
+        # img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+        cv2.imshow('SDF Slice', (img*255).astype(np.uint8))
         cv2.waitKey(1)
 
     def update(self, global_pos, camera_quat, depth, body_quat):

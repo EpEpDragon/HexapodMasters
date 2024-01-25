@@ -145,7 +145,7 @@ class ControInterface():
             clear_background((64, 64, 64, 255))
             # Draw Legs
             for id in range(6):
-                if self.walk_machine.is_supporting[id]:
+                if self.walk_machine.is_swinging[id]:
                     color = Color.GREEN
                 else:
                     color = Color.RED

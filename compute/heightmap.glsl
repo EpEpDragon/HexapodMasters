@@ -62,7 +62,10 @@ vec4 compute_point()
     float x = (j - CX) * z / FX;
     float y = (i - CY) * z / FY;
     // vec3 point = vec3(x,y,z); 
-    return (vec4((rotate(camera_quat, vec3(-x,y,z)) + vec3(EXTENTS/2,EXTENTS/2,0))*DIVISIOINS, clip));
+    vec4 point = vec4((rotate(camera_quat, vec3(-x,y,z)) + vec3(EXTENTS/2,EXTENTS/2,0)), clip);
+    point[0] *= DIVISIOINS;
+    point[1] *= DIVISIOINS;
+    return point;
 }
 
 void draw_to_height() 
@@ -72,7 +75,7 @@ void draw_to_height()
     {
         ivec2 index = ivec2(int(mod((point.x-sdf_index.x), HMAP_EXTENTS)), int(mod((point.y-sdf_index.y), HMAP_EXTENTS)));
         // sdf_buffer[index[0]][index[1]] = max(point.z-sdf_index.z, sdf_buffer[index[0]][index[1]]);
-        sdf_buffer[index[0]][index[1]] = point.z-sdf_index.z;
+        sdf_buffer[index[0]][index[1]] = float(sdf_index.z)/DIVISIOINS - point.z;
     }
 }
 

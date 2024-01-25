@@ -65,11 +65,11 @@ def read_camera():
     zfar  = model.vis.map.zfar * model.stat.extent
     znear = model.vis.map.znear * model.stat.extent
     depth_linear = linearize_depth(depth, znear=znear, zfar=zfar)
-
+                       
     # TODO Implement better filteringh method? Maybe not for performance.
     depth_linear[depth_linear < 1.9] = 0 # Zero out depth that would fall on robot
     
-    # Show the simulated camera image
+    # Show the simulated camera image ~ 5ms should change
     if view[0] == 0:
         cv2.imshow('Camera', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
     elif view[0] == 1:
@@ -136,10 +136,9 @@ if __name__ == '__main__':
 
         # Render camera every X timesteps(k)
         # ----------------------------------------------------------------------------------------------------
-        if READ_CAMERA and k % 20 == 0:
+        if READ_CAMERA and k %50 == 0:
             depth_linear = read_camera()
             perception.update(data.sensordata[0:3], data.sensordata[[4,5,6,3]], depth_linear.reshape(RES_X*RES_Y), data.sensordata[[8,9,10,7]])
-            print(data.sensordata[0:3])
             k = 0
         k += 1
         # ----------------------------------------------------------------------------------------------------
@@ -148,4 +147,5 @@ if __name__ == '__main__':
         time.sleep(max(min(timestep - step_elapse - error, 1), 0)) # Delay remaining timestep - error
         dt = time.perf_counter() - step_start
         error +=  (dt - timestep)*3 # Integrate error
-        error = min(max(error,0), 0.002)
+        error = min(max(error,0), 0.02)
+        print(dt)
