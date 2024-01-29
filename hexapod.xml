@@ -185,6 +185,7 @@
 
   <sensor>
     <framepos name="cam_position" objtype="camera" objname="cam"/>
+    <framepos name="body_position" objtype="body" objname="torso"/>
     <framequat name="cam_quaternion" objtype="camera" objname="cam"/>
     <framequat name="body_quaternion" objtype="body" objname="torso"/>
   </sensor>

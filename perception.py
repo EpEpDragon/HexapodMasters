@@ -40,6 +40,7 @@ class Perception():
         self.hmap_index[:] = hmap_index[:]
         self.position = np.zeros(3)
         self.body_quat = np.zeros(4)
+        self.temporal_i = 0
         #---------------------------------------------------------------------------------
         
         self.cell_offset = np.zeros(3) # Position offset from cell origin
@@ -61,7 +62,7 @@ class Perception():
         clean_heightmap_src = open('compute/clean_heightmap.glsl','r').readlines()
         self.clean_heightmap_program = compileProgram(compileShader(clean_heightmap_src, GL_COMPUTE_SHADER))
         
-        self.glbuffers  = glGenBuffers(2)
+        self.glbuffers  = glGenBuffers(3)
 
         # Bind image buffer
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[0])
@@ -71,12 +72,17 @@ class Perception():
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, self.glbuffers[1])
         glBufferData(GL_SHADER_STORAGE_BUFFER, self.hmap_buffer.nbytes, self.hmap_buffer, GL_DYNAMIC_READ)
         
+
+        # Bind temporal buffer
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, self.glbuffers[2])
+        glBufferData(GL_SHADER_STORAGE_BUFFER, self.hmap_buffer.nbytes * 4, None, GL_DYNAMIC_READ)
+
         # Bind points buffer
         # glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, self.glbuffers[2])
         # glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4 * 4, None, GL_DYNAMIC_COPY)
  
  
-    def _generate_heightmap(self, depth, camera_quat):
+    def _generate_heightmap(self, depth, camera_quat, cam_hmap_i):
         # Set depth image data
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])        
         glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, depth.nbytes, depth)
@@ -85,8 +91,9 @@ class Perception():
         glUseProgram(self.heightmap_program)
         
         # Set Uniforms
-        glUniform3i(0, self.hmap_index[0], self.hmap_index[1], self.hmap_index[2])         # Robot position
-        glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])  # Robot rotation
+        glUniform3i(0, cam_hmap_i[0], cam_hmap_i[1], cam_hmap_i[2])                     # Camera position
+        glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])  # Camera rotation
+        glUniform1i(2, self.temporal_i)
         
         glDispatchCompute(int((160)/VOXEL_TRACE_INVOCAIONS), int((90)/VOXEL_TRACE_INVOCAIONS), 1)
         
@@ -96,7 +103,7 @@ class Perception():
         # ################# Distance stage ##################
         glUseProgram(self.clean_heightmap_program)
         
-        # # # Set Uniforms
+        # Set Uniforms
         glUniform3i(0, self.hmap_index[0], self.hmap_index[1], self.hmap_index[2])         # Robot position
         
         glDispatchCompute(int(HMAP_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(HMAP_EXTENTS/CELL_DISTANCE_INVOCAIONS), 1)
@@ -117,8 +124,10 @@ class Perception():
         # img = np.ones((self.hmap_buffer.shape[0],self.hmap_buffer.shape[1],3), dtype=np.float32)
         img = self.hmap_buffer[..., np.newaxis]
         img = np.concatenate((img,img,img), axis=2)
-        # low = self.hmap_buffer.min()
-        # diff = self.hmap_buffer.max() - low
+        low = self.hmap_buffer.min()
+        # print(self.hmap_buffer.max())
+        diff = self.hmap_buffer.max() - low
+        img = (img - low+0.1)/(diff+0.1)
 
         # TODO ~70ms very slow, make better
         # for x in range(HMAP_EXTENTS):
@@ -137,15 +146,17 @@ class Perception():
         
         # ~8ms
         # img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
-        cv2.imshow('SDF Slice', (img*255).astype(np.uint8))
+        cv2.imshow('SDF Slice', (img * 255).astype(np.uint8))
         cv2.waitKey(1)
 
-    def update(self, global_pos, camera_quat, depth, body_quat):
+    def update(self, camera_pos, body_pos, camera_quat, body_quat, depth):
         self.body_quat = body_quat
-        self.hmap_index = global_to_hmap(global_pos)
-        self.position = global_pos%EXTENTS
-        self._generate_heightmap(depth, camera_quat)
+        self.hmap_index = global_to_hmap(body_pos)
+        self.position = body_pos%EXTENTS
+        self._generate_heightmap(depth, camera_quat, global_to_hmap(camera_pos))
         self._display_heightmap()
+        self.temporal_i = int((self.temporal_i + 1)%4)
+        print(self.temporal_i)
 
 
     def get_height_at_point(self, point):

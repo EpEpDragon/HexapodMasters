@@ -5,10 +5,14 @@ layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 // Uniforms
 layout(location = 0) uniform ivec3 sdf_index;
 layout(location = 1) uniform vec4 camera_quat;
+layout(location = 2) uniform int temporal_i;
 
 // CPU Shared Buffers 
 layout(std430, binding = 0) readonly restrict buffer image { float depth_image[uint(90)][uint(160)]; };
 layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[128][128]; };
+
+// Temporal average buffer
+layout(std430, binding = 2) volatile buffer temp { float temporal_buffer[4][128][128]; };
 
 const uint RES_Y = uint(160);
 const uint RES_X = uint(90);
@@ -75,7 +79,14 @@ void draw_to_height()
     {
         ivec2 index = ivec2(int(mod((point.x-sdf_index.x), HMAP_EXTENTS)), int(mod((point.y-sdf_index.y), HMAP_EXTENTS)));
         // sdf_buffer[index[0]][index[1]] = max(point.z-sdf_index.z, sdf_buffer[index[0]][index[1]]);
-        sdf_buffer[index[0]][index[1]] = float(sdf_index.z)/DIVISIOINS - point.z;
+
+        temporal_buffer[temporal_i][index[0]][index[1]] = point.z;
+        float z = (temporal_buffer[0][index[0]][index[1]] + 
+                   temporal_buffer[1][index[0]][index[1]] + 
+                   temporal_buffer[2][index[0]][index[1]] + 
+                   temporal_buffer[3][index[0]][index[1]]) / 4.0;
+
+        sdf_buffer[index[0]][index[1]] = -z + float(sdf_index.z)/DIVISIOINS;
     }
 }
 

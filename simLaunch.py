@@ -138,7 +138,7 @@ if __name__ == '__main__':
         # ----------------------------------------------------------------------------------------------------
         if READ_CAMERA and k %50 == 0:
             depth_linear = read_camera()
-            perception.update(data.sensordata[0:3], data.sensordata[[4,5,6,3]], depth_linear.reshape(RES_X*RES_Y), data.sensordata[[8,9,10,7]])
+            perception.update(data.sensordata[0:3], data.sensordata[3:6], data.sensordata[[7,8,9,6]], data.sensordata[[11,12,13,10]], depth_linear.reshape(RES_X*RES_Y))
             k = 0
         k += 1
         # ----------------------------------------------------------------------------------------------------
@@ -148,4 +148,4 @@ if __name__ == '__main__':
         dt = time.perf_counter() - step_start
         error +=  (dt - timestep)*3 # Integrate error
         error = min(max(error,0), 0.02)
-        print(dt)
+        # print(dt)
