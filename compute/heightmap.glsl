@@ -86,7 +86,7 @@ void draw_to_height()
                    temporal_buffer[2][index[0]][index[1]] + 
                    temporal_buffer[3][index[0]][index[1]]) / 4.0;
 
-        sdf_buffer[index[0]][index[1]] = -z + float(sdf_index.z)/DIVISIOINS;
+        sdf_buffer[index[0]][index[1]] = -point.z + float(sdf_index.z)/DIVISIOINS;
     }
 }
 

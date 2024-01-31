@@ -1,6 +1,6 @@
 import numpy as np
 from multiprocessing import shared_memory
-from roboMath import rotate_vec, rotate_vec_quat
+from roboMath import rotate
 # from simLaunch import RES_X, RES_Y
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram,compileShader
@@ -16,9 +16,6 @@ HMAP_EXTENTS = EXTENTS*DIVISIOINS    # Extents of SDF block, in number of cells
 
 VOXEL_TRACE_INVOCAIONS = 32         # NB This must match the x and y invocations specified in voxel_trace.glsl
 CELL_DISTANCE_INVOCAIONS = 32       # NB This must match the x and y invocations specified in set_cell_distance.glsl
-
-def rotate(q, p):
-    return p + 2.0*np.cross(q[0:3],np.cross(q[0:3],p)+q[3]*p)
 
 def global_to_hmap(global_pos):
     """Convert global position to position in SDF grid, which has its corner at 0,0,0"""
@@ -125,7 +122,6 @@ class Perception():
         img = self.hmap_buffer[..., np.newaxis]
         img = np.concatenate((img,img,img), axis=2)
         low = self.hmap_buffer.min()
-        # print(self.hmap_buffer.max())
         diff = self.hmap_buffer.max() - low
         img = (img - low+0.1)/(diff+0.1)
 
@@ -156,8 +152,6 @@ class Perception():
         self._generate_heightmap(depth, camera_quat, global_to_hmap(camera_pos))
         self._display_heightmap()
         self.temporal_i = int((self.temporal_i + 1)%4)
-        print(self.temporal_i)
-
 
     def get_height_at_point(self, point):
         """Returns the height at a point relative to the robot center, the height is in world space"""

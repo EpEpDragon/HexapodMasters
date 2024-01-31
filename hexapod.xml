@@ -47,21 +47,21 @@
   <worldbody>
     <light diffuse="0.5 0.5 0.5" pos="0 0 3" dir="0 0 -1"/>
     <!-- Floor -->
-    <geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 -1" rgba="0.8 0.9 0.8 1" size="40 40 40" type="plane"/>
-    <geom conaffinity="1" condim="3" material="MatPlane" name="tiles" pos="0 -8 -0.9" rgba="0.8 0.9 0.8 1" type="hfield" hfield="HMap"/>
-    <geom name="cube1" pos="5 4 -0.5" size="1 1 1" type="box"/>
-    <geom name="cube2" pos="4 -4 -0.5" size="1 1 1" type="box"/>
+    <geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 0" rgba="0.8 0.9 0.8 1" size="40 40 40" type="plane"/>
+    <geom conaffinity="1" condim="3" material="MatPlane" name="tiles" pos="0 -8 0.1" rgba="0.8 0.9 0.8 1" type="hfield" hfield="HMap"/>
+    <geom name="cube1" pos="5 4 0.3" size="1 1 1" type="box"/>
+    <geom name="cube2" pos="4 -4 0.3" size="1 1 1" type="box"/>
 
     <!-- Stairs -->
-    <geom pos="0 4 -0.9" size="4 0.5 0.1" type="box"/>
-    <geom pos="0 5 -0.9" size="4 0.5 0.3" type="box"/>
-    <geom pos="0 6 -0.9" size="4 0.5 0.5" type="box"/>
-    <geom pos="0 7 -0.9" size="4 0.5 0.7" type="box"/>
-    <geom pos="0 9 -0.9" size="4 2 0.7" type="box"/>
+    <geom pos="0 4 0" size="4 0.5 0.1" type="box"/>
+    <geom pos="0 5 0" size="4 0.5 0.3" type="box"/>
+    <geom pos="0 6 0" size="4 0.5 0.5" type="box"/>
+    <geom pos="0 7 0" size="4 0.5 0.7" type="box"/>
+    <geom pos="0 9 0" size="4 2 0.7" type="box"/>
 
     <!-- <geom pos="0 -7 -0.9" type="mesh" mesh="tiles"/> -->
 
-    <body name="torso" childclass="body" pos="0 0 1">
+    <body name="torso" childclass="body" pos="0 0 1.5" euler="0 0 -90">
       <!-- Body -->
       <joint type="free" limited="false"/>
       <geom type="cylinder" size="0.7 0.15" rgba="0.9 0.9 0.5 1"/>
@@ -188,5 +188,29 @@
     <framepos name="body_position" objtype="body" objname="torso"/>
     <framequat name="cam_quaternion" objtype="camera" objname="cam"/>
     <framequat name="body_quaternion" objtype="body" objname="torso"/>
+    
+    <actuatorfrc actuator="front_left_yaw"/>
+    <actuatorfrc actuator="front_left_pitch"/>
+    <actuatorfrc actuator="front_left_knee"/>
+
+    <actuatorfrc actuator="front_right_yaw"/>
+    <actuatorfrc actuator="front_right_pitch"/>
+    <actuatorfrc actuator="front_right_knee"/>
+
+    <actuatorfrc actuator="mid_left_yaw"/>
+    <actuatorfrc actuator="mid_left_pitch"/>
+    <actuatorfrc actuator="mid_left_knee"/>
+
+    <actuatorfrc actuator="mid_right_yaw"/>
+    <actuatorfrc actuator="mid_right_pitch"/>
+    <actuatorfrc actuator="mid_right_knee"/>
+
+    <actuatorfrc actuator="back_left_yaw"/>
+    <actuatorfrc actuator="back_left_pitch"/>
+    <actuatorfrc actuator="back_left_knee"/>
+
+    <actuatorfrc actuator="back_right_yaw"/>
+    <actuatorfrc actuator="back_right_pitch"/>
+    <actuatorfrc actuator="back_right_knee"/>
   </sensor>
 </mujoco>

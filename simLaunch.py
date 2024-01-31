@@ -8,8 +8,7 @@ import numpy as np
 from numpy import deg2rad, rad2deg
 
 import cv2
-import glfw
-import viz_cloud
+import os
 
 from walkStateMachine import WalkCycleMachine
 from perception import Perception
@@ -67,7 +66,7 @@ def read_camera():
     depth_linear = linearize_depth(depth, znear=znear, zfar=zfar)
                        
     # TODO Implement better filteringh method? Maybe not for performance.
-    depth_linear[depth_linear < 1.9] = 0 # Zero out depth that would fall on robot
+    depth_linear[depth_linear < 2] = 0 # Zero out depth that would fall on robot
     
     # Show the simulated camera image ~ 5ms should change
     if view[0] == 0:
@@ -77,6 +76,9 @@ def read_camera():
     cv2.waitKey(1)
 
     return depth_linear
+
+def read_sensors():
+    return data.sensordata[0:3], data.sensordata[3:6], data.sensordata[[7,8,9,6]], data.sensordata[[11,12,13,10]]
 
 if __name__ == '__main__':
     # Setup model
@@ -123,9 +125,11 @@ if __name__ == '__main__':
     k = 0
     while is_sim_running:
         # control_interface.update_input()
-        
         step_start = time.perf_counter()
-        walk_machine.update(timestep)
+        cam_pos, body_pos, cam_quat, body_quat = read_sensors()
+        # print(data.sensordata[14:32])
+
+        walk_machine.update(timestep, body_quat)
         # Move actuators-
         movement_handler.set_targets(walk_machine.foot_pos_post_yaw)
         movement_handler.update_moves()
@@ -133,12 +137,14 @@ if __name__ == '__main__':
         # Step by integrating timestep error to simulation in (approximatley) real time
         mujoco.mj_step(model, data)
         viewer_handle.sync()
+        # os.system('clear') 
+        # print(f"True body height: {data.sensordata[5]}")
 
         # Render camera every X timesteps(k)
         # ----------------------------------------------------------------------------------------------------
-        if READ_CAMERA and k %50 == 0:
+        if READ_CAMERA and k %20 == 0:
             depth_linear = read_camera()
-            perception.update(data.sensordata[0:3], data.sensordata[3:6], data.sensordata[[7,8,9,6]], data.sensordata[[11,12,13,10]], depth_linear.reshape(RES_X*RES_Y))
+            perception.update(cam_pos, body_pos, cam_quat, body_quat, depth_linear.reshape(RES_X*RES_Y))
             k = 0
         k += 1
         # ----------------------------------------------------------------------------------------------------

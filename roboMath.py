@@ -15,6 +15,9 @@ def clerp(a,b,s):
         return a
     return a + (abs(d)/(d))*s
 
+def rotate(q, p):
+    return p + 2.0*np.cross(q[0:3],np.cross(q[0:3],p)+q[3]*p)
+
 def rotate_vec(vector, axis, angle):
     angle /= 2
     s = sin(angle)
