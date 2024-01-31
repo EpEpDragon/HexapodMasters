@@ -27,6 +27,8 @@ snapshot = [False]
 
 is_sim_running = True
 
+servo_torque = []
+
 # Linearize Depth from an OpenGL buffer
 def linearize_depth(depth, znear, zfar):
     zlinear = (znear * zfar) / (zfar + depth * (znear - zfar))
@@ -123,11 +125,14 @@ if __name__ == '__main__':
     start_time = time.perf_counter()
     dt = 0.0
     k = 0
+
     while is_sim_running:
         # control_interface.update_input()
         step_start = time.perf_counter()
         cam_pos, body_pos, cam_quat, body_quat = read_sensors()
         # print(data.sensordata[14:32])
+        # servo_torque.append([data.sensordata[i] for i in [15,18,21,24,27,30]])
+        # servo_torque.append(data.sensordata[15])
 
         walk_machine.update(timestep, body_quat)
         # Move actuators-
@@ -142,7 +147,11 @@ if __name__ == '__main__':
 
         # Render camera every X timesteps(k)
         # ----------------------------------------------------------------------------------------------------
-        if READ_CAMERA and k %20 == 0:
+        if READ_CAMERA and k %50 == 0:
+            # torque_file = open("torque.csv","a")
+            # torque_file.write(str(data.sensordata[15])+",")
+            # torque_file.close
+
             depth_linear = read_camera()
             perception.update(cam_pos, body_pos, cam_quat, body_quat, depth_linear.reshape(RES_X*RES_Y))
             k = 0
@@ -155,3 +164,4 @@ if __name__ == '__main__':
         error +=  (dt - timestep)*3 # Integrate error
         error = min(max(error,0), 0.02)
         # print(dt)
+    print("end")

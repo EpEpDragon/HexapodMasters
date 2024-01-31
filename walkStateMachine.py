@@ -187,8 +187,7 @@ class WalkCycleMachine(StateMachine):
         for i in range(6):
             # print(f"Leg {i} height: ({rotate(body_quat,HIP_VECTORS[i])[2]}){self.perception.get_height_at_point(self.targets[i])}")
             
-            effector_offset = self.height - self.perception.get_height_at_point(self.targets[i]) - rotate(body_quat,HIP_VECTORS[i])[2] # Offsett based on heightmap
-            # print(effector_offset)
+            effector_offset = self.height - self.perception.get_height_at_point(self.targets[i]) #- rotate(body_quat,HIP_VECTORS[i])[2] # Offsett based on heightmap
             # print(f"leg {i}: {effector_offset}")
             if self.is_swinging[i]:
                 diff = self.foot_pos_pre_yaw[i] - self.targets[i]
@@ -207,8 +206,17 @@ class WalkCycleMachine(StateMachine):
             else:
                 # Rotate walk direction to account for pitch angle and add to targets
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
-                self.targets[i][2] += self.height_offsets[i] + self.height #- self.perception.get_height_at_point(self.targets[i])
+                self.targets[i][2] += self.height_offsets[i] + effector_offset
+            
+            print(f"leg {i}: {self.targets[i][2]}")
+
             # self.targets[i][2] = self.height_offsets[i] + effector_offset
+        # self.targets[0][2] = 0.3
+        # self.targets[1][2] = 0.6-0.3
+        # self.targets[2][2] = 0.6
+        # self.targets[3][2] = 0.6-0.3
+        # self.targets[4][2] = 0.6-0.3
+        # self.targets[5][2] = 0.3
 
 
     def _square_step(self, diff, i, dt):

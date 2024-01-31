@@ -115,7 +115,7 @@ class Perception():
         self.walmachine = walkmachine
     
     def _local_to_hmap(self, local_pos):
-        return (np.round(global_to_hmap(rotate(self.body_quat, local_pos))) - self.hmap_index + int(HMAP_EXTENTS/2)) % HMAP_EXTENTS    # Transfer point to hmap space
+        return (np.round(global_to_hmap(rotate(self.body_quat, -local_pos))) - self.hmap_index + int(HMAP_EXTENTS/2)) % HMAP_EXTENTS    # Transfer point to hmap space
 
     def _display_heightmap(self):
         # img = np.ones((self.hmap_buffer.shape[0],self.hmap_buffer.shape[1],3), dtype=np.float32)
