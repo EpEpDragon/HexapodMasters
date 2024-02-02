@@ -1,1 +1,4 @@
 A New Foot Trajectory Planning Method for Legged Robots and Its Application in Hexapod Robots (https://www.mdpi.com/2076-3417/11/19/9217)
+https://www.researchgate.net/publication/305827246_Terrain-Dependant_Control_of_Hexapod_Robots_Using_Vision
+
+Accurate perception and representation of rough terrain for a hexapod robot by analysing foot locomotion (https://www.sciencedirect.com/science/article/abs/pii/S0263224122001853)
