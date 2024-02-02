@@ -10,7 +10,7 @@ def quadratic_kernel(size, max, scale):
         for j in range(size):
             x = (i-size/2)*scale
             y = (j-size/2)*scale
-            kernel[i,j] = 5*(x*x+y*y)
+            kernel[i,j] = 1.5*(x*x+y*y)+0.2
     return kernel
 
 def wrap_slice(a, axis, start, stop):
@@ -35,7 +35,7 @@ def get_wrapped(matrix, i, j):
   return matrix[rows][:, cols]
 
 size = 20
-kernel = quadratic_kernel(size, 1, 2/size).flatten()
+kernel = quadratic_kernel(size, 1, 1/size).flatten()
 kernel = kernel.reshape(kernel.shape[0],1)
 
 array = np.array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
@@ -53,9 +53,10 @@ array = np.array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
 # print("")
 # print(array[wrap_slice(array,0,2,0)][:,wrap_slice(array,1,2,0)])
 
-baseimg = cv2.imread("hmap.png").astype(float) / 255
+baseimg = cv2.imread("hmap_test.png").astype(float) / 255
+# baseimg = cv2.imread("hmap.png").astype(float) / 255
 baseimg = cv2.resize(baseimg, (128,128))
-baseimg = baseimg/0.8 + 0.2
+# baseimg = baseimg*0.3
 img = np.ones((128,128,3))
 img[:] = baseimg[:]
 
@@ -64,7 +65,7 @@ def draw_kernel(event,x,y,flags,param):
     img[:] = baseimg[:]
     # if event == cv2.EVENT_LBUTTONDOWN:
     r,c = wrap_block(img, (y-int(size/2))%img.shape[0], (y+int(size/2))%img.shape[0], (x-int(size/2))%img.shape[0], (x+int(size/2))%img.shape[0])
-    img[r,c] = abs(baseimg[r,c]-baseimg[x,y]) < kernel
+    img[r,c] =  kernel - abs(baseimg[r,c]-baseimg[x,y])
     img[y,x] = 1.0
     print(img[r,c].min())
     mouseX,mouseY = x,y
