@@ -11,7 +11,7 @@ def quadratic_kernel(size, max, scale):
         for j in range(size):
             x = (i-size/2)*scale
             y = (j-size/2)*scale
-            kernel[i,j] = 2*(x*x+y*y)+0.27
+            kernel[i,j] = 40*(x*x*x*x+y*y*y*y)+0.3
     return kernel
 
 def sample_gaussian(height, offset, stand_dev, dist, size=0):
@@ -41,23 +41,24 @@ def get_wrapped(matrix, i, j):
   cols = [(j-1) % n, j, (j+1) % n]
   return matrix[rows][:, cols]
 
-kernel_size = 20
+kernel_size = 6
 # kernel = quadratic_kernel(kernel_size, 1, 1/kernel_size).flatten()
 # kernel = kernel.reshape(kernel.shape[0],1)
-kernel = quadratic_kernel(kernel_size, 1, 1/kernel_size)
+kernel = quadratic_kernel(kernel_size+1, 1, 2/kernel_size)
+print(kernel)
 kernel = kernel.reshape((kernel.shape[0],kernel.shape[1],1))
 
 array = np.array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
 
 SIZE = 128
-baseimg = cv2.imread("hmap_test.png").astype(float) / 255
-# baseimg = cv2.imread("hmap.png").astype(float) / 255
+# baseimg = cv2.imread("hmap_test.png").astype(float) / 255
+baseimg = cv2.imread("hmap.png").astype(float) / 255
 baseimg = cv2.resize(baseimg, (SIZE,SIZE))
-baseimg = baseimg
+baseimg = baseimg*0.5
 img = np.ones((SIZE,SIZE,3))
 img[:] = baseimg[:]
 
-def draw_kernel(event,x,y,flags,param):
+def calculate_score(p_x,p_y,p_z,x,y):
     global mouseX,mouseY
     # img[:] = baseimg[:]
     # if event == cv2.EVENT_LBUTTONDOWN:
@@ -65,12 +66,10 @@ def draw_kernel(event,x,y,flags,param):
     # img[r,c] =  kernel - abs(baseimg[r,c]-baseimg[y,x])
     # img[y,x] = 1.0
 
-    temp = kernel - abs(baseimg[wrap_slice(baseimg,0, (y-int(kernel_size/2))%baseimg.shape[0], (y+int(kernel_size/2))%baseimg.shape[0])][:,wrap_slice(baseimg,1,(x-int(kernel_size/2))%baseimg.shape[0], (x+int(kernel_size/2))%baseimg.shape[0])] - baseimg[y,x])*3
+    temp = kernel - abs(baseimg[wrap_slice(baseimg,0, (y-int(kernel_size/2))%baseimg.shape[0], (y+int(kernel_size/2)+1)%baseimg.shape[0])][:,wrap_slice(baseimg,1,(x-int(kernel_size/2))%baseimg.shape[0], (x+int(kernel_size/2)+1)%baseimg.shape[0])] - baseimg[y,x,0])
     prox_score = max(temp.min(),0)
 
-    p_x = 60
-    p_y = 20
-    dist = sqrt((x-p_x)*(x-p_x)+(y-p_y)*(y-p_y))
+    dist = sqrt((x-p_x)*(x-p_x)+(y-p_y)*(y-p_y)+8*8*(baseimg[y,x,0]-p_z)*(baseimg[y,x,0]-p_z))
     radius = 10
     stand_dev = 3
     dist_score = max(sample_gaussian(height=1, offset=radius, stand_dev=stand_dev, dist=dist)-pow(2.71828, -2*(dist+1.5*stand_dev-radius))-0.1, 0)
@@ -80,7 +79,7 @@ def draw_kernel(event,x,y,flags,param):
 
     mouseX,mouseY = x,y
     # return img[r,c].min()
-    return prox_score #* dist_score
+    return dist_score * prox_score
 
 def poll_value(event,x,y,flags,param):
     print(img[y,x])
@@ -98,7 +97,7 @@ cv2.setMouseCallback('image',poll_value)
 
 for r in range(SIZE):
     for c in range(SIZE):
-        score = draw_kernel(0,c,r,0,0)
+        score = calculate_score(60,60,1,c,r)
         if score <= 0:
             img[r,c] = [0,0,1]
         else:
