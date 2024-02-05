@@ -24,6 +24,7 @@ p3 = np.zeros_like(hmap)
 for x in range(size):
     for y in range(size):
         hmap[x,y] = ((noise1([x/size, y/size]) + noise2([x/size, y/size])*0.75 + noise3([x/size, y/size])*0.5) + 1) / 2
+        # hmap[x,y] = (noise1([x/size, y/size])+1)/2
         p1[x,y] = (noise1([x/size, y/size])+1)/2
         p2[x,y] = (noise2([x/size, y/size])*0.75+1)/2
         p3[x,y] = (noise3([x/size, y/size])*0.5+1)/2

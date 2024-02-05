@@ -71,15 +71,15 @@ def start_interface(walk_machine, view):
         margins = wf.get_screen_margins()
         ctrl_x_rel = 370/(wf.get_monitor(0).width - margins[0])
         # if READ_CAMERA:
-        # wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0, 0, 1, 0.2)
-        # wf.move_size_window("Control Interface", 1, 0.8, 0, 0.2, 1)
-        # wf.move_size_window("SDF Slice", 0, 0, 0.2, 1, 0.8)
-        # wf.move_size_window("Camera", 1, 0, 0, 0.8-40/1920, 0.8)
+        wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0, 0, 1, 0.2)
+        wf.move_size_window("Control Interface", 1, 0.8, 0, 0.2, 1)
+        wf.move_size_window("SDF Slice", 0, 0, 0.2, 1, 0.8)
+        wf.move_size_window("Camera", 1, 0, 0, 0.8-40/1920, 0.8)
 
-        wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0.45, 0, 0.4, 0.5)
-        wf.move_size_window("Control Interface", 0, 0.85, 0, 0.15, 1)
-        wf.move_size_window("SDF Slice", 0, 0, 0, 0.45, 1)
-        wf.move_size_window("Camera", 0, 0.45, 0.5, 0.4, 0.5)
+        # wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0.45, 0, 0.4, 0.5)
+        # wf.move_size_window("Control Interface", 0, 0.85, 0, 0.15, 1)
+        # wf.move_size_window("SDF Slice", 0, 0, 0, 0.45, 1)
+        # wf.move_size_window("Camera", 0, 0.45, 0.5, 0.4, 0.5)
 
             
         # else:
