@@ -58,7 +58,7 @@ baseimg = baseimg*5
 img = np.ones((SIZE,SIZE,3))
 img[:] = baseimg[:]
 
-def calculate_score(p_x,p_y,p_z,x,y):
+def calculate_score(body_pos, foot_pos,x,y):
     global mouseX,mouseY
     # img[:] = baseimg[:]
     # if event == cv2.EVENT_LBUTTONDOWN:
@@ -67,19 +67,23 @@ def calculate_score(p_x,p_y,p_z,x,y):
     # img[y,x] = 1.0
 
     temp = kernel - abs(baseimg[wrap_slice(baseimg,0, (y-int(kernel_size/2))%baseimg.shape[0], (y+int(kernel_size/2)+1)%baseimg.shape[0])][:,wrap_slice(baseimg,1,(x-int(kernel_size/2))%baseimg.shape[0], (x+int(kernel_size/2)+1)%baseimg.shape[0])] - baseimg[y,x,0])
-    prox_score = max(temp.min(),0)
+    terrain_proximity_score = max(temp.min(),0)
 
-    dist = sqrt((x-p_x)*(x-p_x)+(y-p_y)*(y-p_y)+8*8*(baseimg[y,x,0]-p_z)*(baseimg[y,x,0]-p_z))
-    radius = 15
-    stand_dev = 3
-    dist_score = max(sample_gaussian(height=1, offset=radius, stand_dev=stand_dev, dist=dist)-0.1,0)#-pow(2.71828, -2*(dist+1.51*stand_dev-radius))-0.1, 0)
+    dist = sqrt((x-body_pos[0])*(x-body_pos[0])+(y-body_pos[1])*(y-body_pos[1])+8*8*(baseimg[y,x,0]-body_pos[2])*(baseimg[y,x,0]-body_pos[2]))
+    # radius = 15
+    # stand_dev = 3
+    body_proximity_score = max(sample_gaussian(height=1, offset=15, stand_dev=3.0, dist=dist)-0.1,0)#-pow(2.71828, -2*(dist+1.51*stand_dev-radius))-0.1, 0)
+
+    dist = sqrt((x-foot_pos[0])*(x-foot_pos[0])+(y-foot_pos[1])*(y-foot_pos[1]))
+    foot_proximity_score = max(sample_gaussian(height=1, offset=0, stand_dev=3.0, dist=dist)-0.1,0)#-pow(2.71828, -2*(dist+1.51*stand_dev-radius))-0.1, 0)
+
     # temp[int(kernel_size/2), int(kernel_size/2)] = 1.0
     # img[r,c] = (kernel - abs(baseimg[wrap_slice(baseimg,0, (y-int(kernel_size/2))%baseimg.shape[0], (y+int(kernel_size/2))%baseimg.shape[0])][:,wrap_slice(baseimg,1,(x-int(kernel_size/2))%baseimg.shape[0], (x+int(kernel_size/2))%baseimg.shape[0])] - baseimg[x,y]).reshape((100,3)))
     # img[y,x] = 1.0
 
     mouseX,mouseY = x,y
     # return img[r,c].min()
-    return dist_score
+    return body_proximity_score * terrain_proximity_score * foot_proximity_score
 
 def poll_value(event,x,y,flags,param):
     print(img[y,x])
@@ -96,12 +100,12 @@ cv2.resizeWindow('image', 1024, 1024)
 # plt.show()
 
 def calc_points(event,x,y,flags,param):
-    
+    print(img[x,y])
     if event == cv2.EVENT_LBUTTONDOWN:
         img[:] = baseimg[:]
         for r in range(SIZE):
             for c in range(SIZE):
-                score = calculate_score(x,y,5.6,c,r)
+                score = calculate_score(np.array([65,65,5.6]),np.array([x,y,0]),c,r)
                 if score <= 0:
                     img[r,c] = [0,0,1]
                 else:
