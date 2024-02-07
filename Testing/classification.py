@@ -51,10 +51,10 @@ kernel = kernel.reshape((kernel.shape[0],kernel.shape[1],1))
 array = np.array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
 
 SIZE = 128
-# baseimg = cv2.imread("hmap_test.png").astype(float) / 255
+# baseimg = cv2.imread("hmap_test2.png").astype(float) / 255
 baseimg = cv2.imread("hmap.png").astype(float) / 255
 baseimg = cv2.resize(baseimg, (SIZE,SIZE))
-baseimg = baseimg*5
+baseimg = baseimg*10
 img = np.ones((SIZE,SIZE,3))
 img[:] = baseimg[:]
 
@@ -72,7 +72,7 @@ def calculate_score(body_pos, foot_pos,x,y):
     dist = sqrt((x-body_pos[0])*(x-body_pos[0])+(y-body_pos[1])*(y-body_pos[1])+8*8*(baseimg[y,x,0]-body_pos[2])*(baseimg[y,x,0]-body_pos[2]))
     # radius = 15
     # stand_dev = 3
-    body_proximity_score = max(sample_gaussian(height=1, offset=15, stand_dev=3.0, dist=dist)-0.1,0)#-pow(2.71828, -2*(dist+1.51*stand_dev-radius))-0.1, 0)
+    body_proximity_score = max(sample_gaussian(height=1, offset=15, stand_dev=3.0, dist=dist)-0.1,0-pow(2.71828, -2*(dist+1.51*3-15))-0.1, 0)
 
     dist = sqrt((x-foot_pos[0])*(x-foot_pos[0])+(y-foot_pos[1])*(y-foot_pos[1]))
     foot_proximity_score = max(sample_gaussian(height=1, offset=0, stand_dev=3.0, dist=dist)-0.1,0)#-pow(2.71828, -2*(dist+1.51*stand_dev-radius))-0.1, 0)
@@ -83,7 +83,7 @@ def calculate_score(body_pos, foot_pos,x,y):
 
     mouseX,mouseY = x,y
     # return img[r,c].min()
-    return body_proximity_score * terrain_proximity_score * foot_proximity_score
+    return body_proximity_score
 
 def poll_value(event,x,y,flags,param):
     print(img[y,x])
@@ -105,7 +105,7 @@ def calc_points(event,x,y,flags,param):
         img[:] = baseimg[:]
         for r in range(SIZE):
             for c in range(SIZE):
-                score = calculate_score(np.array([65,65,5.6]),np.array([x,y,0]),c,r)
+                score = calculate_score(np.array([65,65,10.6]),np.array([x,y,0]),c,r)
                 if score <= 0:
                     img[r,c] = [0,0,1]
                 else:
