@@ -5,7 +5,6 @@ from roboMath import rotate
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram,compileShader
 
-import numpy as np
 import cv2
 from math import copysign
 # from scipy.spatial import Octree
