@@ -1,8 +1,0 @@
-prefix=/home/epep/HexapodMasters/catkin_ws/devel
-
-Name: hexapod_ros
-Description: Description of hexapod_ros
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

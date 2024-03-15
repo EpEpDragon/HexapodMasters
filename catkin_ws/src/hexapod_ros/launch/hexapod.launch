@@ -1,0 +1,13 @@
+<launch>
+    <arg name = "pkg_root" default="$(find hexapod_ros)"/>
+
+    <node pkg = "hexapod_ros" type = "node_hmap.py" name = "hmap" output="screen"> </node>  
+        <param name = "pkg_root" value = '$(arg pkg_root)'/>
+
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="align_depth" value="true" /> 
+        <arg name="enable_sync" value="true" /> 
+        <arg name="enable_color" value="true" /> 
+        <arg name="enable_depth" value="true" /> 
+    </include>
+</launch>
