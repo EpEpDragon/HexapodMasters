@@ -1,13 +1,31 @@
 <launch>
-    <arg name = "pkg_root" default="$(find hexapod_ros)"/>
+    <arg name = "pkg_root"  default="$(find hexapod_ros)"/>
+    
+    <arg name = "width"     default="848"/>
+    <arg name = "height"    default="480"/>
+
+    <arg name = "camera_pitch_offset"    default="22"/>
+
+    <arg name = "fps"    default="30"/>
 
     <node pkg = "hexapod_ros" type = "node_hmap.py" name = "hmap" output="screen"> </node>  
         <param name = "pkg_root" value = '$(arg pkg_root)'/>
+        <param name = "camera_pitch_offset" value = '$(arg camera_pitch_offset)'/>
+
 
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
-        <arg name="align_depth" value="true" /> 
-        <arg name="enable_sync" value="true" /> 
-        <arg name="enable_color" value="true" /> 
-        <arg name="enable_depth" value="true" /> 
+
+        <arg name="depth_width"     value="$(arg width)"/>
+        <arg name="depth_height"    value="$(arg height)"/>
+        <arg name="color_width"     value="$(arg width)"/>
+        <arg name="color_height"    value="$(arg height)"/>
+
+        <arg name="depth_fps"       default="$(arg fps)"/>
+        <arg name="color_fps"       default="$(arg fps)"/>
+
+        <arg name="align_depth"     value="true" /> 
+        <arg name="enable_sync"     value="true" /> 
+        <arg name="enable_color"    value="true" /> 
+        <arg name="enable_depth"    value="true" />
     </include>
 </launch>

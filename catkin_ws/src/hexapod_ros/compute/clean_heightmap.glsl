@@ -18,4 +18,5 @@ void main()
     {
         sdf_buffer[x][y] = 0.0;
     }
+    // sdf_buffer[x][y] = 0.0;
 }

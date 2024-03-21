@@ -50,7 +50,7 @@ class Perception():
         self.clean_heightmap_program = glCreateProgram()
 
         # visualize window
-        cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
+        # cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
 
         # Make GL context
         if not glfw.init():
@@ -100,8 +100,21 @@ class Perception():
  
     def _generate_heightmap(self, depth, camera_quat, cam_hmap_i):
         # Set depth image data
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])        
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, depth.nbytes, depth)
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])
+        try:        
+            glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, depth.nbytes, depth)
+        except:
+            rospy.logerr("Data Error")
+
+
+        # ################# Distance stage ##################
+        glUseProgram(self.clean_heightmap_program)
+        
+        # Set Uniforms
+        glUniform3i(0, self.hmap_index[0], self.hmap_index[1], self.hmap_index[2])         # Robot position
+        
+        glDispatchCompute(int(HMAP_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(HMAP_EXTENTS/CELL_DISTANCE_INVOCAIONS), 1)
+
 
         ################### Trace stage ##################
         glUseProgram(self.heightmap_program)
@@ -116,13 +129,7 @@ class Perception():
         # Sync
         # glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
 
-        # ################# Distance stage ##################
-        glUseProgram(self.clean_heightmap_program)
-        
-        # Set Uniforms
-        glUniform3i(0, self.hmap_index[0], self.hmap_index[1], self.hmap_index[2])         # Robot position
-        
-        glDispatchCompute(int(HMAP_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(HMAP_EXTENTS/CELL_DISTANCE_INVOCAIONS), 1)
+
 
         # Sync, read SDF
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
@@ -134,14 +141,19 @@ class Perception():
         self.walmachine = walkmachine
     
     def _local_to_hmap(self, local_pos):
-        return (np.round(global_to_hmap(rotate(self.body_quat, -local_pos))) - self.hmap_index + int(HMAP_EXTENTS/2)) % HMAP_EXTENTS    # Transfer point to hmap space
+        # Transfer point to hmap space
+        return (np.round(global_to_hmap(rotate(self.body_quat, -local_pos))) - self.hmap_index + int(HMAP_EXTENTS/2)) % HMAP_EXTENTS
 
     def _display_heightmap(self):
         # img = np.ones((self.hmap_buffer.shape[0],self.hmap_buffer.shape[1],3), dtype=np.float32)
-        img = self.hmap_buffer[..., np.newaxis]
-        img = np.concatenate((img,img,img), axis=2)
+        img = self.hmap_buffer#[..., np.newaxis]
+        # img = np.concatenate((img,img,img), axis=2)
         low = self.hmap_buffer.min()
         diff = self.hmap_buffer.max() - low
+        print("low")
+        print(low)
+        print("diff")
+        print(diff)
         img = (img - low+0.1)/(diff+0.1)
 
         # TODO ~70ms very slow, make better
@@ -150,18 +162,18 @@ class Perception():
             #     img[x,y] *= (self.hmap_buffer[(x-self.hmap_index[0])%HMAP_EXTENTS, (y-self.hmap_index[1])%HMAP_EXTENTS] + 2) / 4
                 # img[x,y] = self.hmap_buffer[(x-self.hmap_index[0])%HMAP_EXTENTS, (y-self.hmap_index[1])%HMAP_EXTENTS]
 
-        # # Draw foot targets
-        for i in range(6):
-            hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
-            # img_i = (hmap_i-self.hmap_index)%HMAP_EXTENTS   # Hold in center of centered image
-            if (self.walmachine.is_swinging[i]):
-                img[int(hmap_i[0]), int(hmap_i[1])] = np.array([0,1,0])
-            else:
-                img[int(hmap_i[0]), int(hmap_i[1])] = np.array([0,0,1])
+        # Draw foot targets
+        # for i in range(6):
+        #     hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
+        #     # img_i = (hmap_i-self.hmap_index)%HMAP_EXTENTS   # Hold in center of centered image
+        #     if (self.walmachine.is_swinging[i]):
+        #         img[int(hmap_i[0]), int(hmap_i[1])] = np.array([0,1,0])
+        #     else:
+        #         img[int(hmap_i[0]), int(hmap_i[1])] = np.array([0,0,1])
         
         # ~8ms
         # img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
-        cv2.imshow('SDF Slice', (img * 255).astype(np.uint8))
+        cv2.imshow('HMap', (img * 255).astype(np.uint8))
         cv2.waitKey(1)
 
     def update(self, camera_pos, body_pos, camera_quat, body_quat, depth):
@@ -169,7 +181,7 @@ class Perception():
         self.hmap_index = global_to_hmap(body_pos)
         self.position = body_pos%EXTENTS
         self._generate_heightmap(depth, camera_quat, global_to_hmap(camera_pos))
-        self._display_heightmap()
+        # self._display_heightmap()
         self.temporal_i = int((self.temporal_i + 1)%4)
 
     def get_height_at_point(self, point):
@@ -177,3 +189,6 @@ class Perception():
         hmap_i= self._local_to_hmap(point)
         h = self.hmap_buffer[hmap_i[0], hmap_i[1]]
         return h
+    
+    def get_hmap(self):
+        return self.hmap_buffer
