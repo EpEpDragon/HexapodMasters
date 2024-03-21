@@ -8,26 +8,33 @@ layout(location = 1) uniform vec4 camera_quat;
 layout(location = 2) uniform int temporal_i;
 
 // CPU Shared Buffers 
-layout(std430, binding = 0) readonly restrict buffer image { float depth_image[uint(90)][uint(160)]; };
-layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[128][128]; };
+layout(std430, binding = 0) readonly restrict buffer image { float depth_image[uint(120)][uint(212)]; };
+layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[192][192]; };
 
 // Temporal average buffer
-layout(std430, binding = 2) volatile buffer temp { float temporal_buffer[4][128][128]; };
+layout(std430, binding = 2) volatile buffer temp { float temporal_buffer[4][192][192]; };
 
-const uint RES_Y = uint(160);
-const uint RES_X = uint(90);
-const float FOV = 60;
-const float FX = (RES_X/2) / tan(FOV * 3.141 / 180 / 2);
+// const uint RESX = uint(160*2);
+// const uint RES_Y = uint(90*2);
+// const float FOV = 89.43;
+// const float FX = (RES_X/2) / tan(FOV * 3.141 / 180 / 2);
+// const float FY = FX;
+// const float CX = (RES_Y-1) / 2;
+// const float CY = (RES_X-1) / 2;
+
+const float FX = 242.381683349609 * 0.5;
 const float FY = FX;
-const float CX = (RES_Y-1) / 2;
-const float CY = (RES_X-1) / 2;
+const float CX = 241.763366699219 * 0.5;
+const float CY = 132.375762939453 * 0.5;
+
+
 const float ZFAR = 5.4;
 const float ZNEAR = 0.05;
 
 
 // TODO Make these uniforms
 const int EXTENTS = 16;                         // Extents of SDF block, in distance units
-const int DIVISIOINS = 8;                       // Cells per distance unit
+const int DIVISIOINS = 12;                       // Cells per distance unit
 const int HMAP_EXTENTS = EXTENTS*DIVISIOINS;     // Extents of SDF block, in number of cells
 
 const float PENETRATION_DEPTH = 2*DIVISIOINS;
@@ -52,7 +59,7 @@ vec4 compute_point()
     float z = depth_image[i][j];
     
     // Terminate if too close to camera
-    if(z < 2.5){
+    if(z < 2.0){
         return(vec4(0,0,0,2));
     }
 

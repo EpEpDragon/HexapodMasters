@@ -1,12 +1,15 @@
 <launch>
     <arg name = "pkg_root"  default="$(find hexapod_ros)"/>
     
-    <arg name = "width"     default="848"/>
-    <arg name = "height"    default="480"/>
+    <!-- Camera Parameters -->
+    <arg name = "width"     default="424"/>
+    <arg name = "height"    default="240"/>
+    <arg name = "fps"       default="30"/>
+    <arg name = "exposure"  default="5000"/>
 
-    <arg name = "camera_pitch_offset"    default="22"/>
+    <arg name = "camera_pitch_offset"    default="29"/>
 
-    <arg name = "fps"    default="30"/>
+    
 
     <node pkg = "hexapod_ros" type = "node_hmap.py" name = "hmap" output="screen"> </node>  
         <param name = "pkg_root" value = '$(arg pkg_root)'/>
@@ -22,6 +25,8 @@
 
         <arg name="depth_fps"       default="$(arg fps)"/>
         <arg name="color_fps"       default="$(arg fps)"/>
+
+        <arg name="stereo_module/exposure/1"  default="$(arg exposure)"/>
 
         <arg name="align_depth"     value="true" /> 
         <arg name="enable_sync"     value="true" /> 

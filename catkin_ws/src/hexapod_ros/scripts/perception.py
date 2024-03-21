@@ -14,7 +14,7 @@ from math import copysign
 import rospy
 
 EXTENTS = 16                        # Extents of SDF block, in distance units
-DIVISIOINS = 8                      # Cells per distance unit
+DIVISIOINS = 12                      # Cells per distance unit
 HMAP_EXTENTS = EXTENTS*DIVISIOINS    # Extents of SDF block, in number of cells
 
 VOXEL_TRACE_INVOCAIONS = 32         # NB This must match the x and y invocations specified in voxel_trace.glsl
@@ -124,7 +124,7 @@ class Perception():
         glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])  # Camera rotation
         glUniform1i(2, self.temporal_i)
         
-        glDispatchCompute(int((160)/VOXEL_TRACE_INVOCAIONS), int((90)/VOXEL_TRACE_INVOCAIONS), 1)
+        glDispatchCompute(int((212)/VOXEL_TRACE_INVOCAIONS), int((120)/VOXEL_TRACE_INVOCAIONS), 1)
         
         # Sync
         # glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
@@ -150,10 +150,10 @@ class Perception():
         # img = np.concatenate((img,img,img), axis=2)
         low = self.hmap_buffer.min()
         diff = self.hmap_buffer.max() - low
-        print("low")
-        print(low)
-        print("diff")
-        print(diff)
+        # print("low")
+        # print(low)
+        # print("diff")
+        # print(diff)
         img = (img - low+0.1)/(diff+0.1)
 
         # TODO ~70ms very slow, make better
