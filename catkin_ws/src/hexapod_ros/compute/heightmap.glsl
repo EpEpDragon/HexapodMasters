@@ -28,7 +28,7 @@ const float CX = 241.763366699219 * 0.5;
 const float CY = 132.375762939453 * 0.5;
 
 
-const float ZFAR = 5.4;
+const float ZFAR = 7.4;
 const float ZNEAR = 0.05;
 
 
@@ -56,10 +56,10 @@ vec4 compute_point()
 {
     int i = int(gl_GlobalInvocationID.y);
     int j = int(gl_GlobalInvocationID.x);
-    float z = depth_image[i][j];
+    float z = depth_image[i][j] / 10.0;
     
     // Terminate if too close to camera
-    if(z < 2.0){
+    if(z < 0.1){
         return(vec4(0,0,0,2));
     }
 

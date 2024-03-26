@@ -9,9 +9,9 @@ def quadratic_kernel(size, max, scale):
     kernel = np.empty((size,size))
     for i in range(size):
         for j in range(size):
-            x = (i-size/2)*scale
-            y = (j-size/2)*scale
-            kernel[i,j] = 40*(x*x*x*x+y*y*y*y)+0.3
+            x = (i-(size-1)/2.0)*scale
+            y = (j-(size-1)/2.0)*scale
+            kernel[i,j] = (x*x + y*y)
     return kernel
 
 def sample_gaussian(height, offset, stand_dev, dist, size=0):
@@ -41,20 +41,21 @@ def get_wrapped(matrix, i, j):
   cols = [(j-1) % n, j, (j+1) % n]
   return matrix[rows][:, cols]
 
-kernel_size = 6
+kernel_size = 13
 # kernel = quadratic_kernel(kernel_size, 1, 1/kernel_size).flatten()
 # kernel = kernel.reshape(kernel.shape[0],1)
-kernel = quadratic_kernel(kernel_size+1, 1, 2/kernel_size)
+kernel = quadratic_kernel(kernel_size, 1, 0.25)
+np.set_printoptions(linewidth=np.inf)
 print(kernel)
 kernel = kernel.reshape((kernel.shape[0],kernel.shape[1],1))
 
 array = np.array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
 
-SIZE = 128
+SIZE = 16*12
 # baseimg = cv2.imread("hmap_test2.png").astype(float) / 255
-baseimg = cv2.imread("hmap.png").astype(float) / 255
+baseimg = cv2.imread("hmap_test4.png").astype(float) / 255
 baseimg = cv2.resize(baseimg, (SIZE,SIZE))
-baseimg = baseimg*10
+baseimg = baseimg*5
 img = np.ones((SIZE,SIZE,3))
 img[:] = baseimg[:]
 
@@ -66,8 +67,21 @@ def calculate_score(body_pos, foot_pos,x,y):
     # img[r,c] =  kernel - abs(baseimg[r,c]-baseimg[y,x])
     # img[y,x] = 1.0
 
-    temp = kernel - abs(baseimg[wrap_slice(baseimg,0, (y-int(kernel_size/2))%baseimg.shape[0], (y+int(kernel_size/2)+1)%baseimg.shape[0])][:,wrap_slice(baseimg,1,(x-int(kernel_size/2))%baseimg.shape[0], (x+int(kernel_size/2)+1)%baseimg.shape[0])] - baseimg[y,x,0])
-    terrain_proximity_score = max(temp.min(),0)
+    # temp = kernel - abs(baseimg[wrap_slice(baseimg,0, (y-int(kernel_size/2))%baseimg.shape[0], (y+int(kernel_size/2)+1)%baseimg.shape[0])][:,wrap_slice(baseimg,1,(x-int(kernel_size/2))%baseimg.shape[0], (x+int(kernel_size/2)+1)%baseimg.shape[0])] - baseimg[y,x,0])
+    
+    r,c = wrap_block(img, (y-int((kernel_size)/2))%img.shape[0], (y+int((kernel_size)/2)+1)%img.shape[0], (x-int((kernel_size)/2))%img.shape[0], (x+int((kernel_size)/2)+1)%img.shape[0])
+    temp =  kernel.reshape((kernel.size,1)) - abs(baseimg[r,c]-baseimg[y,x])
+    temp[int((kernel.size-1)/2)] = 1.0
+    terrain_proximity_score = np.average(temp)
+
+    if x < baseimg.shape[0]-1 and y < baseimg.shape[0]-1:
+        height = baseimg[y,x,0]
+        dy = baseimg[y + 1, x,0] - height
+        dx = baseimg[y, x + 1,0] - height
+
+        steepness_score = sqrt(dx*dx + dy*dy)
+    else:
+        steepness_score = 0
 
     dist = sqrt((x-body_pos[0])*(x-body_pos[0])+(y-body_pos[1])*(y-body_pos[1])+8*8*(baseimg[y,x,0]-body_pos[2])*(baseimg[y,x,0]-body_pos[2]))
     # radius = 15
@@ -83,33 +97,42 @@ def calculate_score(body_pos, foot_pos,x,y):
 
     mouseX,mouseY = x,y
     # return img[r,c].min()
-    return body_proximity_score
+    return terrain_proximity_score
 
 def poll_value(event,x,y,flags,param):
     print(img[y,x])
 
 
-cv2.namedWindow('hmap', cv2.WINDOW_NORMAL)
-cv2.resizeWindow('hmap', 1024, 1024)
+# cv2.namedWindow('hmap', cv2.WINDOW_NORMAL)
+# cv2.resizeWindow('hmap', 1024, 1024)
 cv2.namedWindow('image', cv2.WINDOW_NORMAL)
 cv2.resizeWindow('image', 1024, 1024)
-
 
 # gaussian = sample_gaussian(1,1,20)
 # plt.plot(gaussian)
 # plt.show()
 
 def calc_points(event,x,y,flags,param):
-    print(img[x,y])
+    print(img[y,x])
+
+    # if event == cv2.EVENT_LBUTTONDOWN:
+    #     img[:] = baseimg[:]
+    #     r,c = wrap_block(img, (y-int((kernel_size)/2))%img.shape[0], (y+int((kernel_size)/2)+1)%img.shape[0], (x-int((kernel_size)/2))%img.shape[0], (x+int((kernel_size)/2)+1)%img.shape[0])
+    #     img[r,c] =  kernel.reshape((kernel.size,1)) - abs(baseimg[r,c]-baseimg[y,x])
+    #     img[y,x] = 1.0
+
     if event == cv2.EVENT_LBUTTONDOWN:
         img[:] = baseimg[:]
         for r in range(SIZE):
             for c in range(SIZE):
-                score = calculate_score(np.array([65,65,10.6]),np.array([x,y,0]),c,r)
+                score = calculate_score(np.array([65,65,10.6]), np.array([x,y,0]),c,r)
+                # img[r,c] = score
                 if score <= 0:
                     img[r,c] = [0,0,1]
                 else:
-                    img[r,c] = [0,score,0]
+                    img[r,c] = [0,score/5,0]
+        cv2.imwrite("prox_score_test.png", img*255)
+    
 
     # cv2.imshow('image',img)
     # cv2.imshow('hmap',baseimg)

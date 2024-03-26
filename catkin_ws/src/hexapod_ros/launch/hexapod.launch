@@ -5,9 +5,9 @@
     <arg name = "width"     default="424"/>
     <arg name = "height"    default="240"/>
     <arg name = "fps"       default="30"/>
-    <arg name = "exposure"  default="5000"/>
+    <arg name = "exposure"  default="2000"/>
 
-    <arg name = "camera_pitch_offset"    default="29"/>
+    <arg name = "camera_pitch_offset"    default="19.5"/>
 
     
 
@@ -25,12 +25,17 @@
 
         <arg name="depth_fps"       default="$(arg fps)"/>
         <arg name="color_fps"       default="$(arg fps)"/>
-
-        <arg name="stereo_module/exposure/1"  default="$(arg exposure)"/>
+        <rosparam>
+            /camera/stereo_module/enable_auto_exposure: false
+            /camera/stereo_module/exposure: 2000
+        </rosparam>
+        <!-- <arg name="stereo_module/exposure/1"  default="$(arg exposure)"/> -->
 
         <arg name="align_depth"     value="true" /> 
         <arg name="enable_sync"     value="true" /> 
         <arg name="enable_color"    value="true" /> 
         <arg name="enable_depth"    value="true" />
     </include>
+
+
 </launch>

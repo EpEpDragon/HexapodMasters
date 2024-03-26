@@ -11,6 +11,8 @@ import glfw
 from math import copysign
 # from scipy.spatial import Octree
 
+import matplotlib.pyplot as plt
+
 import rospy
 
 EXTENTS = 16                        # Extents of SDF block, in distance units
@@ -49,9 +51,6 @@ class Perception():
         self.heightmap_program = glCreateProgram()
         self.clean_heightmap_program = glCreateProgram()
 
-        # visualize window
-        # cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
-
         # Make GL context
         if not glfw.init():
             return
@@ -78,7 +77,7 @@ class Perception():
         clean_heightmap_src = open(rospy.get_param('pkg_root') + '/compute/clean_heightmap.glsl','r').readlines()
         self.clean_heightmap_program = compileProgram(compileShader(clean_heightmap_src, GL_COMPUTE_SHADER))
         
-        self.glbuffers  = glGenBuffers(3)
+        self.glbuffers  = glGenBuffers(4)
 
         # Bind image buffer
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[0])
@@ -92,6 +91,11 @@ class Perception():
         # Bind temporal buffer
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, self.glbuffers[2])
         glBufferData(GL_SHADER_STORAGE_BUFFER, self.hmap_buffer.nbytes * 4, None, GL_DYNAMIC_READ)
+
+        # Bind Score buffer
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, self.glbuffers[3])
+        glBufferData(GL_SHADER_STORAGE_BUFFER, self.hmap_buffer.nbytes * 4, None, GL_DYNAMIC_READ)
+
 
         # Bind points buffer
         # glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, self.glbuffers[2])
@@ -107,7 +111,7 @@ class Perception():
             rospy.logerr("Data Error")
 
 
-        # ################# Distance stage ##################
+        # ################# HMap Tasks ##################
         glUseProgram(self.clean_heightmap_program)
         
         # Set Uniforms
@@ -116,7 +120,7 @@ class Perception():
         glDispatchCompute(int(HMAP_EXTENTS/CELL_DISTANCE_INVOCAIONS), int(HMAP_EXTENTS/CELL_DISTANCE_INVOCAIONS), 1)
 
 
-        ################### Trace stage ##################
+        ################### Project Depth to HMap ##################
         glUseProgram(self.heightmap_program)
         
         # Set Uniforms
@@ -136,13 +140,16 @@ class Perception():
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
         self.hmap_buffer[:] = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.hmap_buffer.nbytes), dtype=self.hmap_buffer.dtype).reshape(HMAP_EXTENTS,HMAP_EXTENTS)[:]
 
+
     # HACK for visualisation of feet
     def add_walkmachine(self, walkmachine):
         self.walmachine = walkmachine
     
+
     def _local_to_hmap(self, local_pos):
         # Transfer point to hmap space
         return (np.round(global_to_hmap(rotate(self.body_quat, -local_pos))) - self.hmap_index + int(HMAP_EXTENTS/2)) % HMAP_EXTENTS
+
 
     def _display_heightmap(self):
         # img = np.ones((self.hmap_buffer.shape[0],self.hmap_buffer.shape[1],3), dtype=np.float32)
@@ -173,8 +180,11 @@ class Perception():
         
         # ~8ms
         # img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+
+
         cv2.imshow('HMap', (img * 255).astype(np.uint8))
         cv2.waitKey(1)
+
 
     def update(self, camera_pos, body_pos, camera_quat, body_quat, depth):
         self.body_quat = body_quat

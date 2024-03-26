@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
-from math import copysign
-import matplotlib.pyplot as plt
-from perlin_noise import PerlinNoise
+# from math import copysign
+# import matplotlib.pyplot as plt
+# from perlin_noise import PerlinNoise
 
 size = 128
 
@@ -11,7 +11,7 @@ n = 6 * 3.141 / size
 
 for x in range(size):
     for y in range(size):
-        hmap[x,y] = round((np.sin(x*n)*np.sin(y*n) + 1)/2)
+        hmap[x,y] = round((np.sin(x*n)*np.sin(y*n)/2.0 + 0.5))
 
 
 # noise1 = PerlinNoise(octaves=2, seed=5426)
