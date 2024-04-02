@@ -2,15 +2,10 @@
 
 import rospy
 
-from hexapod_ros.msg import RGBMatrixFlat, DMatrixFlat
-
-# from rospy.numpy_msg import numpy_msg
 from sensor_msgs.msg import Image
 
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
-
-from perception import Perception
 
 import cv2
 import matplotlib.pyplot as plt
@@ -18,6 +13,7 @@ import matplotlib.pyplot as plt
 RES_X = int(212)
 RES_Y = int(120)
 
+# Get and store data from hexapod
 class DataListner:
     def __init__(self, topic_rgb, topic_d, topic_hmap):
         self.bridge = CvBridge()
@@ -34,7 +30,7 @@ class DataListner:
         
     def color_callback(self, data):
         try:
-            self.rgb = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.float32)
+            self.rgb = self.bridge.imgmsg_to_cv2(data, data.encoding)
             self.rgb = cv2.resize(self.rgb, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             self.rgb_ready = True
         
@@ -44,7 +40,7 @@ class DataListner:
 
     def depth_callback(self, data):
         try:
-            self.d = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.float32) / 10.0
+            self.d = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.float32)
             self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             self.d_ready = True
             
@@ -54,7 +50,6 @@ class DataListner:
     
     def hmap_callback(self, data):
         try:
-            print("got hmap data")
             self.hmap = self.bridge.imgmsg_to_cv2(data, data.encoding)
             self.hmap_ready = True
 
@@ -88,10 +83,6 @@ def run():
     
     data_in = DataListner('rgb_data', 'd_data', 'hmap_data')
     img_rgb, img_d, img_hmap = _init_rgbd_display()
-    
-    rospy.loginfo("Feed found!")
-    # plt.show()
-
 
     rate = rospy.Rate(15)
     while not rospy.is_shutdown():
@@ -109,8 +100,6 @@ def run():
         rate.sleep()
         td = (rospy.Time.now()-t)/1000000
         # print(td)
-        # perception._display_heightmap()
-        
 
 
 if __name__ == '__main__':
