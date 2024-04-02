@@ -32,7 +32,7 @@ class RGBDListener:
     def color_callback(self, data):
         try:
             self.rgb = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.uint8)
-            self.rgb = cv2.resize(self.rgb, (RES_X, RES_Y))
+            self.rgb = cv2.resize(self.rgb, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             self.rgb_ready = True
             # cv2.imshow('Color', (self.rgb[:,:,::-1]).astype(np.uint8))
             # cv2.waitKey(1)
@@ -68,6 +68,9 @@ def run():
     else:
         rospy.logerr("Initialisation failed!")
     
+
+    pub_rgb = rospy.Publisher('rgb_data', Image, queue_size=10)
+    pub_d = rospy.Publisher('d_data', Image, queue_size=10)
     pub_hmap = rospy.Publisher('hmap_data', Image, queue_size=10)
     
     
@@ -80,13 +83,13 @@ def run():
 
     rate = rospy.Rate(15)
     angle = np.deg2rad(rospy.get_param("camera_pitch_offset"))
-    # angle = np.deg2rad(20.0)
     while not rospy.is_shutdown():
         t = rospy.Time.now()
-        # angle += np.deg2rad(0.1)
-        # print((np.rad2deg(angle)%360))
+        if rgbd_in.rgb_ready:
+            pub_rgb.publish(bridge.cv2_to_imgmsg(rgbd_in.rgb))
         if rgbd_in.d_ready:
             perception.update(np.array([0,0,4]), np.array([0,0,0]), np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array([1,0,0,0]), rgbd_in.d)
+            pub_d.publish(bridge.cv2_to_imgmsg(rgbd_in.d))
             pub_hmap.publish(bridge.cv2_to_imgmsg(perception.hmap_buffer))
             print(str(rospy.Time.now())+"push hmap")
         rate.sleep()

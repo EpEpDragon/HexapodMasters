@@ -9,9 +9,7 @@
 
     <arg name = "camera_pitch_offset"    default="23"/>
 
-    
-
-    <node pkg = "hexapod_ros" type = "node_hmap.py" name = "hmap" output="screen"> </node>  
+        <node pkg = "hexapod_ros" type = "node_hmap.py" name = "hmap" output="screen"> </node>  
         <param name = "pkg_root" value = '$(arg pkg_root)'/>
         <param name = "camera_pitch_offset" value = '$(arg camera_pitch_offset)'/>
 
