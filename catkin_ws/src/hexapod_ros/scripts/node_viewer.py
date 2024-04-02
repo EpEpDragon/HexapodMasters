@@ -19,40 +19,48 @@ RES_X = int(212)
 RES_Y = int(120)
 
 class DataListner:
-    def __init__(self, topic_hmap):
+    def __init__(self, topic_rgb, topic_d, topic_hmap):
         self.bridge = CvBridge()
+        rospy.Subscriber(topic_rgb, Image, self.color_callback)
+        rospy.Subscriber(topic_d, Image, self.depth_callback)
         rospy.Subscriber(topic_hmap, Image, self.hmap_callback)
 
+        self.rgb = 0
+        self.d = 0
         self.hmap = 0
+        self.rgb_ready = False
+        self.d_ready = False
         self.hmap_ready = False
         
-
-    def hmap_callback(self, data):
+    def color_callback(self, data):
         try:
-            print("got hmap data")
-            self.hmap = self.bridge.imgmsg_to_cv2(data, data.encoding)
-            self.hmap_ready = True
-            # cv2.imshow('Color', (self.rgb[:,:,::-1]).astype(np.uint8))
-            # cv2.waitKey(1)
+            self.rgb = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.float32)
+            self.rgb = cv2.resize(self.rgb, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
+            self.rgb_ready = True
         
         except CvBridgeError as e:
             print(e)
             return
-
 
     def depth_callback(self, data):
         try:
             self.d = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.float32) / 10.0
             self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             self.d_ready = True
-            # rospy.loginfo({np.max(self.d)})
-            # cv2.imshow('Depth', cm.jet(self.d / 10))
-            # cv2.waitKey(1)
             
         except CvBridgeError as e:
             print(e)
             return
+    
+    def hmap_callback(self, data):
+        try:
+            print("got hmap data")
+            self.hmap = self.bridge.imgmsg_to_cv2(data, data.encoding)
+            self.hmap_ready = True
 
+        except CvBridgeError as e:
+            print(e)
+            return
 
 
 def _init_rgbd_display():
@@ -78,7 +86,7 @@ def _init_rgbd_display():
 def run():
     rospy.init_node('hexapod_data_viewer', anonymous=True)
     
-    data_in = DataListner('hmap_data')
+    data_in = DataListner('rgb_data', 'd_data', 'hmap_data')
     img_rgb, img_d, img_hmap = _init_rgbd_display()
     
     rospy.loginfo("Feed found!")
@@ -89,11 +97,13 @@ def run():
     while not rospy.is_shutdown():
         t = rospy.Time.now()
         
+        # _display_rgbd(rgbd_in)
+        if data_in.rgb_ready:
+            img_rgb.set_data(data_in.rgb)
+        if data_in.d_ready:
+            img_d.set_data(data_in.d)
         if data_in.hmap_ready:
             img_hmap.set_data(data_in.hmap*10)
-            print("diaplay")
-            # print(data_in.hmap_ready)
-
         plt.pause(0.0001)
 
         rate.sleep()
