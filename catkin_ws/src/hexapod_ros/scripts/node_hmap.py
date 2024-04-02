@@ -113,7 +113,7 @@ def run():
     angle = np.deg2rad(rospy.get_param("camera_pitch_offset"))
     # angle = np.deg2rad(20.0)
     while not rospy.is_shutdown():
-        rate.sleep()
+        t = rospy.Time.now()
         # angle += np.deg2rad(0.1)
         # print((np.rad2deg(angle)%360))
         if rgbd_in.d_ready:
@@ -125,8 +125,11 @@ def run():
         if rgbd_in.d_ready:
             img_d.set_data(rgbd_in.d)
         img_hmap.set_data(perception.hmap_buffer*10)
-        plt.pause(0.0001)
+        # plt.pause(0.0001)
 
+        rate.sleep()
+        td = (rospy.Time.now()-t)/1000000
+        print(td)
         # perception._display_heightmap()
         
 

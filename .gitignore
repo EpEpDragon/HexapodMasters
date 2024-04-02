@@ -2,6 +2,9 @@ MUJOCO_LOG.TXT
 MJMODEL.TXT
 mjmodel.mjb
 __pycache__/
+*.pyc
 
 catkin_ws/build
 catkin_ws/devel
+catkin_ws/logs
+catkin_ws/.catkin_tools
