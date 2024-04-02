@@ -34,6 +34,8 @@ class RGBDListener:
             self.rgb = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.uint8)
             self.rgb = cv2.resize(self.rgb, (RES_X, RES_Y))
             self.rgb_ready = True
+            # cv2.imshow('Color', (self.rgb[:,:,::-1]).astype(np.uint8))
+            # cv2.waitKey(1)
         
         except CvBridgeError as e:
             print(e)
@@ -45,6 +47,9 @@ class RGBDListener:
             self.d = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.float32) / 10.0
             self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             self.d_ready = True
+            # rospy.loginfo({np.max(self.d)})
+            # cv2.imshow('Depth', cm.jet(self.d / 10))
+            # cv2.waitKey(1)
             
         except CvBridgeError as e:
             print(e)
@@ -67,8 +72,11 @@ def run():
     
     
     rgbd_in = RGBDListener('/camera/color/image_raw', '/camera/aligned_depth_to_color/image_raw')
+    # img_rgb, img_d, img_hmap = _init_rgbd_display()
           
     rospy.loginfo("Feed found!")
+    # plt.show()
+
 
     rate = rospy.Rate(15)
     angle = np.deg2rad(rospy.get_param("camera_pitch_offset"))
