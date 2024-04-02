@@ -7,7 +7,7 @@
     <arg name = "fps"       default="30"/>
     <arg name = "exposure"  default="2000"/>
 
-    <arg name = "camera_pitch_offset"    default="19.5"/>
+    <arg name = "camera_pitch_offset"    default="23"/>
 
     
 
