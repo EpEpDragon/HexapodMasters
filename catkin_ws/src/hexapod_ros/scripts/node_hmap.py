@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import rospy
 from hexapod_ros.msg import DMatrixFlat, RGBMatrixFlat
 
@@ -53,7 +52,7 @@ class RGBDListener:
     
 def run():
     bridge = CvBridge()
-    rospy.init_node('hmap', anonymous=True)
+    rospy.init_node('hmap')
 
     rospy.loginfo("Initialiseing perception module...")
     perception = Perception(int(RES_Y*RES_X))
