@@ -11,7 +11,10 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 
 import cv2
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
+import pyqtgraph as pg
+from pyqtgraph.Qt import QtGui
+
 
 RES_X = int(212)
 RES_Y = int(120)
@@ -136,10 +139,15 @@ class ControlInterface():
             return pygame.draw.line(screen, self.color, start, end, self.thicc)
 
     class Box:
-        def __init__(self):
-            pass
+        def __init__(self, start, end, color):
+            self.start = start
+            self.end = end
+            self.color = color
+        
         def draw(self, screen):
-            pass
+            start = relative_to_absolute(self.start, screen.get_size())
+            end = relative_to_absolute(self.end, screen.get_size())
+            return pygame.draw.rect(screen, self.color, pygame.Rect(start,end))
 
     class Button:
         def __init__(self):
@@ -152,6 +160,39 @@ class ControlInterface():
             pass
         def draw(self, screen):
             pass
+    
+    class Image:
+        def __init__(self, start, max_size, data = np.random.rand(100, 200, 3)):
+            self.start = start
+            self.surface = pygame.surfarray.make_surface(data)
+            self.max_size = max_size
+            self.set_data(data)
+        
+        def set_data(self, data):
+            print(data.shape)
+            self.data = np.transpose(data, (1,0,2))
+            self.ratio = float(data.shape[0])/data.shape[1]
+            print(self.ratio)
+
+        def draw(self, screen):
+            # Resize image to fit insize max_size, maintains aspect ratio
+            size = (self.max_size[0])*screen.get_size()[0]
+            resize = (size, size*self.ratio)
+            
+            print(resize)
+            print("max " + str(self.max_size[1]*screen.get_size()[1]))
+            if resize[1] > self.max_size[1]*screen.get_size()[1]:
+                print("dasd")
+                size = (self.max_size[1])*screen.get_size()[1]
+                resize = (size/self.ratio, size)                
+            
+            # Invert because stupid
+            resize = (int(resize[1]), int(resize[0]))
+            
+            # print(resize)
+            data = cv2.resize(self.data, resize, interpolation=cv2.INTER_NEAREST)
+            self.surface = pygame.surfarray.make_surface(data)
+            return screen.blit(self.surface, relative_to_absolute(self.start, screen.get_size()))
     ##########################
 
     def __init__(self):
@@ -165,7 +206,6 @@ class ControlInterface():
 
         # Elements in GUI to update
         self.elements = []
-        
         self.redraw_display()
     
     def redraw_display(self):
@@ -199,24 +239,39 @@ class ControlInterface():
         self.check_input()
 
 
-def _init_rgbd_display():
-    cv2.namedWindow('Color', cv2.WINDOW_NORMAL)
-    cv2.namedWindow('HMap', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('Color', 800, 600)
-    cv2.resizeWindow('HMap', 600, 600)
+# def _init_rgbd_display():
+    # app = pg.mkQApp()
+    # win = QtGui.QMainWindow()
+
+    # container widget with a layout to add QWidgets to
+    # cw = QtGui.QWidget()
+    # win.setCentralWidget(cw)
+    # layout = QtGui.QVBoxLayout()
+    # cw.setLayout(layout)
+
+    # im1 = pg.image()
+    # im1.setImage(np.random.rand(10, 10))
+    # # layout.addWidget(im1)
+
+    # im2 = pg.image()
+    # im2.setImage(np.random.rand(100, 100))
+    # layout.addWidget(im2)
+
+    # win.show()
+    # app.exec_()
     
     # Matplot
-    plt.ion()
-    f, axarr = plt.subplots(3,1) 
-    img_rgb = axarr[0].imshow(np.zeros((RES_Y,RES_X,3)).astype(np.uint8))
-    img_d = axarr[1].imshow(np.zeros((RES_Y,RES_X)), cmap="jet", vmin=0, vmax=50, interpolation="nearest")
-    img_hmap = axarr[2].imshow(np.zeros((192,192)), cmap="jet", vmin=0, vmax=25, interpolation="nearest")
+    # plt.ion()
+    # f, axarr = plt.subplots(3,1) 
+    # img_rgb = axarr[0].imshow(np.zeros((RES_Y,RES_X,3)).astype(np.uint8))
+    # img_d = axarr[1].imshow(np.zeros((RES_Y,RES_X)), cmap="jet", vmin=0, vmax=50, interpolation="nearest")
+    # img_hmap = axarr[2].imshow(np.zeros((192,192)), cmap="jet", vmin=0, vmax=25, interpolation="nearest")
 
-    plt.colorbar(img_d, ax=axarr[1])
-    plt.colorbar(img_hmap, ax=axarr[2])
-    plt.subplots_adjust(left=0.04, bottom=0.02, right=1, top=0.99, wspace=0.2, hspace=0.08)
-  
-    return img_rgb, img_d, img_hmap
+    # plt.colorbar(img_d, ax=axarr[1])
+    # plt.colorbar(img_hmap, ax=axarr[2])
+    # plt.subplots_adjust(left=0.04, bottom=0.02, right=1, top=0.99, wspace=0.2, hspace=0.08)
+    
+    # return img_rgb, img_d, img_hmap
 
 
 def run():
@@ -226,12 +281,17 @@ def run():
     command_msg = HexapodCommands([0,0],0,0)
 
     data_in = DataListner('rgb_data', 'd_data', 'hmap_data')
-    img_rgb, img_d, img_hmap = _init_rgbd_display()
+    # img_rgb, img_d, img_hmap = _init_rgbd_display()
 
 
     ######## Interface Elements ##########
     control_interface = ControlInterface()
-    dir_pick = control_interface.add_element(ControlInterface.PointLine(start=(0.5,0.15), length=0.1, color=(255,255,255), thicc=2))
+    # control_interface.add_element(ControlInterface.Box(start=(0.65, 0.05), end=(0.95, 0.4),color=(255,255,255)))
+    dir_pick = control_interface.add_element(ControlInterface.PointLine(start=(0.8,0.25), length=0.15, color=(255,0,0), thicc=2))
+    control_interface.add_element(ControlInterface.Line(start=(0.6,0.05), end=(0.6,0.95), color=(255,255,255), thicc=2))
+    img_rgb = control_interface.add_element(ControlInterface.Image(start=(0.01,0.01), max_size=(0.5,0.5)))
+    # img_d = control_interface.add_element(ControlInterface.Image(start=(0.05,0.25), max_size=(0.1,0.2)))
+    # img_hmap = control_interface.add_element(ControlInterface.Image(start=(0.05,0.5), max_size=(0.1,0.2)))
     #####################################
 
     rate = rospy.Rate(30)
@@ -240,21 +300,21 @@ def run():
         
         if data_in.rgb_ready:
             img_rgb.set_data(data_in.rgb)
-        if data_in.d_ready:
-            img_d.set_data(data_in.d)
-        if data_in.hmap_ready:
-            img_hmap.set_data(data_in.hmap*10)
-        plt.pause(0.0001)
+        # if data_in.d_ready:
+        #     img_d.set_data(data_in.d)
+        # if data_in.hmap_ready:
+        #     img_hmap.set_data(data_in.hmap*10)
 
         control_interface.update()
         
+        ############## Push Hexapod Commands ##############
         command_msg.walk_dir = dir_pick.u_dir
-        print("publish " + str(command_msg))
         command_pub.publish(command_msg)
+        ###################################################
 
         rate.sleep()
         td = (rospy.Time.now()-t)/1000000
-        # print(td)
+        print(str(td)+" ms")
 
 
 if __name__ == '__main__':

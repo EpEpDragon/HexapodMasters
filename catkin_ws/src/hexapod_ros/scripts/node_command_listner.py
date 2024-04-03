@@ -10,7 +10,8 @@ def run():
     rospy.spin()
 
 def commands_callback(data):
-    print("Receive " + str(data))
+    pass
+    # print("Receive " + str(data))
 
 if __name__ == '__main__':
     try:
