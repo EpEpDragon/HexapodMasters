@@ -30,7 +30,7 @@ class RGBDListener:
     def color_callback(self, data):
         try:
             self.rgb = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.uint8)
-            self.rgb = cv2.resize(self.rgb, (RES_Y, RES_X), interpolation=cv2.INTER_NEAREST)
+            self.rgb = cv2.resize(self.rgb, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             self.rgb_ready = True
             # cv2.imshow('Color', (self.rgb[:,:,::-1]).astype(np.uint8))
             # cv2.waitKey(1)
@@ -42,7 +42,7 @@ class RGBDListener:
     def depth_callback(self, data):
         try:
             self.d = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.float32) / 10.0
-            self.d = cv2.resize(self.d, (RES_Y, RES_X), interpolation=cv2.INTER_NEAREST)
+            self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             self.d_ready = True
             # rospy.loginfo({np.max(self.d)})
             # cv2.imshow('Depth', cm.jet(self.d / 10))

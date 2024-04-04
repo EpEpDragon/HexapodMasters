@@ -84,6 +84,15 @@ def gray(im):
     ret = np.empty((w, h, 3), dtype=np.uint8)
     ret[:, :, 2] = ret[:, :, 1] = ret[:, :, 0] = im
     return ret
+def pointInRect(point,rect):
+    x1, y1, w, h = rect
+    x2, y2 = x1+w, y1+h
+    x, y = point
+    if (x1 < x and x < x2):
+        if (y1 < y and y < y2):
+            return True
+    return False
+
 class ControlInterface():
     screen_color = (60,25,60)
     ##### UI ELements Def ####
@@ -108,17 +117,25 @@ class ControlInterface():
             # For clear rect
             self.left_top = tuple(np.array(start)-np.array(length))
             self.width_height = (length*2+0.01, length*2+0.01)
-            self.u_dir = [0.0, 0.0]
+            self.u_dir = np.array([0.0, 0.0])
         
         
         def set_rect(self, start, length):
             self.rect = pygame.Rect(tuple(np.array(start)-np.array(length)), (length*2+2, length*2+2))
         
+        def set_dir(self, screen):
+            if pygame.mouse.get_pressed()[0]:
+                mouse_pos = np.array(pygame.mouse.get_pos())
+                left_top = relative_to_absolute(self.left_top, screen.get_size())
+                width_height = relative_to_absolute(self.width_height, screen.get_size())
+                if ((left_top[0] < mouse_pos[0] and mouse_pos[0] < left_top[0]+width_height[0]) and
+                    (left_top[1] < mouse_pos[1] and mouse_pos[1] < left_top[1]+width_height[1])):
+                        self.u_dir = normalize(mouse_pos - np.array(relative_to_absolute(self.start, screen.get_size())))
 
         def draw(self, screen):
-            mouse_pos = np.array(pygame.mouse.get_pos())
+            self.set_dir(screen)
             start = relative_to_absolute(self.start, screen.get_size())
-            diff = mouse_pos - start
+            # diff = mouse_pos - start
             
             screen_size = screen.get_size()
             length = 0
@@ -128,7 +145,7 @@ class ControlInterface():
             else:
                 length = self.length * screen_size[1]
                 
-            dists = (screen_size[0]-start[0], screen_size[1]-start[1])
+            # dists = (screen_size[0]-start[0], screen_size[1]-start[1])
 
             # Clamp line dist if overflow
             if (start[0]-length < 0):
@@ -140,7 +157,7 @@ class ControlInterface():
             if start[1] + length > screen_size[1]:
                 length = min(screen_size[1] - start[1]-10, length)
 
-            self.u_dir = normalize(diff)
+            # self.u_dir = normalize(diff)
             end = tuple(start + self.u_dir * length)
             
             self.angle = math.tan(self.u_dir[0]/1.0)
@@ -166,26 +183,43 @@ class ControlInterface():
         def draw(self, screen):
             pass 
     class Text:
-        def __init__(self, text, font, color):
-            pass
+        def __init__(self, start=(0,0), prefix="", font=pygame.font.SysFont, color=(255,255,255)):
+            self.start = start
+            self.prefix = prefix
+            self.text = prefix
+            self.color = color
+            self.font = font
+            self.rect_prev = pygame.Rect((0,0),(0,0))
+        
+        def set_text(self, text):
+            self.text = self.prefix + text
+        
         def draw(self, screen):
-            pass
+            text_surface = self.font.render(self.text, True, self.color)
+            screen.fill(ControlInterface.screen_color, self.rect_prev)
+            self.rect_prev = screen.blit(text_surface, relative_to_absolute(self.start, screen.get_size()))
+            return self.rect_prev
     
     class Image:
-        def __init__(self, start, max_size, data = np.random.rand(100, 200, 3)):
+        def __init__(self, start, max_size, data = np.random.rand(100, 200), colormap=None, vmin=0, vmax=1, text_box=None):
             self.start = start
             self.surface = pygame.surfarray.make_surface(data)
             self.max_size = max_size
+            self.rect = pygame.Rect((0,0),(0,0))
             self.set_data(data)
+            self.text_box = text_box
+            
+            self.vmax = vmax
+            self.vmin = vmin
+            if colormap != None:
+                self.cm = cm.get_cmap(colormap)
+            else:
+                self.cm = None
 
-            self.cm = cm.get_cmap("inferno")
-
-        def norm_to_value(self, value):
-            return (self.data/value).clip(0, 1.0)
+        def norm_to_range(self):
+            return ((self.data-self.vmin)/(self.vmax-self.vmin)).clip(0, 1.0)
 
         def set_data(self, data):
-            # print(data.shape)
-
             # Transpose because data in is as (y,x)
             if len(data.shape) == 2:
                 self.data = np.transpose(data)
@@ -193,10 +227,23 @@ class ControlInterface():
                 self.data = np.transpose(data, (1,0,2))
 
             self.ratio = float(data.shape[0])/data.shape[1]
-            print("Original " + str(data.shape))
-            # print(self.ratio)
+
+        def get_value(self, pos):
+            x1, y1, w, h = self.rect
+            U = float(pos[0]-x1)/w
+            V = float(pos[1]-y1)/h
+            return self.data[int(U*self.data.shape[0]), int(V*self.data.shape[1])]
+
+
+        def update_textbox(self, screen):
+            self.text_box.start = absolute_to_relative((self.rect.x, self.rect.y + self.rect.h), screen.get_size())
+            mouse_pos = pygame.mouse.get_pos()
+            if pointInRect(mouse_pos, self.rect):
+                self.text_box.set_text(str(self.get_value(mouse_pos)))
 
         def draw(self, screen):
+            if self.text_box != None:
+                self.update_textbox(screen)
             # Resize image to fit insize max_size, maintains aspect ratio
             size = (self.max_size[0])*screen.get_size()[0]
             resize = ( size, size*self.ratio )
@@ -207,17 +254,20 @@ class ControlInterface():
 
             # Flip because CV2 does (y,x)
             resize = (int(resize[1]), int(resize[0]))
-            print(resize)
             
-            data = self.norm_to_value(100)
-            data = self.cm(data)[:,:,:3]
-            data = to_u8(data)
+            data = self.data
+            if self.cm != None:
+                data = self.norm_to_range()
+                data = self.cm(data)[:,:,:3]
+                data = to_u8(data)
+                
 
             # print(data.shape)
             data = cv2.resize(data, resize, interpolation=cv2.INTER_NEAREST)
             
             self.surface = pygame.surfarray.make_surface(data)
-            return screen.blit(self.surface, relative_to_absolute(self.start, screen.get_size()))
+            self.rect = screen.blit(self.surface, relative_to_absolute(self.start, screen.get_size()))
+            return self.rect
     ##########################
 
     def __init__(self):
@@ -227,7 +277,7 @@ class ControlInterface():
         # Make window resiasable
         self.screen = pygame.display.set_mode((512,512), pygame.RESIZABLE)
         
-        self.smallfont = pygame.font.SysFont('Corbel',35) 
+        self.font = pygame.font.SysFont('Corbel',25)
 
         # Elements in GUI to update
         self.elements = []
@@ -244,15 +294,8 @@ class ControlInterface():
 
     def check_input(self):
         for ev in pygame.event.get():
-            
             if ev.type == pygame.VIDEORESIZE:
                 self.redraw_display()
-            if ev.type == pygame.QUIT:
-                self.running = False
-                pygame.quit()
-            
-            if ev.type == pygame.MOUSEBUTTONDOWN:
-                print("test")
 
     def update(self):
         width = self.screen.get_width()
@@ -312,24 +355,31 @@ def run():
     ######## Interface Elements ##########
     control_interface = ControlInterface()
     # control_interface.add_element(ControlInterface.Box(start=(0.65, 0.05), end=(0.95, 0.4),color=(255,255,255)))
-    dir_pick = control_interface.add_element(ControlInterface.PointLine(start=(0.8,0.25), length=0.15, color=(255,0,0), thicc=2))
+    dir_pick = control_interface.add_element(ControlInterface.PointLine(start=(0.8,0.15), length=0.15, color=(255,0,0), thicc=2))
+    text_box_dir = control_interface.add_element(ControlInterface.Text(start=(0.65,0.30),prefix="Testing", font=control_interface.font, color=(252, 194, 3)))
     control_interface.add_element(ControlInterface.Line(start=(0.6,0.05), end=(0.6,0.95), color=(255,255,255), thicc=2))
 
-    # img_rgb = control_interface.add_element(ControlInterface.Image(start=(0.01,0.01), max_size=(0.5,0.3)))
-    img_d = control_interface.add_element(ControlInterface.Image(start=(0.01,0.33), max_size=(0.5,0.3)))
-    # img_hmap = control_interface.add_element(ControlInterface.Image(start=(0.01,0.66), max_size=(0.5,0.3)))
+    text_box_rgb = control_interface.add_element(ControlInterface.Text(prefix="Color: ", font=control_interface.font, color=(252, 194, 3)))
+    img_rgb = control_interface.add_element(ControlInterface.Image(start=(0.02,0.02), max_size=(0.55, 0.3), text_box=text_box_rgb))
+
+    text_box_depth = control_interface.add_element(ControlInterface.Text(prefix="Depth: ", font=control_interface.font, color=(252, 194, 3)))
+    img_d = control_interface.add_element(ControlInterface.Image(start=(0.02,0.33), max_size=(0.55,0.3), colormap="plasma",vmin=10, vmax=60, text_box=text_box_depth))
+
+    text_box_height = control_interface.add_element(ControlInterface.Text(prefix="Height: ", font=control_interface.font, color=(252, 194, 3)))
+    img_hmap = control_interface.add_element(ControlInterface.Image(start=(0.02,0.66), max_size=(0.7,0.3), colormap="plasma",vmin=0, vmax=33, text_box=text_box_height))
     #####################################
 
     rate = rospy.Rate(30)
     while not rospy.is_shutdown() and control_interface.running:
         t = rospy.Time.now()
         
-        # if data_in.rgb_ready:
-        #     img_rgb.set_data(data_in.rgb)
+        text_box_dir.text = "Direction: " + str(dir_pick.u_dir)
+        if data_in.rgb_ready:
+            img_rgb.set_data(data_in.rgb)
         if data_in.d_ready:
             img_d.set_data(data_in.d)
-        # if data_in.hmap_ready:
-        #     img_hmap.set_data(data_in.hmap*10)
+        if data_in.hmap_ready:
+            img_hmap.set_data(data_in.hmap*10)
 
         control_interface.update()
         
