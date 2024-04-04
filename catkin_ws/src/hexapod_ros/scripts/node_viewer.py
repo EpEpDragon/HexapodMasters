@@ -11,7 +11,8 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 
 import cv2
-# import matplotlib.pyplot as plt
+import matplotlib
+import matplotlib.cm as cm
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 
@@ -73,6 +74,16 @@ def normalize(v):
     if norm == 0: 
        return v
     return v / norm
+
+def to_u8(im):
+    im = (255 * (im / im.max())).astype(np.uint8)
+    return im
+def gray(im):
+    im = 255 * (im / im.max())
+    w, h = im.shape
+    ret = np.empty((w, h, 3), dtype=np.uint8)
+    ret[:, :, 2] = ret[:, :, 1] = ret[:, :, 0] = im
+    return ret
 class ControlInterface():
     screen_color = (60,25,60)
     ##### UI ELements Def ####
@@ -153,8 +164,7 @@ class ControlInterface():
         def __init__(self):
             pass
         def draw(self, screen):
-            pass
-    
+            pass 
     class Text:
         def __init__(self, text, font, color):
             pass
@@ -167,30 +177,45 @@ class ControlInterface():
             self.surface = pygame.surfarray.make_surface(data)
             self.max_size = max_size
             self.set_data(data)
-        
+
+            self.cm = cm.get_cmap("inferno")
+
+        def norm_to_value(self, value):
+            return (self.data/value).clip(0, 1.0)
+
         def set_data(self, data):
-            print(data.shape)
-            self.data = np.transpose(data, (1,0,2))
+            # print(data.shape)
+
+            # Transpose because data in is as (y,x)
+            if len(data.shape) == 2:
+                self.data = np.transpose(data)
+            else: 
+                self.data = np.transpose(data, (1,0,2))
+
             self.ratio = float(data.shape[0])/data.shape[1]
-            print(self.ratio)
+            print("Original " + str(data.shape))
+            # print(self.ratio)
 
         def draw(self, screen):
             # Resize image to fit insize max_size, maintains aspect ratio
             size = (self.max_size[0])*screen.get_size()[0]
-            resize = (size, size*self.ratio)
+            resize = ( size, size*self.ratio )
             
-            print(resize)
-            print("max " + str(self.max_size[1]*screen.get_size()[1]))
             if resize[1] > self.max_size[1]*screen.get_size()[1]:
-                print("dasd")
                 size = (self.max_size[1])*screen.get_size()[1]
-                resize = (size/self.ratio, size)                
-            
-            # Invert because stupid
+                resize = (size/self.ratio, size)
+
+            # Flip because CV2 does (y,x)
             resize = (int(resize[1]), int(resize[0]))
+            print(resize)
             
-            # print(resize)
-            data = cv2.resize(self.data, resize, interpolation=cv2.INTER_NEAREST)
+            data = self.norm_to_value(100)
+            data = self.cm(data)[:,:,:3]
+            data = to_u8(data)
+
+            # print(data.shape)
+            data = cv2.resize(data, resize, interpolation=cv2.INTER_NEAREST)
+            
             self.surface = pygame.surfarray.make_surface(data)
             return screen.blit(self.surface, relative_to_absolute(self.start, screen.get_size()))
     ##########################
@@ -289,19 +314,20 @@ def run():
     # control_interface.add_element(ControlInterface.Box(start=(0.65, 0.05), end=(0.95, 0.4),color=(255,255,255)))
     dir_pick = control_interface.add_element(ControlInterface.PointLine(start=(0.8,0.25), length=0.15, color=(255,0,0), thicc=2))
     control_interface.add_element(ControlInterface.Line(start=(0.6,0.05), end=(0.6,0.95), color=(255,255,255), thicc=2))
-    img_rgb = control_interface.add_element(ControlInterface.Image(start=(0.01,0.01), max_size=(0.5,0.5)))
-    # img_d = control_interface.add_element(ControlInterface.Image(start=(0.05,0.25), max_size=(0.1,0.2)))
-    # img_hmap = control_interface.add_element(ControlInterface.Image(start=(0.05,0.5), max_size=(0.1,0.2)))
+
+    # img_rgb = control_interface.add_element(ControlInterface.Image(start=(0.01,0.01), max_size=(0.5,0.3)))
+    img_d = control_interface.add_element(ControlInterface.Image(start=(0.01,0.33), max_size=(0.5,0.3)))
+    # img_hmap = control_interface.add_element(ControlInterface.Image(start=(0.01,0.66), max_size=(0.5,0.3)))
     #####################################
 
     rate = rospy.Rate(30)
     while not rospy.is_shutdown() and control_interface.running:
         t = rospy.Time.now()
         
-        if data_in.rgb_ready:
-            img_rgb.set_data(data_in.rgb)
-        # if data_in.d_ready:
-        #     img_d.set_data(data_in.d)
+        # if data_in.rgb_ready:
+        #     img_rgb.set_data(data_in.rgb)
+        if data_in.d_ready:
+            img_d.set_data(data_in.d)
         # if data_in.hmap_ready:
         #     img_hmap.set_data(data_in.hmap*10)
 
@@ -314,7 +340,7 @@ def run():
 
         rate.sleep()
         td = (rospy.Time.now()-t)/1000000
-        print(str(td)+" ms")
+        # print(str(td)+" ms")
 
 
 if __name__ == '__main__':

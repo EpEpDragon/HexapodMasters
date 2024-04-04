@@ -30,7 +30,6 @@ class RGBDListener:
     def color_callback(self, data):
         try:
             self.rgb = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.uint8)
-            print(self.rgb.shape)
             self.rgb = cv2.resize(self.rgb, (RES_Y, RES_X), interpolation=cv2.INTER_NEAREST)
             self.rgb_ready = True
             # cv2.imshow('Color', (self.rgb[:,:,::-1]).astype(np.uint8))
