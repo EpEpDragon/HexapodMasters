@@ -221,6 +221,11 @@ void modeSelect_cb(const std_msgs::Int32& msg)
 {
   if(msg.data == -1)
   {
+    startUp == -1
+    // TODO Disable servo torque
+  }
+  else if(msg.data == 0)
+  {
     startUp = 0;
   }
   else
@@ -333,7 +338,7 @@ void loop()
     }
 
     //Teleop demo Mode
-    if(mode == 0 && startUp == 1)
+    if(mode == 1 && startUp == 1)
     {
       stepStartFlag = 0;
       static elapsedMillis kinematicModeStartTimer;
@@ -373,7 +378,7 @@ void loop()
     }
 
     //SetAngle Mode
-    else if(mode == 1 && startUp == 1)
+    else if(mode == 2 && startUp == 1)
     {
       stepStartFlag = 0;
       kinematicModeStartFlag = 0;
@@ -410,7 +415,7 @@ void loop()
     }
     
     //SetNextpathPoint Mode
-    else if(mode == 2 && startSetPath == 1 && startUp == 1)
+    else if(mode == 3 && startSetPath == 1 && startUp == 1)
     {
       kinematicModeStartFlag = 0;
       static elapsedMillis stepStartTimer = 1001;

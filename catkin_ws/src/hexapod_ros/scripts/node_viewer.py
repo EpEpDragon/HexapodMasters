@@ -95,9 +95,11 @@ def pointInRect(point,rect):
     return False
 
 
-MODE_STANDBY = -1
-MODE_LEAN_ONLY = 0
-MODE_WALK = 1
+MODE_TORQUE_OFF = -1
+MODE_STARTUP = 0
+MODE_LEAN_ONLY = 1
+MODE_WALK = 2
+
 MAX_SPEED = 1
 class ControlInterface():
     SCREEN_COLOR = (60,25,60)
@@ -331,7 +333,7 @@ class ControlInterface():
         self.elements = []
         self.redraw_display()
 
-        self.mode = MODE_STANDBY
+        self.mode = MODE_TORQUE_OFF
         self.speed = 0.5
     
     def redraw_display(self):
@@ -392,9 +394,10 @@ def run():
 
     def button_callback(button):
         button.control_interface.mode = button.mode
-    control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.65,0.35), margin=10, text="Mode Standby", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_STANDBY))
-    control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.65,0.38), margin=10, text="Mode Lean Only", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_LEAN_ONLY))
-    control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.65,0.41), margin=10, text="Mode Walk", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_WALK))
+    control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.65,0.35), margin=10, text="Torque Off", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_TORQUE_OFF))
+    control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.77,0.35), margin=10, text="Standby", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_STARTUP))
+    control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.65,0.38), margin=10, text="Lean Only", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_LEAN_ONLY))
+    control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.65,0.41), margin=10, text="Walk", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_WALK))
     #####################################
 
     rate = rospy.Rate(30)
