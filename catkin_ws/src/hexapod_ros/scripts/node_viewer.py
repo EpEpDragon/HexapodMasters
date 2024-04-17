@@ -4,6 +4,7 @@ import rospy
 import pygame
 import math
 
+from std_msgs.msg import Int32
 from sensor_msgs.msg import Image
 from hexapod_ros.msg import HexapodCommands
 
@@ -93,8 +94,15 @@ def pointInRect(point,rect):
             return True
     return False
 
+
+MODE_STANDBY = -1
+MODE_LEAN_ONLY = 0
+MODE_WALK = 1
+MAX_SPEED = 1
 class ControlInterface():
-    screen_color = (60,25,60)
+    SCREEN_COLOR = (60,25,60)
+    ON_COLOR = (115, 235, 30)
+    OFF_COLOR = (235, 30, 64)
     ##### UI ELements Def ####
     class Line(object):
         def __init__(self, start, end, color, thicc):
@@ -110,9 +118,10 @@ class ControlInterface():
     
     # A line that points at the mouse cursor
     class PointLine(Line):
-        def __init__(self, start, length, color, thicc):
+        def __init__(self, start, length, color=(255,255,255), thicc=1.0, multiple=1.0):
             super(ControlInterface.PointLine, self).__init__(start, (0,0), color, thicc)
             self.length = length
+            self.multiple = multiple
 
             # For clear rect
             self.left_top = tuple(np.array(start)-np.array(length))
@@ -158,30 +167,64 @@ class ControlInterface():
                 length = min(screen_size[1] - start[1]-10, length)
 
             # self.u_dir = normalize(diff)
-            end = tuple(start + self.u_dir * length)
+            end = tuple(start + self.u_dir * length * self.multiple)
             
             self.angle = math.tan(self.u_dir[0]/1.0)
 
             self.set_rect(start, length)
-            pygame.display.update(screen.fill(ControlInterface.screen_color, self.rect))
+            pygame.display.update(screen.fill(ControlInterface.SCREEN_COLOR, self.rect))
             return pygame.draw.line(screen, self.color, start, end, self.thicc)
 
     class Box:
-        def __init__(self, start, end, color):
+        def __init__(self, start, size, color):
             self.start = start
-            self.end = end
+            self.size = size
             self.color = color
+            self.rect = pygame.Rect((0,0),(1,1))
         
         def draw(self, screen):
             start = relative_to_absolute(self.start, screen.get_size())
-            end = relative_to_absolute(self.end, screen.get_size())
-            return pygame.draw.rect(screen, self.color, pygame.Rect(start,end))
+            size = relative_to_absolute(self.size, screen.get_size())
+            self.rect = pygame.draw.rect(screen, self.color, pygame.Rect(start,size))
+            return self.rect
 
     class Button:
-        def __init__(self):
-            pass
+        def __init__(self, control_interface, start, margin, text, font, color, callback, mode):
+            self.control_interface = control_interface
+            self.text = ControlInterface.Text((0,0),text,font)
+            self.box = ControlInterface.Box(start, (0,0), color)
+            self.rect = pygame.Rect((0,0),(1,1))
+            self.text_rect = pygame.Rect((0,0),(1,1))
+            self.callback = callback
+            self.margin = margin
+            self.mode = mode
+            # Used to detect single click
+            self.single = True
+        
+        def set_color(self, color):
+            self.box.color = color
+
         def draw(self, screen):
-            pass 
+            if pointInRect(pygame.mouse.get_pos(), self.rect):
+                if pygame.mouse.get_pressed()[0]:
+                    if self.single:
+                        self.callback(self)
+                    self.single = False
+                else:
+                    self.single = True
+            
+            # Button color
+            if self.control_interface.mode == self.mode:
+                self.set_color(ControlInterface.ON_COLOR)
+            else:
+                self.set_color(ControlInterface.OFF_COLOR)
+
+            self.box.size = absolute_to_relative((self.text_rect.w + 2*self.margin, self.text_rect.h + 2*self.margin), screen.get_size())
+            self.rect = self.box.draw(screen)
+            self.text.start = absolute_to_relative((self.rect.left + self.margin, self.rect.top + self.margin), screen.get_size())
+            self.text_rect = self.text.draw_no_fill(screen)
+            return self.rect
+    
     class Text:
         def __init__(self, start=(0,0), prefix="", font=pygame.font.SysFont, color=(255,255,255)):
             self.start = start
@@ -189,16 +232,21 @@ class ControlInterface():
             self.text = prefix
             self.color = color
             self.font = font
-            self.rect_prev = pygame.Rect((0,0),(0,0))
+            self.rect = pygame.Rect((0,0),(1,1))
         
         def set_text(self, text):
             self.text = self.prefix + text
         
         def draw(self, screen):
             text_surface = self.font.render(self.text, True, self.color)
-            screen.fill(ControlInterface.screen_color, self.rect_prev)
-            self.rect_prev = screen.blit(text_surface, relative_to_absolute(self.start, screen.get_size()))
-            return self.rect_prev
+            screen.fill(ControlInterface.SCREEN_COLOR, self.rect)
+            self.rect = screen.blit(text_surface, relative_to_absolute(self.start, screen.get_size()))
+            return self.rect
+        
+        def draw_no_fill(self, screen):
+            text_surface = self.font.render(self.text, True, self.color)            
+            self.rect = screen.blit(text_surface, relative_to_absolute(self.start, screen.get_size()))
+            return self.rect
     
     class Image:
         def __init__(self, start, max_size, data = np.random.rand(100, 200), colormap=None, vmin=0, vmax=1, text_box=None):
@@ -282,9 +330,12 @@ class ControlInterface():
         # Elements in GUI to update
         self.elements = []
         self.redraw_display()
+
+        self.mode = MODE_STANDBY
+        self.speed = 0.5
     
     def redraw_display(self):
-        self.screen.fill(ControlInterface.screen_color)
+        self.screen.fill(ControlInterface.SCREEN_COLOR)
         pygame.display.flip()
 
     def add_element(self, element):
@@ -293,9 +344,12 @@ class ControlInterface():
         
 
     def check_input(self):
-        for ev in pygame.event.get():
-            if ev.type == pygame.VIDEORESIZE:
+        for event in pygame.event.get():
+            if event.type == pygame.VIDEORESIZE:
                 self.redraw_display()
+            if event.type == pygame.MOUSEWHEEL:
+                    self.speed = max(min(self.speed + 0.1*event.y, MAX_SPEED), 0.0)
+
 
     def update(self):
         width = self.screen.get_width()
@@ -307,46 +361,13 @@ class ControlInterface():
         self.check_input()
 
 
-# def _init_rgbd_display():
-    # app = pg.mkQApp()
-    # win = QtGui.QMainWindow()
-
-    # container widget with a layout to add QWidgets to
-    # cw = QtGui.QWidget()
-    # win.setCentralWidget(cw)
-    # layout = QtGui.QVBoxLayout()
-    # cw.setLayout(layout)
-
-    # im1 = pg.image()
-    # im1.setImage(np.random.rand(10, 10))
-    # # layout.addWidget(im1)
-
-    # im2 = pg.image()
-    # im2.setImage(np.random.rand(100, 100))
-    # layout.addWidget(im2)
-
-    # win.show()
-    # app.exec_()
-    
-    # Matplot
-    # plt.ion()
-    # f, axarr = plt.subplots(3,1) 
-    # img_rgb = axarr[0].imshow(np.zeros((RES_Y,RES_X,3)).astype(np.uint8))
-    # img_d = axarr[1].imshow(np.zeros((RES_Y,RES_X)), cmap="jet", vmin=0, vmax=50, interpolation="nearest")
-    # img_hmap = axarr[2].imshow(np.zeros((192,192)), cmap="jet", vmin=0, vmax=25, interpolation="nearest")
-
-    # plt.colorbar(img_d, ax=axarr[1])
-    # plt.colorbar(img_hmap, ax=axarr[2])
-    # plt.subplots_adjust(left=0.04, bottom=0.02, right=1, top=0.99, wspace=0.2, hspace=0.08)
-    
-    # return img_rgb, img_d, img_hmap
-
-
 def run():
     rospy.init_node('hexapod_data_viewer')
-    
+
     command_pub = rospy.Publisher('hexapod_command_data', HexapodCommands, queue_size=10)
     command_msg = HexapodCommands([0,0],0,0)
+
+    mode_pub = rospy.Publisher('hexapod_mode', Int32, queue_size=10)
 
     data_in = DataListner('rgb_data', 'd_data', 'hmap_data')
     # img_rgb, img_d, img_hmap = _init_rgbd_display()
@@ -356,7 +377,8 @@ def run():
     control_interface = ControlInterface()
     # control_interface.add_element(ControlInterface.Box(start=(0.65, 0.05), end=(0.95, 0.4),color=(255,255,255)))
     dir_pick = control_interface.add_element(ControlInterface.PointLine(start=(0.8,0.15), length=0.15, color=(255,0,0), thicc=2))
-    text_box_dir = control_interface.add_element(ControlInterface.Text(start=(0.65,0.30),prefix="Testing", font=control_interface.font, color=(252, 194, 3)))
+    text_box_dir = control_interface.add_element(ControlInterface.Text(start=(0.65,0.30),prefix="Direction: ", font=control_interface.font, color=(252, 194, 3)))
+    text_box_speed = control_interface.add_element(ControlInterface.Text(start=(0.65,0.32),prefix="Speed: ", font=control_interface.font, color=(252, 194, 3)))
     control_interface.add_element(ControlInterface.Line(start=(0.6,0.05), end=(0.6,0.95), color=(255,255,255), thicc=2))
 
     text_box_rgb = control_interface.add_element(ControlInterface.Text(prefix="Color: ", font=control_interface.font, color=(252, 194, 3)))
@@ -366,14 +388,22 @@ def run():
     img_d = control_interface.add_element(ControlInterface.Image(start=(0.02,0.33), max_size=(0.55,0.3), colormap="plasma",vmin=10, vmax=60, text_box=text_box_depth))
 
     text_box_height = control_interface.add_element(ControlInterface.Text(prefix="Height: ", font=control_interface.font, color=(252, 194, 3)))
-    img_hmap = control_interface.add_element(ControlInterface.Image(start=(0.02,0.66), max_size=(0.7,0.3), colormap="plasma",vmin=0, vmax=33, text_box=text_box_height))
+    img_hmap = control_interface.add_element(ControlInterface.Image(start=(0.02,0.66), max_size=(0.7,0.3), colormap="plasma",vmin=10, vmax=28, text_box=text_box_height))
+
+    def button_callback(button):
+        button.control_interface.mode = button.mode
+    control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.65,0.35), margin=10, text="Mode Standby", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_STANDBY))
+    control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.65,0.38), margin=10, text="Mode Lean Only", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_LEAN_ONLY))
+    control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.65,0.41), margin=10, text="Mode Walk", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_WALK))
     #####################################
 
     rate = rospy.Rate(30)
     while not rospy.is_shutdown() and control_interface.running:
         t = rospy.Time.now()
         
-        text_box_dir.text = "Direction: " + str(dir_pick.u_dir)
+        text_box_dir.set_text(str(np.around(dir_pick.u_dir[::-1]*[-1,1],2)))
+        text_box_speed.set_text(str(control_interface.speed))
+        dir_pick.multiple = control_interface.speed/MAX_SPEED
         if data_in.rgb_ready:
             img_rgb.set_data(data_in.rgb)
         if data_in.d_ready:
@@ -381,10 +411,13 @@ def run():
         if data_in.hmap_ready:
             img_hmap.set_data(data_in.hmap*10)
 
+
         control_interface.update()
         
         ############## Push Hexapod Commands ##############
-        command_msg.walk_dir = dir_pick.u_dir
+        mode_pub.publish(control_interface.mode)
+
+        command_msg.walk_dir = dir_pick.u_dir[::-1]*[-1,1]
         command_pub.publish(command_msg)
         ###################################################
 
