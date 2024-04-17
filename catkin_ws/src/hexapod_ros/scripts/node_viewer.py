@@ -5,6 +5,7 @@ import pygame
 import math
 
 from std_msgs.msg import Int32
+from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from hexapod_ros.msg import HexapodCommands
 
@@ -372,6 +373,11 @@ def run():
     mode_pub = rospy.Publisher('hexapod_mode', Int32, queue_size=10)
 
     data_in = DataListner('rgb_data', 'd_data', 'hmap_data')
+
+    # Print log from robot
+    def print_log(log):
+        print(log.data)
+    rospy.Subscriber('LOGDATA', String, print_log)
     # img_rgb, img_d, img_hmap = _init_rgbd_display()
 
 
