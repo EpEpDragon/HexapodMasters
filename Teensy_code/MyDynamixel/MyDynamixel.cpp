@@ -174,6 +174,18 @@ void MyDynamixel::SyncWrite (uint8_t* id, uint8_t numMotors, enum CONTROL_TABLE 
 
 }
 
+void MyDynamixel::SyncDisableTorque(uint8_t* id, uint8_t numMotors)
+{
+	uint8_t dataLength = numMotors;
+	uint8_t data[dataLength];
+
+	for(int i = 0,j = 0; i<dataLength && j<numMotors; i++1,j++)
+	{
+		data[i] = 0;
+	}
+	SyncWrite(id, numMotors, TORQUE_ENABLE, data, 1)
+}
+
 void MyDynamixel::SyncMove (uint8_t* id, double* position, double* speed, uint8_t numMotors)
 {
 	uint8_t dataLength = numMotors*4;
@@ -190,6 +202,8 @@ void MyDynamixel::SyncMove (uint8_t* id, double* position, double* speed, uint8_
 		{
 			pos = 1023;
 		}
+
+		// Pack 16 bit data into 8 bit data array
 		data[i] = (uint16_t)pos & 0xff;
 		data[i+1] = (uint16_t)pos >> 8;
 
