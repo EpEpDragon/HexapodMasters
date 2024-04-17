@@ -322,6 +322,8 @@ class ControlInterface():
     ##########################
 
     def __init__(self):
+
+        ######################## UI ###########################
         pygame.init()
         self.running = True
 
@@ -333,9 +335,17 @@ class ControlInterface():
         # Elements in GUI to update
         self.elements = []
         self.redraw_display()
+        ######################################################
 
-        self.mode = MODE_TORQUE_OFF
+        self.mode_pub = rospy.Publisher('hexapod_mode', Int32, queue_size=10)
+        self.set_mode(MODE_TORQUE_OFF)
         self.speed = 0.5
+
+        
+    
+    def set_mode(self, mode):
+        self.mode = mode
+        self.mode_pub.publish(self.mode)
     
     def redraw_display(self):
         self.screen.fill(ControlInterface.SCREEN_COLOR)
@@ -370,19 +380,16 @@ def run():
     command_pub = rospy.Publisher('hexapod_command_data', HexapodCommands, queue_size=10)
     command_msg = HexapodCommands([0,0],0,0)
 
-    mode_pub = rospy.Publisher('hexapod_mode', Int32, queue_size=10)
-
     data_in = DataListner('rgb_data', 'd_data', 'hmap_data')
 
     # Print log from robot
     def print_log(log):
-        print(log.data)
+        print("LOG: " + log.data)
     rospy.Subscriber('LOGDATA', String, print_log)
     # img_rgb, img_d, img_hmap = _init_rgbd_display()
 
-
-    ######## Interface Elements ##########
     control_interface = ControlInterface()
+    ######## Interface Elements ##########
     # control_interface.add_element(ControlInterface.Box(start=(0.65, 0.05), end=(0.95, 0.4),color=(255,255,255)))
     dir_pick = control_interface.add_element(ControlInterface.PointLine(start=(0.8,0.15), length=0.15, color=(255,0,0), thicc=2))
     text_box_dir = control_interface.add_element(ControlInterface.Text(start=(0.65,0.30),prefix="Direction: ", font=control_interface.font, color=(252, 194, 3)))
@@ -399,7 +406,7 @@ def run():
     img_hmap = control_interface.add_element(ControlInterface.Image(start=(0.02,0.66), max_size=(0.7,0.3), colormap="plasma",vmin=10, vmax=28, text_box=text_box_height))
 
     def button_callback(button):
-        button.control_interface.mode = button.mode
+        button.control_interface.set_mode(button.mode)
     control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.65,0.35), margin=10, text="Torque Off", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_TORQUE_OFF))
     control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.77,0.35), margin=10, text="Standby", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_STARTUP))
     control_interface.add_element(ControlInterface.Button(control_interface=control_interface, start=(0.65,0.38), margin=10, text="Lean Only", font=control_interface.font, color=ControlInterface.OFF_COLOR, callback=button_callback, mode=MODE_LEAN_ONLY))
@@ -420,12 +427,9 @@ def run():
         if data_in.hmap_ready:
             img_hmap.set_data(data_in.hmap*10)
 
-
         control_interface.update()
         
         ############## Push Hexapod Commands ##############
-        mode_pub.publish(control_interface.mode)
-
         command_msg.walk_dir = dir_pick.u_dir[::-1]*[-1,1]
         command_pub.publish(command_msg)
         ###################################################
