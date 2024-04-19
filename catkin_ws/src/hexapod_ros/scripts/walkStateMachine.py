@@ -3,8 +3,9 @@ import numpy as np
 from numpy import array as a
 from numpy import deg2rad, rad2deg
 from math import sin,cos,tan, acos, sqrt
-from roboMath import clerp, rotate_vec, rotate
 import math
+from roboMath import clerp, rotate_vec, rotate
+
 
 REST_Z = 0.6
 REST_POS = [a([0.866, 0.500, 0.0])*2, a([0.866, -0.500, 0.0])*2,
@@ -25,12 +26,11 @@ PITCH_MAX = deg2rad(30)
 BODY_RADIUS = 0.7
 
 
-def find_angle(v):    
+def find_angle(v):
     if v[1] > 0:
         return acos(np.clip((v@a([1,0,0]))/sqrt(v@v), -1.0, 1.0))
     else:
         return -acos(np.clip((v@a([1,0,0]))/sqrt(v@v), -1.0, 1.0))
-
 
 def normalize(v):
     try:
@@ -160,7 +160,6 @@ class WalkCycleMachine(StateMachine):
         self.walk()
 
         # Update foot position for walking
-
         if self.current_state == self.stepping:
             # print(self.is_swinging)
             for i in range(6):
@@ -187,7 +186,7 @@ class WalkCycleMachine(StateMachine):
         for i in range(6):
             # print(f"Leg {i} height: ({rotate(body_quat,HIP_VECTORS[i])[2]}){self.perception.get_height_at_point(self.targets[i])}")
             
-            effector_offset = self.height - self.perception.get_height_at_point(self.targets[i]) #- rotate(body_quat,HIP_VECTORS[i])[2] # Offsett based on heightmap
+            effector_offset = self.height - self.perception.get_height_at_point(self.targets[i]) # Offsett based on heightmap
             # print(f"leg {i}: {effector_offset}")
             if self.is_swinging[i]:
                 diff = self.foot_pos_pre_yaw[i] - self.targets[i]
@@ -208,7 +207,7 @@ class WalkCycleMachine(StateMachine):
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
                 self.targets[i][2] += self.height_offsets[i] + effector_offset
             
-            print(f"leg {i}: {self.targets[i][2]}")
+            # print(f"leg {i}: {self.targets[i][2]}")
 
             # self.targets[i][2] = self.height_offsets[i] + effector_offset
         # self.targets[0][2] = 0.3

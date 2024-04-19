@@ -5,10 +5,9 @@ from numpy import deg2rad, rad2deg
 import numpy as np
 from collections import deque
 
-import quaternion
-from quaternion import from_vector_part, as_vector_part
+# import quaternion
+# from quaternion import from_vector_part, as_vector_part
 
-from dataclasses import dataclass, field
 from enum import Enum
 
 from roboMath import rotate_vec
@@ -31,10 +30,14 @@ class MoveType(Enum):
     LINEAR = 1
     SPHERICAL = 2
 
-@dataclass
+
+
 class Movement:
-    target : np.array = field(default_factory=np.array)
-    duration : float = 0
+    def __init__(self, target_pos, duration=0) -> None:
+        self.target_pos = target_pos
+        self.duration = duration
+    # target : np.array = field(default_factory=np.array)
+    # duration : float = 0
     
     # type : MoveType
     # start : np.array = np.array([0,0])
@@ -42,7 +45,7 @@ class Movement:
     # next = None
 
 # TODO Try make IK this work wothout sqrt
-def solve_ik(x,y,z) -> list[float]:
+def solve_ik(x,y,z):
     # Root to target distance squared
     dist2 = x*x + y*y + z*z
     dist = sqrt(dist2)
@@ -84,7 +87,7 @@ class MovementHandler:
          for id in range(NUM_ACTUATORS):
             if self.movements[id] == None:
                 continue
-
+            
             # Solve IK
             # [yaw,pitch,knee] = solve_ik(curr_target, curr_target[1], curr_target[2])
             [yaw,pitch,knee] = solve_ik(self.movements[id].target[0], self.movements[id].target[1], self.movements[id].target[2])
@@ -97,7 +100,7 @@ class MovementHandler:
 
     def set_targets(self, targets):
         for id in range(6):
-            self.movements[id] = Movement(rotate_vec(targets[id] - OFFSETS[id]["position"],np.array([0,0,1]), -OFFSETS[id]["angle"]))
+            self.movements[id] = Movement(rotate_vec(targets[id] - OFFSETS[id]["position"], np.array([0,0,1]), -OFFSETS[id]["angle"]))
         # self.yaw = yaw
 
 
