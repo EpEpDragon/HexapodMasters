@@ -11,16 +11,16 @@
     <arg name="port" default="/dev/Arduino_port"/>
 
     <!-- Serial Comms -->
-    <node pkg ="rosserial_python" type="serial_node.py" name="serial_node" output="screen">
+    <node pkg ="rosserial_python" type="serial_node.py" name="hexapod_serial_node" output="screen">
         <param name="port" value="$(arg port)"/>
         <param name="baud" value="115200"/>
     </node>
 
     <!-- Motion -->
-    
+    <node pkg = "hexapod_ros" type = "node_movement.py" name = "hexapod_movement" output="screen"> </node>  
 
     <!-- Map Generation -->
-    <node pkg = "hexapod_ros" type = "node_hmap.py" name = "hmap" output="screen"> </node>  
+    <node pkg = "hexapod_ros" type = "node_hmap.py" name = "hexapod_hmap" output="screen"> </node>  
         <param name = "pkg_root" value = '$(arg pkg_root)'/>
         <param name = "camera_pitch_offset" value = '$(arg camera_pitch_offset)'/>
     <node pkg = "hexapod_ros" type = "node_command_listner.py" name = "hexapod_command_listner" output="screen"> </node>  
