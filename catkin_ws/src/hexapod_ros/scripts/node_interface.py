@@ -138,11 +138,12 @@ class ControlInterface():
         def set_dir(self, screen):
             if pygame.mouse.get_pressed()[0]:
                 mouse_pos = np.array(pygame.mouse.get_pos())
-                left_top = relative_to_absolute(self.left_top, screen.get_size())
-                width_height = relative_to_absolute(self.width_height, screen.get_size())
-                if ((left_top[0] < mouse_pos[0] and mouse_pos[0] < left_top[0]+width_height[0]) and
-                    (left_top[1] < mouse_pos[1] and mouse_pos[1] < left_top[1]+width_height[1])):
+                if (pointInRect(mouse_pos,self.rect)):
                         self.u_dir = normalize(mouse_pos - np.array(relative_to_absolute(self.start, screen.get_size())))
+            elif pygame.mouse.get_pressed()[2]:
+                mouse_pos = np.array(pygame.mouse.get_pos())
+                if (pointInRect(mouse_pos,self.rect)):
+                    self.u_dir = np.zeros(2)
 
         def draw(self, screen):
             self.set_dir(screen)
@@ -341,7 +342,6 @@ class ControlInterface():
         self.set_mode(MODE_TORQUE_OFF)
         self.speed = 0.5
 
-        
     
     def set_mode(self, mode):
         self.mode = mode
