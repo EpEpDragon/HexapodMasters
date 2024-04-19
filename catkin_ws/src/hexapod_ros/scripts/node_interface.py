@@ -358,6 +358,9 @@ class ControlInterface():
 
     def check_input(self):
         for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    self.set_mode(MODE_TORQUE_OFF)
             if event.type == pygame.VIDEORESIZE:
                 self.redraw_display()
             if event.type == pygame.MOUSEWHEEL:
@@ -417,7 +420,10 @@ def run():
     while not rospy.is_shutdown() and control_interface.running:
         t = rospy.Time.now()
         
-        text_box_dir.set_text(str(np.around(dir_pick.u_dir[::-1]*[-1,1],2)))
+        # Change screen space direction to robot space (swap x and y, then invert x)
+        walk_dir = dir_pick.u_dir[::-1]*[-1,1]
+
+        text_box_dir.set_text(str(np.around(walk_dir,2)))
         text_box_speed.set_text(str(control_interface.speed))
         dir_pick.multiple = control_interface.speed/MAX_SPEED
         if data_in.rgb_ready:
@@ -430,7 +436,7 @@ def run():
         control_interface.update()
         
         ############## Push Hexapod Commands ##############
-        command_msg.walk_dir = dir_pick.u_dir[::-1]*[-1,1]
+        command_msg.walk_dir = walk_dir
         command_pub.publish(command_msg)
         ###################################################
 

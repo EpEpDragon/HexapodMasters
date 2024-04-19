@@ -122,7 +122,7 @@ class WalkCycleMachine(StateMachine):
         
         # Check inversion required
         if has_direction:
-            if self.is_long(id):
+            if self._is_long(id):
                 self.is_swinging = np.invert(self.is_swinging)
         else:
             if not (self.is_swinging == self.centering_yaw).all():
@@ -153,40 +153,36 @@ class WalkCycleMachine(StateMachine):
 
     # Logic
     # -------------------------------------------------------------------------------------------
-    def update(self, dt, body_quat):
-        self._update_targets(body_quat)
+    def update(self, direction, speed):
+        self._set_walk_direction(direction)
+        self._set_speed(speed)
+
+        self._update_targets()
 
         # Cycle state machine
         self.walk()
 
         # Update foot position for walking
-        if self.current_state == self.stepping:
-            # print(self.is_swinging)
-            for i in range(6):
-                if not (self.targets[i] - self.foot_pos_pre_yaw[i] == 0).all():
-                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
-                # diff = self.targets[i] - self.foot_pos_pre_yaw[i]
-                # if self.is_swinging[i]:
-                #     self.in_translation[i] = self._square_step(diff,i,dt)
-                # elif self.in_translation[np.where(self.is_swinging)].all() or not self.is_swinging.any():
-                #     self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(diff)*self.speed*dt)
-                
-                # if (diff != 0).all():
-                #     self.foot_pos_pre_yaw[i] + (normalize(diff)*self.speed*dt)
+        # if self.current_state == self.stepping:
+        #     for i in range(6):
+        #         if not (self.targets[i] - self.foot_pos_pre_yaw[i] == 0).all():
+        #             self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
 
         # Update foot position for local rotation
-        for i in range(6):
-            self.current_yaw_local[i] = clerp(self.current_yaw_local[i], self.target_yaw_local[i], self.yaw_rate*dt)
-            self.foot_pos_post_yaw[i] = rotate_vec(self.foot_pos_pre_yaw[i], UP, self.current_yaw_local[i])
+        # for i in range(6):
+        #     self.current_yaw_local[i] = clerp(self.current_yaw_local[i], self.target_yaw_local[i], self.yaw_rate*dt)
+        #     self.foot_pos_post_yaw[i] = rotate_vec(self.foot_pos_pre_yaw[i], UP, self.current_yaw_local[i])
         # print(self.targets[i] - self.foot_pos_pre_yaw[i])
 
 
-    def _update_targets(self, body_quat):
+    def _update_targets(self):
+        """Update feet targets based on direction, speed and heightmap"""
         # print("")
         for i in range(6):
             # print(f"Leg {i} height: ({rotate(body_quat,HIP_VECTORS[i])[2]}){self.perception.get_height_at_point(self.targets[i])}")
             
-            effector_offset = self.height - self.perception.get_height_at_point(self.targets[i]) # Offsett based on heightmap
+            # Vertical offsett based on heightmap
+            effector_offset = self.height - self.perception.get_height_at_point(self.targets[i])
             # print(f"leg {i}: {effector_offset}")
             if self.is_swinging[i]:
                 diff = self.foot_pos_pre_yaw[i] - self.targets[i]
@@ -231,16 +227,16 @@ class WalkCycleMachine(StateMachine):
         
     # -------------------------------------------------------------------------------------------
 
-    def is_long(self, id):
+    def _is_long(self, id):
         if self.foot_pos_post_yaw[id]@self.foot_pos_post_yaw[id] > REST_POS[id]@REST_POS[id]:
             return True
         return False
 
-    def set_speed(self, value):
+    def _set_speed(self, value):
         self.speed = max(min(value, SPEED_MAX), 0)
 
     # TODO Standerdise coordinate frames
-    def set_walk_direction(self, value):
+    def _set_walk_direction(self, value):
         self.walk_direction = rotate_vec(value, a([0,1,0]), self.pitch/2)
 
     def adjust_height(self, value):

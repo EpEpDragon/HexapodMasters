@@ -16,7 +16,10 @@
         <param name="baud" value="115200"/>
     </node>
 
-    <!-- Primary logic -->
+    <!-- Motion -->
+    
+
+    <!-- Map Generation -->
     <node pkg = "hexapod_ros" type = "node_hmap.py" name = "hmap" output="screen"> </node>  
         <param name = "pkg_root" value = '$(arg pkg_root)'/>
         <param name = "camera_pitch_offset" value = '$(arg camera_pitch_offset)'/>

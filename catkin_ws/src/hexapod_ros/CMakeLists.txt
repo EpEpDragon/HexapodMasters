@@ -162,6 +162,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/node_hmap.py
   scripts/node_interface.py
+  scripts/node_movement.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
