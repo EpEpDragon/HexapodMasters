@@ -6,8 +6,9 @@ from hexapod_ros.msg import HexapodCommands, EffectorTargets
 from walkStateMachine import WalkCycleMachine
 
 def run():
+    rospy.init_node('hexapod_movement')
     # Controls the walking gait and sets FINAL (in the current step) foot positions.
-    walk_machine = WalkCycleMachine
+    walk_machine = WalkCycleMachine(None)
     direction = np.zeros(3)
     speed = 0.0
     

@@ -6,7 +6,7 @@ from numpy import array as a
 from numpy import deg2rad, rad2deg
 from math import sin,cos,tan, acos, sqrt
 import math
-from roboMath import clerp, rotate_vec, rotate
+# from roboMath import clerp, rotate_vec, rotate
 
 
 REST_Z = 0.6
@@ -30,23 +30,23 @@ BODY_RADIUS = 0.7
 
 def find_angle(v):
     if v[1] > 0:
-        return acos(np.clip((v@a([1,0,0]))/sqrt(v@v), -1.0, 1.0))
+        return acos(np.clip((v.dot(a([1,0,0])))/sqrt(v.dot(v)), -1.0, 1.0))
     else:
-        return -acos(np.clip((v@a([1,0,0]))/sqrt(v@v), -1.0, 1.0))
+        return -acos(np.clip((v.dot(a([1,0,0])))/sqrt(v.dot(v)), -1.0, 1.0))
 
 def normalize(v):
     try:
-        return v/sqrt(v@v)
+        return v/sqrt(v.dot(v))
     except:
         return v/abs(v)
 
 
 class WalkCycleMachine(StateMachine):
     "A walk cycle machine"
-    rest = State(initial=True, enter="deactivate_all")
-    stepping = State(enter="find_is_swinging")
+    rest = State("rest", initial=True, enter="deactivate_all")
+    stepping = State("stepping", enter="find_is_swinging")
 
-    walk = rest.to(stepping, cond="should_adjust") | stepping.to(rest, cond="step_finished") | rest.to.itself(internal=True) | stepping.to.itself(internal=True)
+    walk = rest.to(stepping, cond="should_adjust") | stepping.to(rest, cond="step_finished") | rest.to.itself() | stepping.to.itself()
 
     def __init__(self, perception):
         self.is_swinging = np.full(6, False) # List defining if a foot is is_swinging or swinging
@@ -185,11 +185,11 @@ class WalkCycleMachine(StateMachine):
             # print(f"Leg {i} height: ({rotate(body_quat,HIP_VECTORS[i])[2]}){self.perception.get_height_at_point(self.targets[i])}")
             
             # Vertical offsett based on heightmap
-            effector_offset = self.height - self.perception.get_height_at_point(self.targets[i])
+            effector_offset = self.height #- self.perception.get_height_at_point(self.targets[i])
             # print(f"leg {i}: {effector_offset}")
             if self.is_swinging[i]:
                 diff = self.foot_pos_pre_yaw[i] - self.targets[i]
-                dist = sqrt(diff @ diff)
+                dist = sqrt(diff.dot(diff))
                 self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
                 # self.targets[i][2] = self.height_offsets[i] + effector_offset
                 
@@ -231,7 +231,7 @@ class WalkCycleMachine(StateMachine):
     # -------------------------------------------------------------------------------------------
 
     def _is_long(self, id):
-        if self.foot_pos_post_yaw[id]@self.foot_pos_post_yaw[id] > REST_POS[id]@REST_POS[id]:
+        if self.foot_pos_post_yaw[id].dot(self.foot_pos_post_yaw[id]) > REST_POS[id].dot(REST_POS[id]):
             return True
         return False
 
@@ -240,7 +240,7 @@ class WalkCycleMachine(StateMachine):
 
     # TODO Standerdise coordinate frames
     def _set_walk_direction(self, value):
-        self.walk_direction = rotate_vec(value, a([0,1,0]), self.pitch/2)
+        self.walk_direction = value #rotate_vec(value, a([0,1,0]), self.pitch/2)
 
     def adjust_height(self, value):
         self.height += value
@@ -261,5 +261,5 @@ class WalkCycleMachine(StateMachine):
                     self.target_yaw_local[i] = min(max(self.target_yaw_local[i],-YAW_MAX),YAW_MAX)
 
 if __name__ == '__main__':
-    sm = WalkCycleMachine()
+    sm = WalkCycleMachine(None)
     sm._graph().write_svg("machine.svg")

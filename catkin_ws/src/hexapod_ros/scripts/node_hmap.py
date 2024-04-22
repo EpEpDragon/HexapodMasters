@@ -55,7 +55,7 @@ class RGBDListener:
     
 def run():
     bridge = CvBridge()
-    rospy.init_node('hmap')
+    rospy.init_node('hexapod_heightmap_generate')
 
     rospy.loginfo("Initialiseing perception module...")
     perception = Perception(int(RES_Y*RES_X))

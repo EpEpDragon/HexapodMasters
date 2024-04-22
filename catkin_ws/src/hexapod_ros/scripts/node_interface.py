@@ -378,7 +378,7 @@ class ControlInterface():
 
 
 def run():
-    rospy.init_node('hexapod_data_viewer')
+    rospy.init_node('hexapod_interface')
 
     command_pub = rospy.Publisher('hexapod_command_data', HexapodCommands, queue_size=10)
     command_msg = HexapodCommands([0,0],0,0)

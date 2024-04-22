@@ -23,7 +23,6 @@
     <node pkg = "hexapod_ros" type = "node_hmap.py" name = "hexapod_hmap" output="screen"> </node>  
         <param name = "pkg_root" value = '$(arg pkg_root)'/>
         <param name = "camera_pitch_offset" value = '$(arg camera_pitch_offset)'/>
-    <node pkg = "hexapod_ros" type = "node_command_listner.py" name = "hexapod_command_listner" output="screen"> </node>  
 
     <!-- Camera -->
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
