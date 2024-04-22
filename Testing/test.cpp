@@ -1,4 +1,4 @@
-#include <Eigen>
+#include <ArduinoEigen.h>
 #include <iostream>
 #include <cmath>
 

@@ -1,4 +1,7 @@
-#include <Eigen>
+#include <ArduinoEigenSparse.h>
+#include <ArduinoEigenDense.h>
+#include <ArduinoEigen.h>
+
 #include "interpo.h"
 #include "InverseKin.h"
 #include "ForwKin.h"
@@ -48,7 +51,7 @@ MyDynamixel dxl(DXL_SERIAL, 1000000, DEPin);
 #include <my_message/LegPath.h>
 #include <my_message/thetaMessage.h>
 
-#include <msg/EffectorTargets.h>
+#include <hexapod_ros/EffectorTargets.h>
 
 ros::NodeHandle nh;
 
@@ -174,15 +177,15 @@ void teleop_cb(const geometry_msgs::Twist& msg)
 ros::Subscriber<geometry_msgs::Twist> rosSubTeleop("/cmd_vel", teleop_cb);
 
 // Get effector targets from message
-float EffectorTargets[6][3]
-void targets_cb(const msg::EffectorTargets& msg)
-{
-  for (int i=0; i<7; i++)
-  {
-    EffectorTargets[i] = msg[i]
-  }
-}
-ros::Subscriber<msgs::EffectorTargets> rosSubEffectorTargets("effector_targets", targets_cb);
+//float EffectorTargets[6][3]
+//void targets_cb(const msg::EffectorTargets& msg)
+//{
+//  for (int i=0; i<7; i++)
+//  {
+//    EffectorTargets[i] = msg[i]
+//  }
+//}
+//ros::Subscriber<msgs::EffectorTargets> rosSubEffectorTargets("effector_targets", targets_cb);
 
 //Leg Path subsciber
 #define Pathsize 7
@@ -349,7 +352,7 @@ Eigen::Vector3f targets[6] = {
   {141.855,  245.7,  -140}
 };
 
-IK ik = new IK();
+IK ik(&dxl);
 
 void loop()
 {
@@ -367,14 +370,13 @@ void loop()
       static long startUp_startTime = millis();
 
       ik.set_final_targets(targets);
-      ik.solve_next_angles(&theta1[0],&theta2[0],&theta3[0],0);
-      ik.solve_next_angles(&theta1[1],&theta2[1],&theta3[1],0);
-      ik.solve_next_angles(&theta1[2],&theta2[2],&theta3[2],0);
-      ik.solve_next_angles(&theta1[3],&theta2[3],&theta3[3],0);
-      ik.solve_next_angles(&theta1[4],&theta2[4],&theta3[4],0);
-      ik.solve_next_angles(&theta1[5],&theta2[5],&theta3[5],0);
+      ik.solve_next_angles(theta1[0], theta2[0], theta3[0],0);
+      ik.solve_next_angles(theta1[1], theta2[1], theta3[1],0);
+      ik.solve_next_angles(theta1[2], theta2[2], theta3[2],0);
+      ik.solve_next_angles(theta1[3], theta2[3], theta3[3],0);
+      ik.solve_next_angles(theta1[4], theta2[4], theta3[4],0);
+      ik.solve_next_angles(theta1[5], theta2[5], theta3[5],0);
 
-      std::out << theta1[0]
       InKin.IK(&theta1[0],&theta2[0],&theta3[0],283.71,   0.0,    -140,0,0,0,0,0,0);
       InKin.IK(&theta1[1],&theta2[1],&theta3[1],141.855,  -245.7, -140,1,0,0,0,0,0);
       InKin.IK(&theta1[2],&theta2[2],&theta3[2],-141.855, -245.7, -140,2,0,0,0,0,0);
