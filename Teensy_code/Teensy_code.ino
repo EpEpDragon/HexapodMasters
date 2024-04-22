@@ -46,6 +46,8 @@ MyDynamixel dxl(DXL_SERIAL, 1000000, DEPin);
 #include <my_message/LegPath.h>
 #include <my_message/thetaMessage.h>
 
+#include <msg/EffectorTargets.h>
+
 ros::NodeHandle nh;
 
 //Feedback publishers
@@ -168,6 +170,17 @@ void teleop_cb(const geometry_msgs::Twist& msg)
   }
 }
 ros::Subscriber<geometry_msgs::Twist> rosSubTeleop("/cmd_vel", teleop_cb);
+
+// Get effector targets from message
+float EffectorTargets[6][3]
+void targets_cb(const msg::EffectorTargets& msg)
+{
+  for (int i=0; i<7; i++)
+  {
+    EffectorTargets[i] = msg[i]
+  }
+}
+ros::Subscriber<msgs::EffectorTargets> rosSubEffectorTargets("effector_targets", targets_cb);
 
 //Leg Path subsciber
 #define Pathsize 7

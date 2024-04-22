@@ -155,7 +155,7 @@ class WalkCycleMachine(StateMachine):
 
     # Logic
     # -------------------------------------------------------------------------------------------
-    def update(self, direction, speed, t_prev):
+    def update(self, direction, speed):
         self._set_walk_direction(direction)
         self._set_speed(speed)
 
@@ -164,17 +164,17 @@ class WalkCycleMachine(StateMachine):
         # Cycle state machine
         self.walk()
 
-        dt = rospy.Time.now() - t_prev
-        # Update foot position for walking
-        if self.current_state == self.stepping:
-            for i in range(6):
-                if not (self.targets[i] - self.foot_pos_pre_yaw[i] == 0).all():
-                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
+        # dt = rospy.Time.now() - t_prev
+        # # Update foot position for walking
+        # if self.current_state == self.stepping:
+        #     for i in range(6):
+        #         if not (self.targets[i] - self.foot_pos_pre_yaw[i] == 0).all():
+        #             self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
 
-        # Update foot position for local rotation
-        for i in range(6):
-            self.current_yaw_local[i] = clerp(self.current_yaw_local[i], self.target_yaw_local[i], self.yaw_rate*dt)
-            self.foot_pos_post_yaw[i] = rotate_vec(self.foot_pos_pre_yaw[i], UP, self.current_yaw_local[i])
+        # # Update foot position for local rotation
+        # for i in range(6):
+        #     self.current_yaw_local[i] = clerp(self.current_yaw_local[i], self.target_yaw_local[i], self.yaw_rate*dt)
+        #     self.foot_pos_post_yaw[i] = rotate_vec(self.foot_pos_pre_yaw[i], UP, self.current_yaw_local[i])
         # print(self.targets[i] - self.foot_pos_pre_yaw[i])
 
 

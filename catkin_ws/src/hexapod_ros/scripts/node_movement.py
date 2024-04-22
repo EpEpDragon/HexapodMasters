@@ -2,7 +2,7 @@
 
 import rospy
 import numpy as np
-from hexapod_ros.msg import HexapodCommands
+from hexapod_ros.msg import HexapodCommands, EffectorTargets
 from walkStateMachine import WalkCycleMachine
 
 def run():
@@ -19,13 +19,13 @@ def run():
     # Update walk machine when new commands arrive
     rospy.Subscriber('hexapod_command_data', HexapodCommands, update)
 
+    effector_targets_pub = rospy.Publisher('effector_targets', EffectorTargets, queue_size=10)
+
     rate = rospy.Rate(30)
-    dt = 0.0
     while not rospy.is_shutdown():
-        walk_machine.update(direction, speed, rospy.Time.now - t_start)
-        t_start = rospy.Time.now()
+        walk_machine.update(direction, speed)
+        effector_targets_pub.publish(walk_machine.targets)
         rate.sleep()
-        dt = rospy.Time.now - t_start
 
 if __name__ == '__main__':
     try:
