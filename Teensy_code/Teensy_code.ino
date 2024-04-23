@@ -330,6 +330,19 @@ void loop()
 {
   nh.spinOnce();
   
+//  if(startUp == 0)
+//  {
+//    ik.set_final_targets(targets);
+//    ik.solve_next_angles(theta1[0], theta2[0], theta3[0], 0);
+//    ik.solve_next_angles(theta1[1], theta2[1], theta3[1], 1);
+//    ik.solve_next_angles(theta1[2], theta2[2], theta3[2], 2);
+//    ik.solve_next_angles(theta1[3], theta2[3], theta3[3], 3);
+//    ik.solve_next_angles(theta1[4], theta2[4], theta3[4], 4);
+//    ik.solve_next_angles(theta1[5], theta2[5], theta3[5], 5);
+//    
+//    SetAngles(theta1,theta2,theta3,5,5,5);
+//  }
+  
   currentmillis = millis();
 
   if(currentmillis - prevmillis >= 10)
@@ -367,9 +380,9 @@ void loop()
       
       SetAngles(theta1,theta2,theta3,5,5,5);
       
-      char msg[50];
-      sprintf(msg, "theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
-      push_log(msg);
+//      char msg[50];
+//      sprintf(msg, "theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
+//      push_log(msg);
       
       // char msg[50];
       // sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);

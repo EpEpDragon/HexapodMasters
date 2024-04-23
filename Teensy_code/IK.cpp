@@ -39,7 +39,7 @@ void IK::solve_next_angles(double& theta1, double& theta2, double& theta3, uint8
 
     // Snap to final target is close enough
     Eigen::Vector3d delta = present_pos-this->final_targets[leg_id];
-    if( delta.dot(delta) < 5*5)
+    if( delta.dot(delta) < 10*10)
     {
       this->solve_ik(theta1, theta2, theta3, this->final_targets[leg_id]);
       char msg[50];
@@ -64,7 +64,7 @@ void IK::solve_next_angles(double& theta1, double& theta2, double& theta3, uint8
 Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target)
 {
     Eigen::Vector3d diff = target - start;
-    return diff; // sqrt(diff.dot(diff));
+    return diff;
 }
 
 // Calculate inverse kinematics
