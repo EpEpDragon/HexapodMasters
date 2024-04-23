@@ -19,8 +19,12 @@ void IK::test()
   float curr_theta1 = this->dxl->PresentPos(0);
   float curr_theta2 = this->dxl->PresentPos(1);
   float curr_theta3 = this->dxl->PresentPos(2);
+  Eigen::Vector3f present_pos = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
+
+  Eigen::Vector3f move_dir = this->solve_move_vector(present_pos, this->final_targets[0]);
+
   char msg[50];
-  sprintf(msg, "LOG: current_pos: %.2f, %.2f, %.2f", curr_theta1*180/PI, curr_theta2*180/PI, curr_theta3*180/PI);
+  sprintf(msg, "current_pos: %.2f, %.2f, %.2f\ntarget_pos: %.2f, %.2f, %.2f", present_pos[0], present_pos[1], present_pos[2], this->final_targets[0][0], this->final_targets[0][1], this->final_targets[0][1]);
   this->push_log(msg);
 }
 void IK::solve_next_angles(float& theta1, float& theta2, float& theta3, uint8_t leg_id)
@@ -30,15 +34,12 @@ void IK::solve_next_angles(float& theta1, float& theta2, float& theta3, uint8_t 
     float curr_theta2 = this->dxl->PresentPos(leg_id*3 + 1);
     float curr_theta3 = this->dxl->PresentPos(leg_id*3 + 2);
     
-    char msg[50];
-    sprintf(msg, "leg %i current_pos: %.2f, %.2f, %.2f",leg_id*3, curr_theta1*180/PI, curr_theta2*180/PI, curr_theta3*180/PI);
-    this->push_log(msg);
-    
-    
     // Calculate current pos through forward kinematics
     Eigen::Vector3f present_pos = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
     
-
+//    char msg[50];
+//    sprintf(msg, "leg %i current_pos: %.2f, %.2f, %.2f",leg_id*3, present_pos[0], present_pos[1], present_pos[2]);
+//    this->push_log(msg);
     
     // Calculate the required movement direction
     Eigen::Vector3f move_dir = this->solve_move_vector(present_pos, this->final_targets[leg_id]);
@@ -49,7 +50,8 @@ void IK::solve_next_angles(float& theta1, float& theta2, float& theta3, uint8_t 
 
 Eigen::Vector3f IK::solve_move_vector(Eigen::Vector3f start, Eigen::Vector3f target)
 {
-    return target - start;
+    Eigen::Vector3f diff = target - start;
+    return diff / sqrt(diff.dot(diff));
 }
 
 // Calculate inverse kinematics
@@ -85,5 +87,5 @@ Eigen::Vector3f IK::solve_fk(float theta1, float theta2, float theta3)
     float S23 = sin(theta2 + theta3);
 
     float d = L1 + L2*C2 + L3*C23;
-    return Eigen::Vector3f {C1*d, S1*d, L3*S23 + L2*S2};
+    return Eigen::Vector3f {C1*d, S1*d, -L3*S23-L2*S2};
 }
