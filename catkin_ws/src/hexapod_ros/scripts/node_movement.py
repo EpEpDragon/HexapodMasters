@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from ast import walk
 import rospy
 import numpy as np
 from hexapod_ros.msg import HexapodCommands, EffectorTargets
@@ -27,8 +28,12 @@ def run():
     rate = rospy.Rate(30)
     while not rospy.is_shutdown():
         # walk_machine.update(direction, speed)
-        effector_targets_pub.publish(walk_machine.targets)
-        print("Publish targets")
+        targets_msg = EffectorTargets()
+        for i in range(6):
+            targets_msg.targets[i].data[0] = walk_machine.targets[i][0]
+            targets_msg.targets[i].data[1] = walk_machine.targets[i][1]
+            targets_msg.targets[i].data[2] = walk_machine.targets[i][2]
+        effector_targets_pub.publish(targets_msg)
         rate.sleep()
 
 if __name__ == '__main__':

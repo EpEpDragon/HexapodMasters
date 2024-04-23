@@ -181,7 +181,6 @@ class WalkCycleMachine(StateMachine):
 
 
     def _update_targets(self):
-        print("UpdateTargets")
         """Update feet targets based on direction, speed and heightmap"""
         # print("")
         for i in range(6):
