@@ -85,9 +85,9 @@ std_msgs::Float32 FeetOnFloor;
 ros::Publisher pub_FeetOnFloorFlag("/FeetOnFloorFlag", &FeetOnFloor); 
 
 
-void push_log(char* message, ...)
+void push_log(char* message)
 {
-  sprintf(logdata.data, message, ...);
+  logdata.data = message;
   pub_log.publish(&logdata);
 }
 
@@ -367,7 +367,7 @@ Eigen::Vector3f targets[6] = {
   {141.855,  245.7,  -140}
 };
 
-IK ik(&dxl);
+IK ik(&dxl, push_log);
 
 void loop()
 {
@@ -377,6 +377,18 @@ void loop()
 
   if(currentmillis - prevmillis >= 10)
   {
+    
+    float theta[6];
+    theta[0] = dxl.PresentPos(0);
+    theta[1] = dxl.PresentPos(3);
+    theta[2] = dxl.PresentPos(6);
+    theta[3] = dxl.PresentPos(9);
+    theta[4] = dxl.PresentPos(12);
+    theta[5] = dxl.PresentPos(15);
+    char msg[50];
+    sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f, theta4 %.2f, theta5 %.2f, theta6 %.2f", theta[0], theta[1], theta[2], theta[3],theta[4],theta[5]);
+    push_log(msg);
+    
     prevmillis = currentmillis;
 
     //On Startup
@@ -386,14 +398,15 @@ void loop()
 
       ik.set_final_targets(targets);
       ik.solve_next_angles(theta1[0], theta2[0], theta3[0],0);
-      ik.solve_next_angles(theta1[1], theta2[1], theta3[1],0);
-      ik.solve_next_angles(theta1[2], theta2[2], theta3[2],0);
-      ik.solve_next_angles(theta1[3], theta2[3], theta3[3],0);
-      ik.solve_next_angles(theta1[4], theta2[4], theta3[4],0);
-      ik.solve_next_angles(theta1[5], theta2[5], theta3[5],0);
+      ik.solve_next_angles(theta1[1], theta2[1], theta3[1],1);
+      ik.solve_next_angles(theta1[2], theta2[2], theta3[2],2);
+      ik.solve_next_angles(theta1[3], theta2[3], theta3[3],3);
+      ik.solve_next_angles(theta1[4], theta2[4], theta3[4],4);
+      ik.solve_next_angles(theta1[5], theta2[5], theta3[5],5);
       
-
-      push_log("LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
+      char msg[50];
+      sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
+      push_log(msg);
       // char msg[50];
       // sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
       // logdata.data = msg;
@@ -406,11 +419,12 @@ void loop()
       InKin.IK(&theta1[4],&theta2[4],&theta3[4],-141.855, 245.7,  -140,4,0,0,0,0,0);
       InKin.IK(&theta1[5],&theta2[5],&theta3[5],141.855,  245.7,  -140,5,0,0,0,0,0);
 
-      push_log("LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
+      sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
+      push_log(msg);
       // sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
       // logdata.data = msg;
       // pub_log.publish(&logdata);
-      push_log("---------------");
+      push_log((char*)"---------------");
       // logdata.data = "--------------";
       // pub_log.publish(&logdata);
       

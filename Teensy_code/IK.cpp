@@ -1,9 +1,10 @@
 #include <cmath>
 #include "IK.h"
 
-IK::IK(MyDynamixel* dxl)
+IK::IK(MyDynamixel* dxl, void (*push_log)(char*))
 {
     this->dxl = dxl;
+    this->push_log = push_log;
 }
 
 void IK::set_final_targets(const Eigen::Vector3f targets[6])
@@ -23,7 +24,14 @@ void IK::solve_next_angles(float& theta1, float& theta2, float& theta3, uint8_t 
 
     // Calculate current pos through forward kinematics
     Eigen::Vector3f present_pos = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
-
+    
+//    if (leg_id == 0)
+//    {
+//      char msg[50];
+//      sprintf(msg, "LOG: current_pos: %.2f, %.2f, %.2f", curr_theta1, curr_theta2, curr_theta3);
+//      this->push_log(msg);
+//    }
+    
     // Calculate the required movement direction
     Eigen::Vector3f move_dir = this->solve_move_vector(present_pos, this->final_targets[leg_id]);
     Eigen::Vector3f immediate_target = present_pos + move_dir*10;

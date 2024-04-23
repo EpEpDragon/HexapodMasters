@@ -42,7 +42,7 @@ const Eigen::Quaternionf LEG_INV_QUATS[6] {
 class IK
 {
     public:
-        IK(MyDynamixel* dxl);
+        IK(MyDynamixel* dxl, void (*push_log)(char*));
         // Set and translate targets to leg coordintate space
         void set_final_targets(const Eigen::Vector3f targets[6]);
         // Calculate the next servo angles for the leg of the provided id
@@ -59,6 +59,7 @@ class IK
         
 //        const uint8_t DEPin = 19; // DYNAMIXEL DIR PIN
         MyDynamixel* dxl;
+        void (*push_log)(char*);
 };
 
 #endif
