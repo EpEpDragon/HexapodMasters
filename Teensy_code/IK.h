@@ -43,6 +43,7 @@ class IK
 {
     public:
         IK(MyDynamixel* dxl, void (*push_log)(char*));
+        void test();
         // Set and translate targets to leg coordintate space
         void set_final_targets(const Eigen::Vector3f targets[6]);
         // Calculate the next servo angles for the leg of the provided id

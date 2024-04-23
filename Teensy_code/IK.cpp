@@ -14,23 +14,31 @@ void IK::set_final_targets(const Eigen::Vector3f targets[6])
         this->final_targets[i] = LEG_INV_QUATS[i] * (targets[i] - LEG_OFFSETS[i]);
     }
 }
-
+void IK::test()
+{
+  float curr_theta1 = this->dxl->PresentPos(0);
+  float curr_theta2 = this->dxl->PresentPos(1);
+  float curr_theta3 = this->dxl->PresentPos(2);
+  char msg[50];
+  sprintf(msg, "LOG: current_pos: %.2f, %.2f, %.2f", curr_theta1*180/PI, curr_theta2*180/PI, curr_theta3*180/PI);
+  this->push_log(msg);
+}
 void IK::solve_next_angles(float& theta1, float& theta2, float& theta3, uint8_t leg_id)
 {
     // Get servo angles in leg
     float curr_theta1 = this->dxl->PresentPos(leg_id*3);
     float curr_theta2 = this->dxl->PresentPos(leg_id*3 + 1);
     float curr_theta3 = this->dxl->PresentPos(leg_id*3 + 2);
-
+    
+    char msg[50];
+    sprintf(msg, "leg %i current_pos: %.2f, %.2f, %.2f",leg_id*3, curr_theta1*180/PI, curr_theta2*180/PI, curr_theta3*180/PI);
+    this->push_log(msg);
+    
+    
     // Calculate current pos through forward kinematics
     Eigen::Vector3f present_pos = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
     
-//    if (leg_id == 0)
-//    {
-//      char msg[50];
-//      sprintf(msg, "LOG: current_pos: %.2f, %.2f, %.2f", curr_theta1, curr_theta2, curr_theta3);
-//      this->push_log(msg);
-//    }
+
     
     // Calculate the required movement direction
     Eigen::Vector3f move_dir = this->solve_move_vector(present_pos, this->final_targets[leg_id]);

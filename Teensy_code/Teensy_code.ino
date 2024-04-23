@@ -377,17 +377,17 @@ void loop()
 
   if(currentmillis - prevmillis >= 10)
   {
-    
-    float theta[6];
-    theta[0] = dxl.PresentPos(0);
-    theta[1] = dxl.PresentPos(3);
-    theta[2] = dxl.PresentPos(6);
-    theta[3] = dxl.PresentPos(9);
-    theta[4] = dxl.PresentPos(12);
-    theta[5] = dxl.PresentPos(15);
-    char msg[50];
-    sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f, theta4 %.2f, theta5 %.2f, theta6 %.2f", theta[0], theta[1], theta[2], theta[3],theta[4],theta[5]);
-    push_log(msg);
+//      ik.test();
+//    float theta[6];
+//    theta[0] = dxl.PresentPos(0)*180/PI;
+//    theta[1] = dxl.PresentPos(1)*180/PI;
+//    theta[2] = dxl.PresentPos(2)*180/PI;
+//    theta[3] = dxl.PresentPos(9)*180/PI;
+//    theta[4] = dxl.PresentPos(12)*180/PI;
+//    theta[5] = dxl.PresentPos(15)*180/PI;
+//    char msg[50];
+//    sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta[0], theta[1], theta[2], theta[3],theta[4],theta[5]);
+//    push_log(msg);
     
     prevmillis = currentmillis;
 
@@ -419,14 +419,9 @@ void loop()
       InKin.IK(&theta1[4],&theta2[4],&theta3[4],-141.855, 245.7,  -140,4,0,0,0,0,0);
       InKin.IK(&theta1[5],&theta2[5],&theta3[5],141.855,  245.7,  -140,5,0,0,0,0,0);
 
-      sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
-      push_log(msg);
-      // sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
-      // logdata.data = msg;
-      // pub_log.publish(&logdata);
+//      sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
+//      push_log(msg);
       push_log((char*)"---------------");
-      // logdata.data = "--------------";
-      // pub_log.publish(&logdata);
       
       SetAngles(theta1,theta2,theta3,10,10,10);
       if(currentmillis - startUp_startTime >= 5000) 
@@ -645,7 +640,7 @@ void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float sp
       Id[num] = 0;
       
       /*if(abs(prevAngle[num]-Angle[num]) >= 0.15)*/ prevAngle[num] = Angle[num];
-      mfb0 = String(milli) + "," + String(th1[0],2) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//      m/fb0 = String(milli) + "," + String(th1[0],2) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
       //mfb0 = String(th1[0],2);
         
     }
@@ -665,7 +660,7 @@ void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float sp
       dtostrf(th2[0], 5, 5, buff);
       strcat(dataStr, buff);*/
       
-      mfb1 = String(th2[0]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//      mf/b1 = String(th2[0]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
       //mfb1 = String(th2[0],2);
     }
     else if (num == 2)  //thata31
@@ -676,7 +671,7 @@ void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float sp
 
       /*if(abs(prevAngle[num]-Angle[num]) >= 0.15)*/ prevAngle[num] = Angle[num];
       
-      mfb2 = String(th3[0]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//      mfb2 /= String(th3[0]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
       //mfb2 = String(th3[0],2);
     }
     else if (num == 3)  //thata12
@@ -719,7 +714,7 @@ void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float sp
       Spd[num] = spd1;
       Id[num] = 6;
       
-      mfb6 = String(th1[2]) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//      mfb6 = String(th/1[2]) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
       //mfb6 = String(th1[2],2);
     }
     else if (num == 7)  //thata23
@@ -728,7 +723,7 @@ void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float sp
       Spd[num] = spd2;
       Id[num] = 7;
 
-      mfb7 = String(th2[2]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//      mfb7 = String(th2[2]) + "," + /String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
       //mfb7 = String(th2[2],2);
     }
     else if (num == 8)  //thata33
@@ -737,7 +732,7 @@ void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float sp
       Spd[num] = spd3;
       Id[num] = 8;
       
-      mfb8 = String(th3[2]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//      mfb8 = String(th3[2]) + "," + String(-/(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
       //mfb8 = String(th3[2],2);
     }
     else if (num == 9)  //thata14
@@ -773,7 +768,7 @@ void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float sp
       Spd[num] = spd1;
       Id[num] = 12;
 
-      mfb12 = String(th1[4]) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//      mfb12 = String(th1[4]) + "," + String((d/xl.PresentPos(Id[num])-150)*M_PI/180,2);
       //mfb12 = String(th1[4],2);
     }
     else if (num == 13) //thata25
@@ -782,7 +777,7 @@ void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float sp
       Spd[num] = spd2;
       Id[num] = 13;
       
-      mfb13 = String(th2[4]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//      mfb13 = String(th2[4]) + "," + String(-(dxl./PresentPos(Id[num])-150)*M_PI/180,2);
       //mfb13 = String(th2[4],2);
     }
     else if (num == 14) //thata35
@@ -791,7 +786,7 @@ void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float sp
       Spd[num] = spd3;
       Id[num] = 14;
 
-      mfb14 = String(th3[4]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//      mfb14 = String(th3[4]) + "," + String(-(dxl.Prese/ntPos(Id[num])-150)*M_PI/180,2);
       //mfb14 = String(th3[4],2);
     }
     else if (num == 15) //thata16
