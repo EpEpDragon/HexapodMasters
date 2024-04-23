@@ -194,7 +194,7 @@ void MyDynamixel::SyncMove (uint8_t* id, double* position, double* speed, uint8_
 
 	for(int i = 0,j = 0; i<dataLength && j<numMotors; i+=4,j++)
 	{
-		double pos = position[j]/0.29;
+		double pos = position[j]/SERVO_STEP + 512;
 		if(pos < 0)
 		{
 			pos = 0;

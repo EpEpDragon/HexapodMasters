@@ -12,9 +12,9 @@ InverseKinematics InKin;
 //Some variables
 
 //Joint Angle Variables for SetNextpathPoint Mode
-float theta1[6];
-float theta2[6];
-float theta3[6];
+double theta1[6];
+double theta2[6];
+double theta3[6];
 
 
 //Joint Angle Variables for SetAngle Mode
@@ -26,7 +26,7 @@ float A_theta3[6]={-1.5, -1.5, -1.5, -1.5, -1.5, -1.5};
 //Joint Angle Variables for Teleop demo Mode
 float T_theta1[6];
 float T_theta2[6];
-float T_theta3[6];
+double T_theta3[6];
 
 
 // Dynamixel
@@ -306,7 +306,7 @@ int kinematicModeStartFlag = 0;
 //Function prototype
 void SetAngles(float* th1,float* th2,float* th3 ,float spd1=-1,float spd2=-1, float spd3=-1);
 
-Eigen::Vector3f targets[6] = {
+Eigen::Vector3d targets[6] = {
   {207.846, -120.000, -140},
   {0.000, -240.000, -140},
   {-207.846, -120.000, -140},
@@ -334,13 +334,12 @@ void loop()
 
   if(currentmillis - prevmillis >= 10)
   {
-      ik.set_final_targets(targets);
+//      ik.set_final_targets(targets);
 //      ik.solve_next_angles(theta1[0], theta2[0], theta3[0], 0);
-//      
 //      char msg[50];
-//      sprintf(msg, "angles: %.2f, %.2f, %.2f", theta1[0], theta2[0], theta3[0]);
-//      //push_log(msg);
-      ik.test();
+//      sprintf(msg, "angles: %.2f, %.2f, %.2f", theta1[0]*180/M_PI, theta2[0]*180/M_PI, theta3[0]*180/M_PI);
+//      push_log(msg);
+      //ik.test();
 //    float theta[6];
 //    theta[0] = dxl.PresentPos(0)*180/PI;
 //    theta[1] = dxl.PresentPos(1)*180/PI;
@@ -366,8 +365,10 @@ void loop()
       ik.solve_next_angles(theta1[4], theta2[4], theta3[4], 4);
       ik.solve_next_angles(theta1[5], theta2[5], theta3[5], 5);
       
+      SetAngles(theta1,theta2,theta3,5,5,5);
+      
       char msg[50];
-      sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
+      sprintf(msg, "theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
       push_log(msg);
       
       // char msg[50];
@@ -397,78 +398,78 @@ void loop()
     //Teleop demo Mode
     if(mode == 1 && startUp == 1)
     {
-      stepStartFlag = 0;
-      static elapsedMillis kinematicModeStartTimer;
-
-      if(kinematicModeStartFlag == 0)
-      {
-        kinematicModeStartFlag = 1;
-        kinematicModeStartTimer = 0;
-      }
-
-      if(kinematicModeStartTimer <= 1000)
-      {
-        InKin.IK(&T_theta1[0],&T_theta2[0],&T_theta3[0],283.71+tx,   0.0+ty,    -140-tz,0,1000,troll,tpitch,tyaw,0);
-        InKin.IK(&T_theta1[1],&T_theta2[1],&T_theta3[1],141.855+tx,  -245.7+ty, -140-tz,1,1000,troll,tpitch,-tyaw,0);
-        InKin.IK(&T_theta1[2],&T_theta2[2],&T_theta3[2],-141.855+tx, -245.7+ty, -140-tz,2,1000,troll,tpitch,tyaw,0);
-        InKin.IK(&T_theta1[3],&T_theta2[3],&T_theta3[3],-283.71+tx,  0.0+ty,    -140-tz,3,1000,troll,tpitch,-tyaw,0);
-        InKin.IK(&T_theta1[4],&T_theta2[4],&T_theta3[4],-141.855+tx, 245.7+ty,  -140-tz,4,1000,troll,tpitch,tyaw,0);
-        InKin.IK(&T_theta1[5],&T_theta2[5],&T_theta3[5],141.855+tx,  245.7+ty,  -140-tz,5,1000,troll,tpitch,-tyaw,0);
-        if(ConstrainCheck01(T_theta1,T_theta2,T_theta3))
-        {
-          SetAngles(T_theta1,T_theta2,T_theta3,0,0,0);
-        }
-      }
-      else
-      {
-        InKin.IK(&T_theta1[0],&T_theta2[0],&T_theta3[0],283.71+tx,   0.0+ty,    -140-tz,0,0,troll,tpitch,tyaw,0);
-        InKin.IK(&T_theta1[1],&T_theta2[1],&T_theta3[1],141.855+tx,  -245.7+ty, -140-tz,1,0,troll,tpitch,-tyaw,0);
-        InKin.IK(&T_theta1[2],&T_theta2[2],&T_theta3[2],-141.855+tx, -245.7+ty, -140-tz,2,0,troll,tpitch,tyaw,0);
-        InKin.IK(&T_theta1[3],&T_theta2[3],&T_theta3[3],-283.71+tx,  0.0+ty,    -140-tz,3,0,troll,tpitch,-tyaw,0);
-        InKin.IK(&T_theta1[4],&T_theta2[4],&T_theta3[4],-141.855+tx, 245.7+ty,  -140-tz,4,0,troll,tpitch,tyaw,0);
-        InKin.IK(&T_theta1[5],&T_theta2[5],&T_theta3[5],141.855+tx,  245.7+ty,  -140-tz,5,0,troll,tpitch,-tyaw,0);
-        if(ConstrainCheck01(T_theta1,T_theta2,T_theta3))
-        {
-          SetAngles(T_theta1,T_theta2,T_theta3,0,0,0);
-        }
-      }
+//      stepStartFlag = 0;
+//      static elapsedMillis kinematicModeStartTimer;
+//
+//      if(kinematicModeStartFlag == 0)
+//      {
+//        kinematicModeStartFlag = 1;
+//        kinematicModeStartTimer = 0;
+//      }
+//
+//      if(kinematicModeStartTimer <= 1000)
+//      {
+//        InKin.IK(&T_theta1[0],&T_theta2[0],&T_theta3[0],283.71+tx,   0.0+ty,    -140-tz,0,1000,troll,tpitch,tyaw,0);
+//        InKin.IK(&T_theta1[1],&T_theta2[1],&T_theta3[1],141.855+tx,  -245.7+ty, -140-tz,1,1000,troll,tpitch,-tyaw,0);
+//        InKin.IK(&T_theta1[2],&T_theta2[2],&T_theta3[2],-141.855+tx, -245.7+ty, -140-tz,2,1000,troll,tpitch,tyaw,0);
+//        InKin.IK(&T_theta1[3],&T_theta2[3],&T_theta3[3],-283.71+tx,  0.0+ty,    -140-tz,3,1000,troll,tpitch,-tyaw,0);
+//        InKin.IK(&T_theta1[4],&T_theta2[4],&T_theta3[4],-141.855+tx, 245.7+ty,  -140-tz,4,1000,troll,tpitch,tyaw,0);
+//        InKin.IK(&T_theta1[5],&T_theta2[5],&T_theta3[5],141.855+tx,  245.7+ty,  -140-tz,5,1000,troll,tpitch,-tyaw,0);
+//        if(ConstrainCheck01(T_theta1,T_theta2,T_theta3))
+//        {
+//          SetAngles(T_theta1,T_theta2,T_theta3,0,0,0);
+//        }
+//      }
+//      else
+//      {
+//        InKin.IK(&T_theta1[0],&T_theta2[0],&T_theta3[0],283.71+tx,   0.0+ty,    -140-tz,0,0,troll,tpitch,tyaw,0);
+//        InKin.IK(&T_theta1[1],&T_theta2[1],&T_theta3[1],141.855+tx,  -245.7+ty, -140-tz,1,0,troll,tpitch,-tyaw,0);
+//        InKin.IK(&T_theta1[2],&T_theta2[2],&T_theta3[2],-141.855+tx, -245.7+ty, -140-tz,2,0,troll,tpitch,tyaw,0);
+//        InKin.IK(&T_theta1[3],&T_theta2[3],&T_theta3[3],-283.71+tx,  0.0+ty,    -140-tz,3,0,troll,tpitch,-tyaw,0);
+//        InKin.IK(&T_theta1[4],&T_theta2[4],&T_theta3[4],-141.855+tx, 245.7+ty,  -140-tz,4,0,troll,tpitch,tyaw,0);
+//        InKin.IK(&T_theta1[5],&T_theta2[5],&T_theta3[5],141.855+tx,  245.7+ty,  -140-tz,5,0,troll,tpitch,-tyaw,0);
+//        if(ConstrainCheck01(T_theta1,T_theta2,T_theta3))
+//        {
+//          SetAngles(T_theta1,T_theta2,T_theta3,0,0,0);
+//        }
+//      }
     }
 
     //SetAngle Mode
     else if(mode == 2 && startUp == 1)
     {
-      stepStartFlag = 0;
-      kinematicModeStartFlag = 0;
-      
-      A_theta1[0] = 0;
-      A_theta2[0] = 0;
-      A_theta3[0] = -0;
-
-      float px = 0, py = 0, pz = 0;
-      
-      FK03_inbody(px,py,pz, A_theta1[0],A_theta2[0],A_theta3[0],0);
-      InKin.IK(&A_theta1[0],&A_theta2[0],&A_theta3[0],px,   py,    pz,0,0,0,0,0,0);
-
-      FK03_inbody(px,py,pz, A_theta1[1],A_theta2[1],A_theta3[1],1);
-      InKin.IK(&A_theta1[1],&A_theta2[1],&A_theta3[1],px,   py,    pz,1,0,0,0,0,0);
-
-      FK03_inbody(px,py,pz, A_theta1[2],A_theta2[2],A_theta3[2],2);
-      InKin.IK(&A_theta1[2],&A_theta2[2],&A_theta3[2],px,   py,    pz,2,0,0,0,0,0);
-
-      FK03_inbody(px,py,pz, A_theta1[3],A_theta2[3],A_theta3[3],3);
-      InKin.IK(&A_theta1[3],&A_theta2[3],&A_theta3[3],px,   py,    pz,3,0,0,0,0,0);
-
-      FK03_inbody(px,py,pz, A_theta1[4],A_theta2[4],A_theta3[4],4);
-      InKin.IK(&A_theta1[4],&A_theta2[4],&A_theta3[4],px,   py,    pz,4,0,0,0,0,0);
-
-      FK03_inbody(px,py,pz, A_theta1[5],A_theta2[5],A_theta3[5],5);
-      InKin.IK(&A_theta1[5],&A_theta2[5],&A_theta3[5],px,   py,    pz,5,0,0,0,0,0);
-
-      if(ConstrainCheck01(A_theta1,A_theta2,A_theta3))
-      {
-        SetAngles(A_theta1,A_theta2,A_theta3,20,20,20);
-      }
-      //mode = 2;
+//      stepStartFlag = 0;
+//      kinematicModeStartFlag = 0;
+//      
+//      A_theta1[0] = 0;
+//      A_theta2[0] = 0;
+//      A_theta3[0] = -0;
+//
+//      float px = 0, py = 0, pz = 0;
+//      
+//      FK03_inbody(px,py,pz, A_theta1[0],A_theta2[0],A_theta3[0],0);
+//      InKin.IK(&A_theta1[0],&A_theta2[0],&A_theta3[0],px,   py,    pz,0,0,0,0,0,0);
+//
+//      FK03_inbody(px,py,pz, A_theta1[1],A_theta2[1],A_theta3[1],1);
+//      InKin.IK(&A_theta1[1],&A_theta2[1],&A_theta3[1],px,   py,    pz,1,0,0,0,0,0);
+//
+//      FK03_inbody(px,py,pz, A_theta1[2],A_theta2[2],A_theta3[2],2);
+//      InKin.IK(&A_theta1[2],&A_theta2[2],&A_theta3[2],px,   py,    pz,2,0,0,0,0,0);
+//
+//      FK03_inbody(px,py,pz, A_theta1[3],A_theta2[3],A_theta3[3],3);
+//      InKin.IK(&A_theta1[3],&A_theta2[3],&A_theta3[3],px,   py,    pz,3,0,0,0,0,0);
+//
+//      FK03_inbody(px,py,pz, A_theta1[4],A_theta2[4],A_theta3[4],4);
+//      InKin.IK(&A_theta1[4],&A_theta2[4],&A_theta3[4],px,   py,    pz,4,0,0,0,0,0);
+//
+//      FK03_inbody(px,py,pz, A_theta1[5],A_theta2[5],A_theta3[5],5);
+//      InKin.IK(&A_theta1[5],&A_theta2[5],&A_theta3[5],px,   py,    pz,5,0,0,0,0,0);
+//
+//      if(ConstrainCheck01(A_theta1,A_theta2,A_theta3))
+//      {
+//        SetAngles(A_theta1,A_theta2,A_theta3,20,20,20);
+//      }
+//      //mode = 2;
     }
     
     //SetNextpathPoint Mode
@@ -477,21 +478,19 @@ void loop()
 
     }
   }
-
-
 }
 
 
-void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float spd3)
+void SetAngles(double* th1, double* th2, double* th3, double spd1,double spd2, double spd3)
 {
   double angles[18];
   double speeds[18];
   
   for(int leg_id = 0; leg_id<6; leg_id++)
   {
-    angles[leg_id*3] = th1[leg_id]*180.0/M_PI+150.0;
-    angles[leg_id*3+1] = -th2[leg_id]*180.0/M_PI+150.0;
-    angles[leg_id*3+2] = -th3[leg_id]*180.0/M_PI+150.0;
+    angles[leg_id*3] = th1[leg_id];
+    angles[leg_id*3+1] = th2[leg_id];
+    angles[leg_id*3+2] = th3[leg_id];
 
     speeds[leg_id*3] = spd1;
     speeds[leg_id*3+1] = spd2;
