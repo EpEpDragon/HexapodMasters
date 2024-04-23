@@ -177,15 +177,21 @@ void teleop_cb(const geometry_msgs::Twist& msg)
 ros::Subscriber<geometry_msgs::Twist> rosSubTeleop("/cmd_vel", teleop_cb);
 
 // Get effector targets from message
-//float EffectorTargets[6][3]
-//void targets_cb(const msg::EffectorTargets& msg)
-//{
-//  for (int i=0; i<7; i++)
-//  {
-//    EffectorTargets[i] = msg[i]
-//  }
-//}
-//ros::Subscriber<msgs::EffectorTargets> rosSubEffectorTargets("effector_targets", targets_cb);
+Eigen::Vector3f effector_targets[6];
+void targets_cb(const hexapod_ros::EffectorTargets& msg)
+{
+  for (int i=0; i<6; i++)
+  {
+    effector_targets[i] = Eigen::Vector3f {msg.targets[i].data};
+//    std::stringstream ss;
+//    ss << "Target "  << i << ": " << effector_targets[i];
+    char temp[50];
+    sprintf(temp, "Targets: [%.2f, %.2f, %.2f]", effector_targets[i][0], effector_targets[i][1], effector_targets[i][2]);
+    logdata.data = temp;
+    pub_log.publish(&logdata);
+  }
+}
+ros::Subscriber<hexapod_ros::EffectorTargets> rosSubEffectorTargets("effector_targets", targets_cb);
 
 //Leg Path subsciber
 #define Pathsize 7
