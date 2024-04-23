@@ -14,7 +14,7 @@ def run():
     
     def update(command_msg):
         direction = np.append(np.array(command_msg.walk_dir),0)
-        walk_machine.update(direction, speed)
+        walk_machine.update(direction, command_msg.speed)
         # Append 0 to make direction 3D (x,y,0)
         # direction[2] = 0
         

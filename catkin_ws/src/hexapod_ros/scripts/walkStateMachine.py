@@ -196,17 +196,17 @@ class WalkCycleMachine(StateMachine):
                 # self.targets[i][2] = self.height_offsets[i] + effector_offset
                 
                 # If not walking means rotationg in place, thus set foot height based on rotation
-                if (self.walk_direction == 0).all() and self.centering_yaw[i]:
-                    self.targets[i][2] += self.height_offsets[i] + effector_offset - min(abs(self.current_yaw_local[i])*3, 0.7)
-                else:
-                    self.targets[i][2] += self.height_offsets[i] +  effector_offset - min(dist, 0.7)
+                # if (self.walk_direction == 0).all() and self.centering_yaw[i]:
+                #     self.targets[i][2] += self.height_offsets[i] + effector_offset - min(abs(self.current_yaw_local[i])*3, 0.7)
+                # else:
+                #     self.targets[i][2] += self.height_offsets[i] +  effector_offset - min(dist, 0.7)
 
                 if self.centering_yaw[i]:
                     self.target_yaw_local[i] = 0.0
             else:
                 # Rotate walk direction to account for pitch angle and add to targets
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
-                self.targets[i][2] += self.height_offsets[i] + effector_offset
+                # self.targets[i][2] += self.height_offsets[i] + effector_offset
             
             # print(f"leg {i}: {self.targets[i][2]}")
 
