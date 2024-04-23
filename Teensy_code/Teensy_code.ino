@@ -313,7 +313,7 @@ Eigen::Vector3f targets[6] = {
   {-173.205, 100.000, -140},
   {-0.000, 200.000, -140},
   {173.205, 100.000, -140},
-}
+};
 
 // Eigen::Vector3f targets[6] = {
 //   {283.71,   0.0,    -140},
@@ -334,6 +334,12 @@ void loop()
 
   if(currentmillis - prevmillis >= 10)
   {
+      ik.set_final_targets(targets);
+//      ik.solve_next_angles(theta1[0], theta2[0], theta3[0], 0);
+//      
+//      char msg[50];
+//      sprintf(msg, "angles: %.2f, %.2f, %.2f", theta1[0], theta2[0], theta3[0]);
+//      //push_log(msg);
       ik.test();
 //    float theta[6];
 //    theta[0] = dxl.PresentPos(0)*180/PI;
@@ -363,6 +369,7 @@ void loop()
       char msg[50];
       sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
       push_log(msg);
+      
       // char msg[50];
       // sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
       // logdata.data = msg;
@@ -467,28 +474,7 @@ void loop()
     //SetNextpathPoint Mode
     else if(mode == 3 && startSetPath == 1 && startUp == 1)
     {
-      kinematicModeStartFlag = 0;
-      static elapsedMillis stepStartTimer = 1001;
-	    if (stepStartFlag == 0 && standBegin == 1)
-	    {
-	      stepStartTimer = 0;
-	      stepStartFlag = 1;
-        standBegin = 0;
-      }
-      if(stepStartTimer <= 1000)
-      {
-        SetNextPathPoint(XPath,YPath,ZPath,TurnPath,1000);
-        ConstrainCheck2(theta1,theta2,theta3);
-        SetAngles(theta1,theta2,theta3,0,0,0);
-        prevtime = millis();
-      }
-      else
-      {
-        curtime = millis();
-        SetNextPathPoint(XPath,YPath,ZPath,TurnPath,dt);
-        ConstrainCheck2(theta1,theta2,theta3);
-        SetAngles(theta1,theta2,theta3,0,0,0);
-      }
+
     }
   }
 
