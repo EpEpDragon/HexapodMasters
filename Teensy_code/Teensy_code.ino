@@ -247,7 +247,7 @@ void legpath_cb(const my_message::LegPath& msg)
 ros::Subscriber<my_message::LegPath> rosSubPATH("/simple_hexapod/Legs_paths", legpath_cb);
 
 //mode select subscriber
-uint8_t Id[18];
+const uint8_t IDS[18] {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
 int mode = -1;
 int startUp = -1;
 void modeSelect_cb(const std_msgs::Int32& msg)
@@ -259,11 +259,7 @@ void modeSelect_cb(const std_msgs::Int32& msg)
     logdata.data = "Torque off";
     
     // Disable servo torque
-    for(int num = 0; num<18; num++)
-    {
-      Id[num] = num;
-    }
-    dxl.SyncDisableTorque(Id, 18);
+    dxl.SyncDisableTorque(IDS, 18);
   }
   else if(msg.data == 0)
   {
@@ -340,8 +336,6 @@ void setup()
  
 }
 
-double Angle[18];
-double Spd[18];
 char dataStr[100] = "";
 char buff[7];
 long currentmillis = 0;
@@ -626,202 +620,215 @@ float AngleSmooth = 0;
 
 void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float spd3)
 {
-
-  static double prevAngle[18];
-  long milli = millis();
-  String mfb0,mfb1,mfb2,mfb3,mfb4,mfb5,mfb6,mfb7,mfb8,mfb9,mfb10,mfb11,mfb12,mfb13,mfb14,mfb15,mfb16,mfb17;
+  float angles[18];
+  float speeds[18];
   
-  for(int num = 0; num<18; num++)
+  for(int leg_id = 0; leg_id<6; leg_id++)
   {
-    if (num == 0) //thata11
-    {
-      Angle[num] = th1[0]*180.0/M_PI+150.0;
-      Spd[num] = (spd1==-1) ? (abs(prevAngle[num]-Angle[num])*60.0)/(360.0*10.0/1000.0) : spd1;
-      Id[num] = 0;
-      
-      /*if(abs(prevAngle[num]-Angle[num]) >= 0.15)*/ prevAngle[num] = Angle[num];
-//      m/fb0 = String(milli) + "," + String(th1[0],2) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb0 = String(th1[0],2);
-        
-    }
-    else if (num == 1)  //thata21
-    {
-      Angle[num] = -th2[0]*180.0/M_PI+150.0;
-      Spd[num] = (spd2==-1) ? (abs(prevAngle[num]-Angle[num])*60.0)/(360.0*10.0/1000.0) : spd2;
-      Id[num] = 1;
-      
-      //Serial.print(prevAngle[num]-Angle[num]);Serial.print(" ");Serial.println(Spd[num]);
-      /*if(abs(prevAngle[num]-Angle[num]) >= 0.15)*/ prevAngle[num] = Angle[num];
-  
-      /*dataStr[0] = 0; 
-      itoa( millis(),buff,10); //convert long to charStr
-      strcat(dataStr, buff); //add it to the end
-      strcat(dataStr, ", "); //append the delimiter
-      dtostrf(th2[0], 5, 5, buff);
-      strcat(dataStr, buff);*/
-      
-//      mf/b1 = String(th2[0]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb1 = String(th2[0],2);
-    }
-    else if (num == 2)  //thata31
-    {
-      Angle[num] = -th3[0]*180.0/M_PI+150.0;
-      Spd[num] = (spd3==-1) ? (abs(prevAngle[num]-Angle[num])*60.0)/(360.0*10.0/1000.0) : spd3;
-      Id[num] = 2;
+    angles[leg_id*3] = th1[leg_id]*180.0/M_PI+150.0;
+    angles[leg_id*3+1] = -th2[leg_id]*180.0/M_PI+150.0;
+    angles[leg_id*3+2] = -th3[leg_id]*180.0/M_PI+150.0;
 
-      /*if(abs(prevAngle[num]-Angle[num]) >= 0.15)*/ prevAngle[num] = Angle[num];
-      
-//      mfb2 /= String(th3[0]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb2 = String(th3[0],2);
-    }
-    else if (num == 3)  //thata12
-    {
-      Angle[num] = th1[1]*180.0/M_PI+150.0;
-      Spd[num] = spd1;
-      Id[num] = 3;
-
-      //AngleSmooth = Angle[num]*0.1 + AngleSmoothPrev*0.9;
-      //AngleSmoothPrev = AngleSmooth;
-      //Serial.print(Angle[num]);
-      //Serial.print(" , ");
-      //Serial.println(AngleSmooth);
-
-      
-      //mfb3 = String(milli) + "," + String(th1[1]) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb3 = String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-    }
-    else if (num == 4)  //thata22
-    {
-      Angle[num] = -th2[1]*180.0/M_PI+150.0;
-      Spd[num] = spd2;
-      Id[num] = 4;
-
-      //mfb4 = String(milli) + "," + String(th2[1]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb4 = String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-    }
-    else if (num == 5)  //thata32
-    {
-      Angle[num] = -th3[1]*180.0/M_PI+150.0;
-      Spd[num] = spd3;
-      Id[num] = 5;
-      
-      //mfb5 = String(milli) + "," + String(th3[1]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb5 = String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-    }
-    else if (num == 6)  //thata13
-    {
-      Angle[num] = th1[2]*180.0/M_PI+150.0;
-      Spd[num] = spd1;
-      Id[num] = 6;
-      
-//      mfb6 = String(th/1[2]) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb6 = String(th1[2],2);
-    }
-    else if (num == 7)  //thata23
-    {
-      Angle[num] = -th2[2]*180.0/M_PI+150.0;
-      Spd[num] = spd2;
-      Id[num] = 7;
-
-//      mfb7 = String(th2[2]) + "," + /String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb7 = String(th2[2],2);
-    }
-    else if (num == 8)  //thata33
-    {
-      Angle[num] = -th3[2]*180.0/M_PI+150.0;
-      Spd[num] = spd3;
-      Id[num] = 8;
-      
-//      mfb8 = String(th3[2]) + "," + String(-/(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb8 = String(th3[2],2);
-    }
-    else if (num == 9)  //thata14
-    {
-      Angle[num] = th1[3]*180.0/M_PI+150.0;
-      Spd[num] = spd1;
-      Id[num] = 9;
-
-      //mfb9 = String(milli) + "," + String(th1[3]) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb9 = String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-    }
-    else if (num == 10) //thata24
-    {
-      Angle[num] = -th2[3]*180.0/M_PI+150.0;
-      Spd[num] = spd2;
-      Id[num] = 10;
-      
-      //mfb10 = String(milli) + "," + String(th2[3]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb10 = String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-    }
-    else if (num == 11) //thata34
-    {
-      Angle[num] = -th3[3]*180.0/M_PI+150.0;
-      Spd[num] = spd3;
-      Id[num] = 11;
-
-      //mfb11 = String(milli) + "," + String(th3[3]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb11 = String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-    }
-    else if (num == 12) //thata15
-    {
-      Angle[num] = th1[4]*180.0/M_PI+150.0;
-      Spd[num] = spd1;
-      Id[num] = 12;
-
-//      mfb12 = String(th1[4]) + "," + String((d/xl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb12 = String(th1[4],2);
-    }
-    else if (num == 13) //thata25
-    {
-      Angle[num] = -th2[4]*180.0/M_PI+150.0;
-      Spd[num] = spd2;
-      Id[num] = 13;
-      
-//      mfb13 = String(th2[4]) + "," + String(-(dxl./PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb13 = String(th2[4],2);
-    }
-    else if (num == 14) //thata35
-    {
-      Angle[num] = -th3[4]*180.0/M_PI+150.0;
-      Spd[num] = spd3;
-      Id[num] = 14;
-
-//      mfb14 = String(th3[4]) + "," + String(-(dxl.Prese/ntPos(Id[num])-150)*M_PI/180,2);
-      //mfb14 = String(th3[4],2);
-    }
-    else if (num == 15) //thata16
-    {
-      Angle[num] = th1[5]*180.0/M_PI+150.0;
-      Spd[num] = spd1;
-      Id[num] = 15;
-
-      //mfb15 = String(milli) + "," + String(th1[5]) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb15 = String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-    }
-    else if (num == 16) //thata26
-    {
-      Angle[num] = -th2[5]*180.0/M_PI+150.0;
-      Spd[num] = spd2;
-      Id[num] = 16;
-
-      //mfb16 = String(milli) + "," + String(th2[5]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2); 
-      //mfb16 = String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-    }
-    else if (num == 17) //thata36
-    {
-      Angle[num] = -th3[5]*180.0/M_PI+150.0;
-      Spd[num] = spd3;
-      Id[num] = 17;
-
-      //mfb17 = String(milli) + "," + String(th3[5]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-      //mfb17 = String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
-    }
+    speeds[leg_id*3] = spd1
+    speeds[leg_id*3+1] = spd2
+    speeds[leg_id*3+2] = spd3
   }
+  
+  dxl.SyncMove(IDS, angles, speeds, 18);
 
-  dxl.SyncMove(Id,Angle,Spd,18);
-  pubAngleFB(mfb0,mfb1,mfb2,mfb3,mfb4,mfb5,mfb6,mfb7,mfb8,mfb9,mfb10,mfb11,mfb12,mfb13,mfb14,mfb15,mfb16,mfb17);
+//   static double prevAngle[18];
+//   long milli = millis();
+//   String mfb0,mfb1,mfb2,mfb3,mfb4,mfb5,mfb6,mfb7,mfb8,mfb9,mfb10,mfb11,mfb12,mfb13,mfb14,mfb15,mfb16,mfb17;
+  
+//   for(int num = 0; num<18; num++)
+//   {
+//     if (num == 0) //thata11
+//     {
+//       Angle[num] = th1[0]*180.0/M_PI+150.0;
+//       Spd[num] = (spd1==-1) ? (abs(prevAngle[num]-Angle[num])*60.0)/(360.0*10.0/1000.0) : spd1;
+//       Id[num] = 0;
+      
+//       /*if(abs(prevAngle[num]-Angle[num]) >= 0.15)*/ prevAngle[num] = Angle[num];
+// //      m/fb0 = String(milli) + "," + String(th1[0],2) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb0 = String(th1[0],2);
+        
+//     }
+//     else if (num == 1)  //thata21
+//     {
+//       Angle[num] = -th2[0]*180.0/M_PI+150.0;
+//       Spd[num] = (spd2==-1) ? (abs(prevAngle[num]-Angle[num])*60.0)/(360.0*10.0/1000.0) : spd2;
+//       Id[num] = 1;
+      
+//       //Serial.print(prevAngle[num]-Angle[num]);Serial.print(" ");Serial.println(Spd[num]);
+//       /*if(abs(prevAngle[num]-Angle[num]) >= 0.15)*/ prevAngle[num] = Angle[num];
+  
+//       /*dataStr[0] = 0; 
+//       itoa( millis(),buff,10); //convert long to charStr
+//       strcat(dataStr, buff); //add it to the end
+//       strcat(dataStr, ", "); //append the delimiter
+//       dtostrf(th2[0], 5, 5, buff);
+//       strcat(dataStr, buff);*/
+      
+// //      mf/b1 = String(th2[0]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb1 = String(th2[0],2);
+//     }
+//     else if (num == 2)  //thata31
+//     {
+//       Angle[num] = -th3[0]*180.0/M_PI+150.0;
+//       Spd[num] = (spd3==-1) ? (abs(prevAngle[num]-Angle[num])*60.0)/(360.0*10.0/1000.0) : spd3;
+//       Id[num] = 2;
 
+//       /*if(abs(prevAngle[num]-Angle[num]) >= 0.15)*/ prevAngle[num] = Angle[num];
+      
+// //      mfb2 /= String(th3[0]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb2 = String(th3[0],2);
+//     }
+//     else if (num == 3)  //thata12
+//     {
+//       Angle[num] = th1[1]*180.0/M_PI+150.0;
+//       Spd[num] = spd1;
+//       Id[num] = 3;
 
+//       //AngleSmooth = Angle[num]*0.1 + AngleSmoothPrev*0.9;
+//       //AngleSmoothPrev = AngleSmooth;
+//       //Serial.print(Angle[num]);
+//       //Serial.print(" , ");
+//       //Serial.println(AngleSmooth);
+
+      
+//       //mfb3 = String(milli) + "," + String(th1[1]) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb3 = String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//     }
+//     else if (num == 4)  //thata22
+//     {
+//       Angle[num] = -th2[1]*180.0/M_PI+150.0;
+//       Spd[num] = spd2;
+//       Id[num] = 4;
+
+//       //mfb4 = String(milli) + "," + String(th2[1]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb4 = String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//     }
+//     else if (num == 5)  //thata32
+//     {
+//       Angle[num] = -th3[1]*180.0/M_PI+150.0;
+//       Spd[num] = spd3;
+//       Id[num] = 5;
+      
+//       //mfb5 = String(milli) + "," + String(th3[1]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb5 = String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//     }
+//     else if (num == 6)  //thata13
+//     {
+//       Angle[num] = th1[2]*180.0/M_PI+150.0;
+//       Spd[num] = spd1;
+//       Id[num] = 6;
+      
+// //      mfb6 = String(th/1[2]) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb6 = String(th1[2],2);
+//     }
+//     else if (num == 7)  //thata23
+//     {
+//       Angle[num] = -th2[2]*180.0/M_PI+150.0;
+//       Spd[num] = spd2;
+//       Id[num] = 7;
+
+// //      mfb7 = String(th2[2]) + "," + /String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb7 = String(th2[2],2);
+//     }
+//     else if (num == 8)  //thata33
+//     {
+//       Angle[num] = -th3[2]*180.0/M_PI+150.0;
+//       Spd[num] = spd3;
+//       Id[num] = 8;
+      
+// //      mfb8 = String(th3[2]) + "," + String(-/(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb8 = String(th3[2],2);
+//     }
+//     else if (num == 9)  //thata14
+//     {
+//       Angle[num] = th1[3]*180.0/M_PI+150.0;
+//       Spd[num] = spd1;
+//       Id[num] = 9;
+
+//       //mfb9 = String(milli) + "," + String(th1[3]) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb9 = String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//     }
+//     else if (num == 10) //thata24
+//     {
+//       Angle[num] = -th2[3]*180.0/M_PI+150.0;
+//       Spd[num] = spd2;
+//       Id[num] = 10;
+      
+//       //mfb10 = String(milli) + "," + String(th2[3]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb10 = String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//     }
+//     else if (num == 11) //thata34
+//     {
+//       Angle[num] = -th3[3]*180.0/M_PI+150.0;
+//       Spd[num] = spd3;
+//       Id[num] = 11;
+
+//       //mfb11 = String(milli) + "," + String(th3[3]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb11 = String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//     }
+//     else if (num == 12) //thata15
+//     {
+//       Angle[num] = th1[4]*180.0/M_PI+150.0;
+//       Spd[num] = spd1;
+//       Id[num] = 12;
+
+// //      mfb12 = String(th1[4]) + "," + String((d/xl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb12 = String(th1[4],2);
+//     }
+//     else if (num == 13) //thata25
+//     {
+//       Angle[num] = -th2[4]*180.0/M_PI+150.0;
+//       Spd[num] = spd2;
+//       Id[num] = 13;
+      
+// //      mfb13 = String(th2[4]) + "," + String(-(dxl./PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb13 = String(th2[4],2);
+//     }
+//     else if (num == 14) //thata35
+//     {
+//       Angle[num] = -th3[4]*180.0/M_PI+150.0;
+//       Spd[num] = spd3;
+//       Id[num] = 14;
+
+// //      mfb14 = String(th3[4]) + "," + String(-(dxl.Prese/ntPos(Id[num])-150)*M_PI/180,2);
+//       //mfb14 = String(th3[4],2);
+//     }
+//     else if (num == 15) //thata16
+//     {
+//       Angle[num] = th1[5]*180.0/M_PI+150.0;
+//       Spd[num] = spd1;
+//       Id[num] = 15;
+
+//       //mfb15 = String(milli) + "," + String(th1[5]) + "," + String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb15 = String((dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//     }
+//     else if (num == 16) //thata26
+//     {
+//       Angle[num] = -th2[5]*180.0/M_PI+150.0;
+//       Spd[num] = spd2;
+//       Id[num] = 16;
+
+//       //mfb16 = String(milli) + "," + String(th2[5]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2); 
+//       //mfb16 = String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//     }
+//     else if (num == 17) //thata36
+//     {
+//       Angle[num] = -th3[5]*180.0/M_PI+150.0;
+//       Spd[num] = spd3;
+//       Id[num] = 17;
+
+//       //mfb17 = String(milli) + "," + String(th3[5]) + "," + String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//       //mfb17 = String(-(dxl.PresentPos(Id[num])-150)*M_PI/180,2);
+//     }
+//   }
+
+  // dxl.SyncMove(Id,Angle,Spd,18);
+  // pubAngleFB(mfb0,mfb1,mfb2,mfb3,mfb4,mfb5,mfb6,mfb7,mfb8,mfb9,mfb10,mfb11,mfb12,mfb13,mfb14,mfb15,mfb16,mfb17);
 }
 
 int ConstrainCheck01(float* th1,float* th2,float* th3)
