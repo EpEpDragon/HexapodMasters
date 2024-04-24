@@ -31,13 +31,26 @@ import math
 
 # pipe.stop()
 
-angle = math.radians(30)
+print("{")
+print("----origins----")
+angle = math.radians(-30)
 for i in range(6):
-    print("{%.3f, %.3f, 0}," % (125.54*math.cos(angle), 125.54*math.sin(angle)))
-    angle += 2*math.pi/6
+    print("{%.3f, %.3f, 0}," % (125.54*math.cos(angle), -125.54*math.sin(angle)))
+    angle -= 2*math.pi/6
+print("}")
 
-angle = math.radians(30)
+print("----quats----")
+print("{")
+angle = math.radians(-30)
 for i in range(6):
-    print("{%.3f, %.3f, %.3f, %.3f}," % (math.cos(-angle/2), 0, 0, -math.sin(-angle/2)))
-    angle += 2*math.pi/6
+    print("{%.3f, %.3f, %.3f, %.3f}," % (math.cos(-angle/2), 0, 0, math.sin(-angle/2)))
+    angle -= 2*math.pi/6
+print("}")
 
+print("----base pos----")
+angle = math.radians(-30)
+print("{")
+for i in range(6):
+    print("{%.3f, %.3f, -140}," % (200*math.cos(angle), 200*math.sin(angle)))
+    angle -= 2*math.pi/6
+print("}")
