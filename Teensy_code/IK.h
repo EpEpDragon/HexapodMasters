@@ -4,6 +4,7 @@
 #include <ArduinoEigenSparse.h>
 #include <ArduinoEigenDense.h>
 #include <ArduinoEigen.h>
+#include <ros.h>
 
 #include "Arduino.h"
 #include "MyDynamixel.h"

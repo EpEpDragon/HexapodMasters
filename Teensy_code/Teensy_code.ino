@@ -84,6 +84,13 @@ ros::Publisher pub_log("LOGDATA", &logdata);
 std_msgs::Float32 FeetOnFloor;
 ros::Publisher pub_FeetOnFloorFlag("/FeetOnFloorFlag", &FeetOnFloor); 
 
+
+void push_log(char* message, ...)
+{
+  sprintf(logdata.data, message, ...);
+  pub_log.publish(&logdata);
+}
+
 // ** ROS callback & subscriber **
 
 //Change angle of joints subscriber
@@ -385,10 +392,12 @@ void loop()
       ik.solve_next_angles(theta1[4], theta2[4], theta3[4],0);
       ik.solve_next_angles(theta1[5], theta2[5], theta3[5],0);
       
-      char msg[50];
-      sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
-      logdata.data = msg;
-      pub_log.publish(&logdata);
+
+      push_log("LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
+      // char msg[50];
+      // sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
+      // logdata.data = msg;
+      // pub_log.publish(&logdata);
 
       InKin.IK(&theta1[0],&theta2[0],&theta3[0],283.71,   0.0,    -140,0,0,0,0,0,0);
       InKin.IK(&theta1[1],&theta2[1],&theta3[1],141.855,  -245.7, -140,1,0,0,0,0,0);
@@ -397,11 +406,13 @@ void loop()
       InKin.IK(&theta1[4],&theta2[4],&theta3[4],-141.855, 245.7,  -140,4,0,0,0,0,0);
       InKin.IK(&theta1[5],&theta2[5],&theta3[5],141.855,  245.7,  -140,5,0,0,0,0,0);
 
-      sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
-      logdata.data = msg;
-      pub_log.publish(&logdata);
-      logdata.data = "--------------";
-      pub_log.publish(&logdata);
+      push_log("LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
+      // sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
+      // logdata.data = msg;
+      // pub_log.publish(&logdata);
+      push_log("---------------");
+      // logdata.data = "--------------";
+      // pub_log.publish(&logdata);
       
       SetAngles(theta1,theta2,theta3,10,10,10);
       if(currentmillis - startUp_startTime >= 5000) 
