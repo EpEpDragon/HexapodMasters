@@ -1,27 +1,31 @@
-#include <ArduinoEigen.h>
+#include <Eigen>
 #include <iostream>
 #include <cmath>
 
+const Eigen::Quaternionf LEG_INV_QUATS[6] {
+    {0.966, 0.000, 0.000, 0.259},
+    {0.707, 0.000, 0.000, 0.707},
+    {0.259, 0.000, 0.000, 0.966},
+    {-0.259, 0.000, 0.000, 0.966},
+    {-0.707, 0.000, 0.000, 0.707},
+    {-0.966, 0.000, 0.000, 0.259}
+};
+
+const Eigen::Vector3f LEG_OFFSETS[6] {
+    {108.721, 62.770, 0},
+    {0.000, 125.540, 0},
+    {-108.721, 62.770, 0},
+    {-108.721, -62.770, 0},
+    {-0.000, -125.540, 0},
+    {108.721, -62.770, 0}
+};
+
 int main()
 {   
-    float ang = 45 * M_PI/180;
-    Eigen::Matrix3Xd in_pts {
-        {1,0,0},
-        {0,1,0},
-        {0,0,1}
-    };
+    Eigen::Vector3f a {283.71,   0.0,    -140};
+    Eigen::Vector3f final_targets;
+    final_targets = LEG_INV_QUATS[0] * (a-LEG_OFFSETS[0]);
 
-    Eigen::Matrix3Xd trans {
-        {1,0,0},
-        {0,1,0},
-        {0,0,1}
-    };
-    
-    Eigen::Quaterniond quats {cos(ang), 0, 0, sin(ang)};
-    Eigen::Matrix3Xd out_pts;
-    
-    out_pts = quats * (in_pts + trans);
-    
-    std::cout << quats << "\n";
-    std::cout << out_pts << "\n";
+    std::cout << final_targets << "\n";
+    std::cout << atan(final_targets[1]/final_targets[0])*180/M_PI << "\n";
 }

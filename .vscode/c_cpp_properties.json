@@ -3,7 +3,8 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/Teensy_code/eigen3/Eigen"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

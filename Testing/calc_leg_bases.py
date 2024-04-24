@@ -33,7 +33,7 @@ import math
 
 angle = math.radians(30)
 for i in range(6):
-    print("{%.3f, %.3f}," % (125.54*math.cos(angle), 125.54*math.sin(angle)))
+    print("{%.3f, %.3f, 0}," % (125.54*math.cos(angle), 125.54*math.sin(angle)))
     angle += 2*math.pi/6
 
 angle = math.radians(30)

@@ -101,6 +101,10 @@
         "__tuple": "cpp",
         "ios": "cpp",
         "queue": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "autodiff": "cpp",
+        "eulerangles": "cpp",
+        "kroneckerproduct": "cpp",
+        "splines": "cpp"
     }
 }

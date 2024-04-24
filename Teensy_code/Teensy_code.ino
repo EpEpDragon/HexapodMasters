@@ -55,27 +55,6 @@ MyDynamixel dxl(DXL_SERIAL, 1000000, DEPin);
 
 ros::NodeHandle nh;
 
-//Feedback publishers
-std_msgs::String motor_feedback[18];
-ros::Publisher pub_m_feed0("motor_feedback11", &motor_feedback[0]);
-ros::Publisher pub_m_feed1("motor_feedback21", &motor_feedback[1]);
-ros::Publisher pub_m_feed2("motor_feedback31", &motor_feedback[2]);
-ros::Publisher pub_m_feed3("motor_feedback12", &motor_feedback[3]);
-ros::Publisher pub_m_feed4("motor_feedback22", &motor_feedback[4]);
-ros::Publisher pub_m_feed5("motor_feedback32", &motor_feedback[5]);
-ros::Publisher pub_m_feed6("motor_feedback13", &motor_feedback[6]);
-ros::Publisher pub_m_feed7("motor_feedback23", &motor_feedback[7]);
-ros::Publisher pub_m_feed8("motor_feedback33", &motor_feedback[8]);
-ros::Publisher pub_m_feed9("motor_feedback14", &motor_feedback[9]);
-ros::Publisher pub_m_feed10("motor_feedback24", &motor_feedback[10]);
-ros::Publisher pub_m_feed11("motor_feedback34", &motor_feedback[11]);
-ros::Publisher pub_m_feed12("motor_feedback15", &motor_feedback[12]);
-ros::Publisher pub_m_feed13("motor_feedback25", &motor_feedback[13]);
-ros::Publisher pub_m_feed14("motor_feedback35", &motor_feedback[14]);
-ros::Publisher pub_m_feed15("motor_feedback16", &motor_feedback[15]);
-ros::Publisher pub_m_feed16("motor_feedback26", &motor_feedback[16]);
-ros::Publisher pub_m_feed17("motor_feedback36", &motor_feedback[17]);
-
 //LOG data to file publisher
 std_msgs::String logdata;
 ros::Publisher pub_log("LOGDATA", &logdata);
@@ -190,13 +169,7 @@ void targets_cb(const hexapod_ros::EffectorTargets& msg)
   for (int i=0; i<6; i++)
   {
     effector_targets[i] = Eigen::Vector3f {msg.targets[i].data};
-//    char temp[50];
-//    sprintf(temp, "Targets: [%.2f, %.2f, %.2f]", effector_targets[i][0], effector_targets[i][1], effector_targets[i][2]);
-//    logdata.data = temp; 
-//    pub_log.publish(&logdata);
   }
-//  logdata.data = "----------------"; 
-//  pub_log.publish(&logdata);
 }
 ros::Subscriber<hexapod_ros::EffectorTargets> rosSubEffectorTargets("effector_targets", targets_cb);
 
@@ -308,25 +281,6 @@ void setup()
   nh.subscribe(rosSubModeSelect);
   //Pitch roll input subscriber
   nh.subscribe(rosSubPitchRollInput);
-  //feedback publisher
-  nh.advertise(pub_m_feed0);
-  nh.advertise(pub_m_feed1);
-  nh.advertise(pub_m_feed2);
-  nh.advertise(pub_m_feed3);
-  nh.advertise(pub_m_feed4);
-  nh.advertise(pub_m_feed5);
-  nh.advertise(pub_m_feed6);
-  nh.advertise(pub_m_feed7);
-  nh.advertise(pub_m_feed8);
-  nh.advertise(pub_m_feed9);
-  nh.advertise(pub_m_feed10);
-  nh.advertise(pub_m_feed11);
-  nh.advertise(pub_m_feed12);
-  nh.advertise(pub_m_feed13);
-  nh.advertise(pub_m_feed14);
-  nh.advertise(pub_m_feed15);
-  nh.advertise(pub_m_feed16);
-  nh.advertise(pub_m_feed17);
   //data log publisher
   nh.advertise(pub_log);
   //Feet step
@@ -534,90 +488,6 @@ void loop()
 }
 
 
-
-// ** Functions **
-void SetNextPathPoint(float XP[][Pathsize*2-2],float YP[][Pathsize*2-2],float ZP[][Pathsize*2-2],float* TurnP,float d_t)
-{
-  static int currentPathPoint[6] = {3,9,3,9,3,9};
-  static int currentPathPoint_tw[2] = {3,3};
-  float x,y,z,yaww;
-
-  if(d_t != -1000)
-  {
-    for(int i = 0;i<6;i++)
-    {
-      x = XP[i][currentPathPoint[i]];
-      y = YP[i][currentPathPoint[i]];
-      z = ZP[i][currentPathPoint[i]];
-      yaww = TurnP[currentPathPoint_tw[i%2]];
-  
-      InKin.IK(&theta1[i],&theta2[i],&theta3[i],x,y,z,i,d_t,rollInput,pitchInput,yaww);
-  
-    }
-  
-    if(curtime - prevtime >= d_t)
-    {
-      prevtime = curtime;
-  
-      for(int i=0;i<2;i++)
-      {
-        if(currentPathPoint_tw[i] >= 11)
-        {
-          currentPathPoint_tw[i] = 0;
-        }
-        else
-        {
-          currentPathPoint_tw[i] = currentPathPoint_tw[i] + 1;
-        }
-      }
-      
-      for(int i=0;i<6;i++)
-      {
-        if(currentPathPoint[i] >= 11)
-        {
-          currentPathPoint[i] = 0;
-        }
-        else
-        {
-          currentPathPoint[i] = currentPathPoint[i] + 1;
-        }
-      }
-
-      if(currentPathPoint[0] == 7 || currentPathPoint[1] == 7)
-      {
-        FeetOnFloor.data = 1;
-        pub_FeetOnFloorFlag.publish(&FeetOnFloor); 
-      }
-    }
-  }
-  else
-  {
-    for(int i = 0;i<6;i++)
-    {
-      currentPathPoint_tw[i%2] = 3;
-      currentPathPoint[i] = (i%2 == 0) ? 3 : 9;
-    }
-    prevtime = curtime;
-    stepStartFlag = 0;
-
-    if(standBegin == 0)
-    {
-      for(int i = 0;i<6;i++)
-      {
-        x = XP[i][currentPathPoint[i]];
-        y = YP[i][currentPathPoint[i]];
-        z = -140.0;
-        yaww = TurnP[currentPathPoint_tw[i%2]];
-    
-        InKin.IK(&theta1[i],&theta2[i],&theta3[i],x,y,z,i,1000,rollInput,pitchInput,yaww);
-      }
-    }
-  }
-}
-
-float AngleSmoothPrev = 150;
-float AngleSmooth = 0;
-
 void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float spd3)
 {
   double angles[18];
@@ -636,6 +506,7 @@ void SetAngles(float* th1,float* th2,float* th3 ,float spd1,float spd2, float sp
   
   dxl.SyncMove(IDS, angles, speeds, 18);
 }
+
 
 int ConstrainCheck01(float* th1,float* th2,float* th3)
 {
@@ -709,63 +580,4 @@ void ConstrainCheck2(float* th1,float* th2,float* th3)
       InKin.IK(&th1[i],&th2[i],&th3[i],px,   py,    pz,i,0,0,0,0,0);
     }
   }
-}
-
-void pubAngleFB(String &mfb0,String &mfb1,String &mfb2,String &mfb3,String &mfb4,String &mfb5,String &mfb6,String &mfb7,String &mfb8,String &mfb9,String &mfb10,String &mfb11,String &mfb12,String &mfb13,String &mfb14,String &mfb15,String &mfb16,String &mfb17)
-{
-  String feed = mfb0+ ","+mfb1+ ","+mfb2+ ","+mfb6+ ","+mfb7+ ","+mfb8+ ","+mfb12+ ","+mfb13+ ","+mfb14;
-  motor_feedback[0].data = feed.c_str();
-  pub_m_feed0.publish(&motor_feedback[0]);
-  
-//  motor_feedback[1].data = mfb1.c_str();
-//  //pub_m_feed1.publish(&motor_feedback[1]);
-//  
-//  motor_feedback[2].data = mfb2.c_str();
-//  //pub_m_feed2.publish(&motor_feedback[2]);
-//  
-//  motor_feedback[3].data = mfb3.c_str();
-//  //pub_m_feed3.publish(&motor_feedback[3]);
-//  
-//  motor_feedback[4].data = mfb4.c_str();
-//  //pub_m_feed4.publish(&motor_feedback[4]);
-//  
-//  motor_feedback[5].data = mfb5.c_str();
-//  //pub_m_feed5.publish(&motor_feedback[5]);
-//  
-//  motor_feedback[6].data = mfb6.c_str();
-//  //pub_m_feed6.publish(&motor_feedback[6]);
-//  
-//  motor_feedback[7].data = mfb7.c_str();
-//  //pub_m_feed7.publish(&motor_feedback[7]);
-//  
-//  motor_feedback[8].data = mfb8.c_str();
-//  //pub_m_feed8.publish(&motor_feedback[8]);
-//  
-//  motor_feedback[9].data = mfb9.c_str();
-//  //pub_m_feed9.publish(&motor_feedback[9]);
-//  
-//  motor_feedback[10].data = mfb10.c_str();
-//  //pub_m_feed10.publish(&motor_feedback[10]);
-//  
-//  motor_feedback[11].data = mfb11.c_str();
-//  //pub_m_feed11.publish(&motor_feedback[11]);
-//  
-//  motor_feedback[12].data = mfb12.c_str();
-//  //pub_m_feed12.publish(&motor_feedback[12]);
-//  
-//  motor_feedback[13].data = mfb13.c_str();
-//  //pub_m_feed13.publish(&motor_feedback[13]);
-//  
-//  motor_feedback[14].data = mfb14.c_str();
-//  //pub_m_feed14.publish(&motor_feedback[14]);
-//  
-//  motor_feedback[15].data = mfb15.c_str();
-//  //pub_m_feed15.publish(&motor_feedback[15]);
-//  
-//  motor_feedback[16].data = mfb16.c_str();
-//  //pub_m_feed16.publish(&motor_feedback[16]);
-//  
-//  motor_feedback[17].data = mfb17.c_str();
-//  //pub_m_feed17.publish(&motor_feedback[17]);
-  
 }
