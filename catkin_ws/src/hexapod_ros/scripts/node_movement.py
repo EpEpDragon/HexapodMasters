@@ -28,6 +28,7 @@ def run():
     while not rospy.is_shutdown():
         # walk_machine.update(direction, speed)
         effector_targets_pub.publish(walk_machine.targets)
+        print("Publish targets")
         rate.sleep()
 
 if __name__ == '__main__':

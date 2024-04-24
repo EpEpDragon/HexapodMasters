@@ -160,8 +160,8 @@ class WalkCycleMachine(StateMachine):
         self._set_speed(speed)
         
         self._update_targets()
-        print(self.speed)
-        print(self.walk_direction)
+        # print(self.speed)
+        # print(self.walk_direction)
 
         # Cycle state machine
         self.walk()
@@ -181,6 +181,7 @@ class WalkCycleMachine(StateMachine):
 
 
     def _update_targets(self):
+        print("UpdateTargets")
         """Update feet targets based on direction, speed and heightmap"""
         # print("")
         for i in range(6):
