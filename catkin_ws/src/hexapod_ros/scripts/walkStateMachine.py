@@ -155,16 +155,20 @@ class WalkCycleMachine(StateMachine):
 
     # Logic
     # -------------------------------------------------------------------------------------------
-    def update(self, direction, speed):
+    def tick(self):
+        self.walk()
+        self._update_targets()
+    
+    def update_parameters(self, direction, speed):
         self._set_walk_direction(direction)
         self._set_speed(speed)
         
-        self._update_targets()
+        # self._update_targets()
         # print(self.speed)
         # print(self.walk_direction)
 
         # Cycle state machine
-        self.walk()
+        # self.walk()
 
         # dt = rospy.Time.now() - t_prev
         # # Update foot position for walking

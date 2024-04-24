@@ -15,7 +15,7 @@ def run():
     
     def update(command_msg):
         direction = np.append(np.array(command_msg.walk_dir),0)
-        walk_machine.update(direction, command_msg.speed)
+        walk_machine.update_parameters(direction, command_msg.speed)
         # Append 0 to make direction 3D (x,y,0)
         # direction[2] = 0
         
@@ -27,7 +27,8 @@ def run():
 
     rate = rospy.Rate(30)
     while not rospy.is_shutdown():
-        # walk_machine.update(direction, speed)
+        walk_machine.tick()
+
         targets_msg = EffectorTargets()
         for i in range(6):
             targets_msg.targets[i].data[0] = walk_machine.targets[i][0]
