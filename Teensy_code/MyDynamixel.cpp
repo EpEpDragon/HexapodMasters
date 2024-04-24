@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "MyDynamixel.h"
+#include <cmath>
 
 MyDynamixel::MyDynamixel(HardwareSerial& port, int rate, int Dir_pin): _port(port)
 {
@@ -115,6 +116,7 @@ void MyDynamixel::MoveServos (uint8_t id, double position, double speed)
 	}
 }
 
+// Present position of servo in radians, center as 0
 double MyDynamixel::PresentPos (uint8_t id)
 {
 	double position=0;
@@ -123,7 +125,7 @@ double MyDynamixel::PresentPos (uint8_t id)
 	
 	ReadServos (id, PRESENT_POSITION_L, 2, retPac);
 	pos = (uint16_t)((retPac[6]& 0xFF) << 8) | (uint16_t)(retPac[5]& 0xFF);
-	position = (double)pos*0.29;
+	position = (double)pos * SERVO_STEP;
 	//Serial.println(position);
 	
 	return position;

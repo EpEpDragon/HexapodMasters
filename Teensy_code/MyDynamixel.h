@@ -3,6 +3,9 @@
 
 #include "Arduino.h"
 
+// In radians
+const float SERVO_STEP = 0.29296875 * M_PI/180
+
 //Possible instructions for a motor
 enum INSTRUCTION 
 {

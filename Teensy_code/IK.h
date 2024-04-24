@@ -9,13 +9,13 @@
 #include "Arduino.h"
 #include "MyDynamixel.h"
 
+// Leg dimentions
 const float L1 = 53.17;
-// const float L1z = 8;
 const float L2  = 101.88;
-const float L22 = L2*L2;
 const float L3  = 149.16;
+// Used in IK
+const float L22 = L2*L2;
 const float L32 = L3*L3;
-// const float B = 125.54;
 
 
 // The position of the base servo in robot space
