@@ -20,12 +20,12 @@ const float L32 = L3*L3;
 
 // The position of the base servo in robot space
 const Eigen::Vector3f LEG_OFFSETS[6] {
-    {108.721, 62.770, 0},
-    {0.000, 125.540, 0},
-    {-108.721, 62.770, 0},
+    {108.721, -62.770, 0},
+    {0.000, -125.540, 0},
     {-108.721, -62.770, 0},
-    {-0.000, -125.540, 0},
-    {108.721, -62.770, 0}
+    {-108.721, 62.770, 0},
+    {-0.000, 125.540, 0},
+    {108.721, 62.770, 0},
 };
 
 // The inverse quaternions of the leg offset vectors

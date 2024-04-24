@@ -12,17 +12,17 @@ const Eigen::Quaternionf LEG_INV_QUATS[6] {
 };
 
 const Eigen::Vector3f LEG_OFFSETS[6] {
-    {108.721, 62.770, 0},
-    {0.000, 125.540, 0},
-    {-108.721, 62.770, 0},
+    {108.721, -62.770, 0},
+    {0.000, -125.540, 0},
     {-108.721, -62.770, 0},
-    {-0.000, -125.540, 0},
-    {108.721, -62.770, 0}
+    {-108.721, 62.770, 0},
+    {-0.000, 125.540, 0},
+    {108.721, 62.770, 0},
 };
 
 int main()
 {   
-    Eigen::Vector3f a {283.71,   0.0,    -140};
+    Eigen::Vector3f a {207.846, -120.000, -140};
     Eigen::Vector3f final_targets;
     final_targets = LEG_INV_QUATS[0] * (a-LEG_OFFSETS[0]);
 
