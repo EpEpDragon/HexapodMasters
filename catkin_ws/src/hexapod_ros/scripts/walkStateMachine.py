@@ -76,16 +76,17 @@ class WalkCycleMachine(StateMachine):
         self.step_height = 0.3
 
         # Foot position feedback
-        self.current_feet_positions = None
+        self.current_feet_positions = list(REST_POS)
 
 
         super(WalkCycleMachine, self).__init__()
 
     # Receive current feet positions
     def effector_pos_readback(self, msg):
-        self.current_feet_positions = []
+        i = 0
         for vector in msg.targets:
-            self.current_feet_positions.append(np.array(vector.data[0], vector.data[1], vector.data[2]))
+            self.current_feet_positions[i](np.array(vector.data[0], vector.data[1], vector.data[2]))
+            i += 1
     rospy.Subscriber("effector_current_positions", EffectorTargets, effector_pos_readback)
 
     # Enter actions
@@ -112,7 +113,7 @@ class WalkCycleMachine(StateMachine):
         self.angle = angle
         id = -1
         # Select leg in walking sextant
-        if deg2rad(0.0) >= angle and angle > deg2rad(-60):
+        if deg2rad(0) >= angle and angle > deg2rad(-60):
             id = 0
         elif deg2rad(-60) >= angle and angle > deg2rad(-120):
             id = 1
@@ -120,9 +121,9 @@ class WalkCycleMachine(StateMachine):
             id = 2
         elif deg2rad(120) <= angle and angle < deg2rad(180):
             id = 3
-        elif deg2rad(-120) <= angle and angle < deg2rad(-60):
+        elif deg2rad(60) <= angle and angle < deg2rad(120):
             id = 4
-        elif deg2rad(-60.0) <= angle and angle < 0.0:
+        elif deg2rad(0) <= angle and angle < 60:
             id = 5
         
         # Select active legs based on leg in walking sextant
