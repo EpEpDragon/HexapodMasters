@@ -163,12 +163,12 @@ void teleop_cb(const geometry_msgs::Twist& msg)
 ros::Subscriber<geometry_msgs::Twist> rosSubTeleop("/cmd_vel", teleop_cb);
 
 // Get effector targets from message
-Eigen::Vector3f effector_targets[6];
+Eigen::Vector3d effector_targets[6];
 void targets_cb(const hexapod_ros::EffectorTargets& msg)
 {
   for (int i=0; i<6; i++)
   {
-    effector_targets[i] = Eigen::Vector3f {msg.targets[i].data};
+    effector_targets[i] = (Eigen::Vector3f {msg.targets[i].data}).cast<double>();
   }
 }
 ros::Subscriber<hexapod_ros::EffectorTargets> rosSubEffectorTargets("effector_targets", targets_cb);
@@ -331,7 +331,7 @@ void loop()
     if(startUp == 0)
     {
       // static long startUp_startTime = millis();
-      ik.set_final_targets(targets);
+      ik.set_final_targets(effector_targets);
       ik.solve_next_angles(theta1[0], theta2[0], theta3[0], 0);
       ik.solve_next_angles(theta1[1], theta2[1], theta3[1], 1);
       ik.solve_next_angles(theta1[2], theta2[2], theta3[2], 2);

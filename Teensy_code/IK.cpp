@@ -7,7 +7,7 @@ IK::IK(MyDynamixel* dxl, void (*push_log)(char*))
     this->push_log = push_log;
 }
 
-void IK::set_final_targets(const Eigen::Vector3d targets[6])
+void IK::set_final_targets(Eigen::Vector3d targets[6])
 {
     for (int i=0; i<6; i++)
     {
