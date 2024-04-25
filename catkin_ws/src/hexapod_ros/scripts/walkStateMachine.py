@@ -225,7 +225,7 @@ class WalkCycleMachine(StateMachine):
             else:
                 # Rotate walk direction to account for pitch angle and add to targets
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
-                # self.targets[i][2] += self.height_offsets[i] + effector_offset
+                self.targets[i][2] += self.height_offsets[i] + effector_offset
             
             # print(f"leg {i}: {self.targets[i][2]}")
 
