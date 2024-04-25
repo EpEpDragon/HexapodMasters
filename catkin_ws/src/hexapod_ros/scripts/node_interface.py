@@ -420,8 +420,8 @@ def run():
     while not rospy.is_shutdown() and control_interface.running:
         t = rospy.Time.now()
         
-        # Change screen space direction to robot space (swap x and y, then invert x)
-        walk_dir = dir_pick.u_dir[::-1]*[-1,1]
+        # Change screen space direction to robot space (swap x and y, invert)
+        walk_dir = -dir_pick.u_dir[::-1]
 
         text_box_dir.set_text(str(np.around(walk_dir,2)))
         text_box_speed.set_text(str(control_interface.speed))
