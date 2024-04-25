@@ -304,7 +304,7 @@ int stepStartFlag = 0;
 int kinematicModeStartFlag = 0;
 
 //Function prototype
-void SetAngles(float* th1,float* th2,float* th3 ,float spd1=-1,float spd2=-1, float spd3=-1);
+void SetAngles(double* th1,double* th2,double* th3 ,double spd1=-1,double spd2=-1, double spd3=-1);
 
 Eigen::Vector3d targets[6] = {
   {207.846, -120.000, -140},
@@ -315,55 +315,16 @@ Eigen::Vector3d targets[6] = {
   {207.846, 120.000, -140},
 };
 
-// Eigen::Vector3f targets[6] = {
-//   {283.71,   0.0,    -140},
-//   {141.855,  -245.7, -140},
-//   {-141.855, -245.7, -140},
-//   {-283.71,  0.0,    -140},
-//   {-141.855, 245.7,  -140},
-//   {141.855,  245.7,  -140}
-// };
-
 IK ik(&dxl, push_log);
+
 
 void loop()
 {
   nh.spinOnce();
-  
-//  if(startUp == 0)
-//  {
-//    ik.set_final_targets(targets);
-//    ik.solve_next_angles(theta1[0], theta2[0], theta3[0], 0);
-//    ik.solve_next_angles(theta1[1], theta2[1], theta3[1], 1);
-//    ik.solve_next_angles(theta1[2], theta2[2], theta3[2], 2);
-//    ik.solve_next_angles(theta1[3], theta2[3], theta3[3], 3);
-//    ik.solve_next_angles(theta1[4], theta2[4], theta3[4], 4);
-//    ik.solve_next_angles(theta1[5], theta2[5], theta3[5], 5);
-//    
-//    SetAngles(theta1,theta2,theta3,5,5,5);
-//  }
-  
   currentmillis = millis();
 
   if(currentmillis - prevmillis >= 10)
-  {
-//      ik.set_final_targets(targets);
-//      ik.solve_next_angles(theta1[0], theta2[0], theta3[0], 0);
-//      char msg[50];
-//      sprintf(msg, "angles: %.2f, %.2f, %.2f", theta1[0]*180/M_PI, theta2[0]*180/M_PI, theta3[0]*180/M_PI);
-//      push_log(msg);
-      //ik.test();
-//    float theta[6];
-//    theta[0] = dxl.PresentPos(0)*180/PI;
-//    theta[1] = dxl.PresentPos(1)*180/PI;
-//    theta[2] = dxl.PresentPos(2)*180/PI;
-//    theta[3] = dxl.PresentPos(9)*180/PI;
-//    theta[4] = dxl.PresentPos(12)*180/PI;
-//    theta[5] = dxl.PresentPos(15)*180/PI;
-//    char msg[50];
-//    sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta[0], theta[1], theta[2], theta[3],theta[4],theta[5]);
-//    push_log(msg);
-    
+  {  
     prevmillis = currentmillis;
 
     //On Startup
@@ -379,33 +340,6 @@ void loop()
       ik.solve_next_angles(theta1[5], theta2[5], theta3[5], 5);
       
       SetAngles(theta1,theta2,theta3,5,5,5);
-      
-//      char msg[50];
-//      sprintf(msg, "theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
-//      push_log(msg);
-      
-      // char msg[50];
-      // sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
-      // logdata.data = msg;
-      // pub_log.publish(&logdata);
-
-      // InKin.IK(&theta1[0],&theta2[0],&theta3[0],283.71,   0.0,    -140,0,0,0,0,0,0);
-      // InKin.IK(&theta1[1],&theta2[1],&theta3[1],141.855,  -245.7, -140,1,0,0,0,0,0);
-      // InKin.IK(&theta1[2],&theta2[2],&theta3[2],-141.855, -245.7, -140,2,0,0,0,0,0);
-      // InKin.IK(&theta1[3],&theta2[3],&theta3[3],-283.71,  0.0,    -140,3,0,0,0,0,0);
-      // InKin.IK(&theta1[4],&theta2[4],&theta3[4],-141.855, 245.7,  -140,4,0,0,0,0,0);
-      // InKin.IK(&theta1[5],&theta2[5],&theta3[5],141.855,  245.7,  -140,5,0,0,0,0,0);
-
-      // sprintf(msg, "LOG: theta1: %.2f, theta2: %.2f, theta3 %.2f", theta1[0], theta2[0], theta3[0]);
-      // push_log(msg);
-      // push_log((char*)"---------------");
-      
-      // SetAngles(theta1,theta2,theta3,5,5,5);
-      // if(currentmillis - startUp_startTime >= 10000) 
-      // {
-      //   startUp = 1;
-      //   standBegin = 0;
-      // }
     }
 
     //Teleop demo Mode

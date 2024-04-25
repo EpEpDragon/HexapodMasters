@@ -8,19 +8,17 @@ from walkStateMachine import WalkCycleMachine
 
 def run():
     rospy.init_node('hexapod_movement')
-    # Controls the walking gait and sets FINAL (in the current step) foot positions.
+    # Controls the walking gait and sets FINAL foot positions.
     walk_machine = WalkCycleMachine(None)
     direction = np.zeros(3)
     speed = 0.0
     
-    def update(command_msg):
-        direction = np.append(np.array(command_msg.walk_dir),0)
-        walk_machine.update_parameters(direction, command_msg.speed)
-        # Append 0 to make direction 3D (x,y,0)
-        # direction[2] = 0
-        
 
     # Update walk machine when new commands arrive
+    def update(command_msg):
+        # Append 0 to make direction 3D (x,y,0)
+        direction = np.append(np.array(command_msg.walk_dir),0)
+        walk_machine.update_parameters(direction, command_msg.speed)
     rospy.Subscriber('hexapod_command_data', HexapodCommands, update)
 
     effector_targets_pub = rospy.Publisher('effector_targets', EffectorTargets, queue_size=10)

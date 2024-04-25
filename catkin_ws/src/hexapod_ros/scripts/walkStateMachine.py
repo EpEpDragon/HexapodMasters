@@ -1,4 +1,5 @@
 import rospy
+from hexapod_ros.msg import EffectorTargets
 
 from statemachine import StateMachine, State
 import numpy as np
@@ -8,24 +9,33 @@ from math import sin,cos,tan, acos, sqrt
 import math
 # from roboMath import clerp, rotate_vec, rotate
 
+REST_Z = 140 # mm
+REST_POS = [ 
+  a([207.846, -120.000, 0]),
+  a([0.000, -240.000, 0]),
+  a([-207.846, -120.000, 0]),
+  a([-207.846, 120.000, 0]),
+  a([-0.000, 240.000, 0]),
+  a([207.846, 120.000, 0]),
+]
 
-REST_Z = 0.6
-REST_POS = [a([0.866, 0.500, 0.0])*2, a([0.866, -0.500, 0.0])*2,
-            a([0.0, 1.000, 0.0])*2, a([0.0, -1.00, 0.0])*2,
-            a([-0.866, 0.500, 0.0])*2, a([-0.866, -0.500, 0.0])*2]
+# REST_POS = [a([0.866, 0.500, 0.0])*2, a([0.866, -0.500, 0.0])*2,
+#             a([0.0, 1.000, 0.0])*2, a([0.0, -1.00, 0.0])*2,
+#             a([-0.866, 0.500, 0.0])*2, a([-0.866, -0.500, 0.0])*2]
 
-HIP_VECTORS = [a([0.6062, 0.35, 0]), a([0.6062, -0.35, 0]),
-            a([0, 0.7, 0]), a([0, -0.7, 0]),
-            a([-0.6062, 0.35, 0]), a([-0.6062, -0.35, 0])]
+# HIP_VECTORS = [a([0.6062, 0.35, 0]), a([0.6062, -0.35, 0]),
+#             a([0, 0.7, 0]), a([0, -0.7, 0]),
+#             a([-0.6062, 0.35, 0]), a([-0.6062, -0.35, 0])]
 
-STRIDE_LENGTH = 0.3
-PLACE_TOLERANCE = 0.01
+
+STRIDE_LENGTH = 40 # mm
+PLACE_TOLERANCE = 5 # mm
 UP = a([0,0,1])
 SPEED_MAX = 2
-HEIGHT_MAX = 1.15
+HEIGHT_MAX = 200 # mm
 YAW_MAX = deg2rad(20)
 PITCH_MAX = deg2rad(30)
-BODY_RADIUS = 0.7
+BODY_RADIUS = 240
 
 
 def find_angle(v):
@@ -65,10 +75,18 @@ class WalkCycleMachine(StateMachine):
         self.perception = perception
         self.step_height = 0.3
 
-        self.in_translation = self.is_swinging = np.full(6, False) # Translation phase for square step
+        # Foot position feedback
+        self.current_feet_positions = None
 
 
         super(WalkCycleMachine, self).__init__()
+
+    # Receive current feet positions
+    def effector_pos_readback(self, msg):
+        self.current_feet_positions = []
+        for vector in msg.targets:
+            self.current_feet_positions.append(np.array(vector.data[0], vector.data[1], vector.data[2]))
+    rospy.Subscriber("effector_current_positions", EffectorTargets, effector_pos_readback)
 
     # Enter actions
     # -------------------------------------------------------------------------------------------
@@ -93,34 +111,30 @@ class WalkCycleMachine(StateMachine):
         
         self.angle = angle
         id = -1
-        if 0.0 <= angle and angle < deg2rad(60):
+        # Select leg in walking sextant
+        if deg2rad(0.0) >= angle and angle > deg2rad(-60):
             id = 0
-        elif deg2rad(60) <= angle and angle < deg2rad(120):
+        elif deg2rad(-60) >= angle and angle > deg2rad(-120):
+            id = 1
+        elif deg2rad(-120) >= angle and angle > deg2rad(-180):
             id = 2
         elif deg2rad(120) <= angle and angle < deg2rad(180):
-            id = 4
-        elif deg2rad(-180) <= angle and angle < deg2rad(-120):
-            id = 5
-        elif deg2rad(-120) <= angle and angle < deg2rad(-60):
             id = 3
+        elif deg2rad(-120) <= angle and angle < deg2rad(-60):
+            id = 4
         elif deg2rad(-60.0) <= angle and angle < 0.0:
-            id = 1
-        if id == 0 or id == 3 or id == 4:
-            self.is_swinging[0] = True
-            self.is_swinging[1] = False
-            self.is_swinging[2] = False
-            self.is_swinging[3] = True
-            self.is_swinging[4] = True
-            self.is_swinging[5] = False
-        elif id == 1 or id == 2 or id == 5:
-            self.is_swinging[0] = False
-            self.is_swinging[1] = True
-            self.is_swinging[2] = True
-            self.is_swinging[3] = False
-            self.is_swinging[4] = False
-            self.is_swinging[5] = True
+            id = 5
+        
+        # Select active legs based on leg in walking sextant
+        if id != -1:
+            self.is_swinging[id] = True
+            self.is_swinging[id-1] = False
+            self.is_swinging[id-2] = True
+            self.is_swinging[id-3] = False
+            self.is_swinging[id-4] = True            
+            self.is_swinging[id-5] = False
         else:
-            print("id not found")
+            print("Active leg not found!")
         
         # Check inversion required
         if has_direction:
@@ -135,7 +149,7 @@ class WalkCycleMachine(StateMachine):
     # -------------------------------------------------------------------------------------------
     def step_finished(self):
         for i in range(6):
-            if not (abs(self.foot_pos_pre_yaw[i] - self.targets[i]) < PLACE_TOLERANCE).all():
+            if not (abs(self.current_feet_positions[i] - self.targets[i]) < PLACE_TOLERANCE).all():
                 return False
             if self.is_swinging[i]:
                 if self.centering_yaw[i] and not abs(self.current_yaw_local[i]) < 0.001:
@@ -146,7 +160,7 @@ class WalkCycleMachine(StateMachine):
 
     def should_adjust(self):
         for i in range(6):
-            if not abs(self.foot_pos_pre_yaw[i][2] - self.targets[i][2]) < PLACE_TOLERANCE:
+            if not abs(self.current_feet_positions[i][2] - self.targets[i][2]) < PLACE_TOLERANCE:
                 return True
             if self.centering_yaw[i]:
                 return True
@@ -191,13 +205,13 @@ class WalkCycleMachine(StateMachine):
             # print(f"Leg {i} height: ({rotate(body_quat,HIP_VECTORS[i])[2]}){self.perception.get_height_at_point(self.targets[i])}")
             
             # Vertical offsett based on heightmap
-            effector_offset = self.height #- self.perception.get_height_at_point(self.targets[i])
+            effector_offset = -self.height #- self.perception.get_height_at_point(self.targets[i])
             # print(f"leg {i}: {effector_offset}")
             if self.is_swinging[i]:
                 diff = self.foot_pos_pre_yaw[i] - self.targets[i]
                 dist = sqrt(diff.dot(diff))
                 self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
-                # self.targets[i][2] = self.height_offsets[i] + effector_offset
+                self.targets[i][2] = self.height_offsets[i] + effector_offset
                 
                 # If not walking means rotationg in place, thus set foot height based on rotation
                 # if (self.walk_direction == 0).all() and self.centering_yaw[i]:
@@ -237,7 +251,8 @@ class WalkCycleMachine(StateMachine):
     # -------------------------------------------------------------------------------------------
 
     def _is_long(self, id):
-        if self.foot_pos_post_yaw[id].dot(self.foot_pos_post_yaw[id]) > REST_POS[id].dot(REST_POS[id]):
+        """Is the leg extended?"""
+        if self.current_feet_positions[id].dot(self.current_feet_positions[id]) > REST_POS[id].dot(REST_POS[id]):
             return True
         return False
 
