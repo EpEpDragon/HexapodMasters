@@ -19,7 +19,7 @@ void IK::test()
 {
 //   double curr_theta1 = this->dxl->PresentPos(0);
 //   double curr_theta2 = this->dxl->PresentPos(1);
-//   double curr_theta3 = this->dxl->PresentPos(2);
+//   double curr_theta3 = this->dxl->PresentPos(2);s
 //   Eigen::Vector3d present_pos = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
 
   Eigen::Vector3d move_dir = this->solve_move_vector(this->effector_current_positions[0], this->final_targets[0]);
@@ -62,7 +62,7 @@ void IK::solve_next_angles(double& theta1, double& theta2, double& theta3, uint8
     // sprintf(msg, "pos: %.2f, %.2f, %.2f", move_dir[0], move_dir[1], move_dir[2]);
 //    this->push_log(msg);
     
-    Eigen::Vector3d immediate_target = this->effector_current_positions[leg_id] + move_dir;
+    Eigen::Vector3d immediate_target = this->final_targets[leg_id];//this->effector_current_positions[leg_id] + move_dir;
 
     IK::solve_ik(theta1, theta2, theta3, immediate_target);
     //this->solve_ik(theta1, theta2, theta3, this->final_targets[leg_id]);
@@ -78,7 +78,7 @@ Eigen::Vector3d IK::solve_current_position(int leg_id)
     return this->effector_current_positions[leg_id];
 }
 
-static Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target)
+ Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target)
 {
     Eigen::Vector3d diff = target - start;
     return diff;
@@ -107,7 +107,7 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, Eigen::Vector3
 }
 
 // Calculate forward kinematics
-static Eigen::Vector3d IK::solve_fk(double theta1, double theta2, double theta3)
+Eigen::Vector3d IK::solve_fk(double theta1, double theta2, double theta3)
 {
     double C1 = cos(theta1);
     double S1 = sin(theta1);
@@ -120,12 +120,12 @@ static Eigen::Vector3d IK::solve_fk(double theta1, double theta2, double theta3)
     return Eigen::Vector3d {C1*d, S1*d, -L3*S23-L2*S2};
 }
 
-static Eigen::Vector3d IK::robot_to_leg_space(Eigen::Vector3d vector, int leg_id)
+Eigen::Vector3d IK::robot_to_leg_space(Eigen::Vector3d vector, int leg_id)
 {
     return LEG_INV_QUATS[leg_id] * (vector - LEG_OFFSETS[leg_id]);
 }
 
-static Eigen::Vector3d IK::leg_to_robot_space(Eigen::Vector3d vector, int leg_id)
+Eigen::Vector3d IK::leg_to_robot_space(Eigen::Vector3d vector, int leg_id)
 {
     return (LEG_QUATS[leg_id] * vector) + LEG_OFFSETS[leg_id];
 }

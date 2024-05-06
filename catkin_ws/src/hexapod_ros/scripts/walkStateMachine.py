@@ -29,7 +29,7 @@ REST_POS = [
 
 
 STRIDE_LENGTH = 40 # mm
-PLACE_TOLERANCE = 5 # mm
+PLACE_TOLERANCE = 20 # mm
 UP = a([0,0,1])
 SPEED_MAX = 2
 HEIGHT_MAX = 200 # mm
@@ -87,7 +87,6 @@ class WalkCycleMachine(StateMachine):
         for vector in msg.targets:
             self.current_feet_positions[i] = np.array([vector.data[0], vector.data[1], vector.data[2]])
             i += 1
-            print("read %i" % i)
 
     # Enter actions
     # -------------------------------------------------------------------------------------------
@@ -100,6 +99,9 @@ class WalkCycleMachine(StateMachine):
         self.is_swinging[5] = False
 
     def find_is_swinging(self):
+        # print("step_enter")
+        
+
         has_direction = not (self.walk_direction == 0).all()
         if not has_direction and not self.centering_yaw.any():
             self.deactivate_all()
@@ -150,6 +152,8 @@ class WalkCycleMachine(StateMachine):
     # -------------------------------------------------------------------------------------------
     def step_finished(self):
         for i in range(6):
+            # print("leg: " + str(i) + str(abs(self.current_feet_positions[i] - self.targets[i])))
+            # print("leg: " + str(i) + str(self.current_feet_positions[i]) + "target: " + str(self.targets[i]))
             if not (abs(self.current_feet_positions[i] - self.targets[i]) < PLACE_TOLERANCE).all():
                 return False
             if self.is_swinging[i]:
@@ -157,13 +161,16 @@ class WalkCycleMachine(StateMachine):
                     return False
                 else:
                     self.centering_yaw[i] = False
+        print("Step finished")
         return True
 
     def should_adjust(self):
         for i in range(6):
             if not abs(self.current_feet_positions[i][2] - self.targets[i][2]) < PLACE_TOLERANCE:
+                # print("Adjust")
                 return True
             if self.centering_yaw[i]:
+                # print("Adjust")
                 return True
         return not (self.walk_direction == 0).all()
     # -------------------------------------------------------------------------------------------
@@ -171,8 +178,9 @@ class WalkCycleMachine(StateMachine):
     # Logic
     # -------------------------------------------------------------------------------------------
     def tick(self):
-        self.walk()
         self._update_targets()
+        self.walk()
+        # print(str(self.current_feet_positions[0][0:1].dot(self.current_feet_positions[0][0:1])) + "-" + str(REST_POS[0][0:1].dot(REST_POS[0][0:1])))
     
     def update_parameters(self, direction, speed):
         self._set_walk_direction(direction)
@@ -206,7 +214,7 @@ class WalkCycleMachine(StateMachine):
 
             effector_offset = -self.height #- self.perception.get_height_at_point(self.targets[i])
             # self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
-            print(self.walk_direction)
+            # print(self.walk_direction)
             # self.targets[i][2] = self.height_offsets[i] + effector_offset
             if self.is_swinging[i]:
                 # print("Swing")                
@@ -248,8 +256,11 @@ class WalkCycleMachine(StateMachine):
 
     def _is_long(self, id):
         """Is the leg extended?"""
-        if self.current_feet_positions[id].dot(self.current_feet_positions[id]) > REST_POS[id].dot(REST_POS[id]):
+        print(id)
+        if self.current_feet_positions[id][0:1].dot(self.current_feet_positions[id][0:1]) - REST_POS[id][0:1].dot(REST_POS[id][0:1]) > 0:
+            print("invert")
             return True
+        print("no invert")
         return False
 
     def _set_speed(self, value):
