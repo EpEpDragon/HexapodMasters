@@ -58,15 +58,15 @@ class IK
         void solve_next_angles(double& theta1, double& theta2, double& theta3, uint8_t leg_id);
         // Calculate current position
         Eigen::Vector3d solve_current_position(int leg_id);
-        Eigen::Vector3d leg_to_robot_space(Eigen::Vector3d vector, int leg_id);
+        static Eigen::Vector3d leg_to_robot_space(Eigen::Vector3d vector, int leg_id);
     private:
         // Calculate the required servo angles to achieve the given coordintate IN LEG SPACE
         void solve_ik(double& theta1, double& theta2, double& theta3, Eigen::Vector3d target);
         // Calculate leg position for given angles IN LEG SPACE
-        Eigen::Vector3d solve_fk(double theta1, double theta2, double theta3);
+        static Eigen::Vector3d solve_fk(double theta1, double theta2, double theta3);
         // Calculate the movement vector required to move to the target
-        Eigen::Vector3d solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target);
-        Eigen::Vector3d robot_to_leg_space(Eigen::Vector3d vector, int leg_id);
+        static Eigen::Vector3d solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target);
+        static Eigen::Vector3d robot_to_leg_space(Eigen::Vector3d vector, int leg_id);
         
 
         Eigen::Vector3d final_targets[6];
