@@ -48,6 +48,8 @@ class IK
         void set_final_targets(Eigen::Vector3d targets[6]);
         // Calculate the next servo angles for the leg of the provided id
         void solve_next_angles(double& theta1, double& theta2, double& theta3, uint8_t leg_id);
+        // Calculate current position
+        Eigen::Vector3d solve_current_position(int leg_id);
     private:
         // Calculate the required servo angles to achieve the given coordintate IN LEG SPACE
         void solve_ik(double& theta1, double& theta2, double& theta3, Eigen::Vector3d target);
@@ -61,6 +63,7 @@ class IK
 //        const uint8_t DEPin = 19; // DYNAMIXEL DIR PIN
         MyDynamixel* dxl;
         void (*push_log)(char*);
+        Eigen::Vector3d effector_current_positions[6];
 };
 
 #endif

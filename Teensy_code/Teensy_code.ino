@@ -61,8 +61,24 @@ ros::Publisher pub_log("LOGDATA", &logdata);
 
 //Feet step
 std_msgs::Float32 FeetOnFloor;
-ros::Publisher pub_FeetOnFloorFlag("/FeetOnFloorFlag", &FeetOnFloor); 
+ros::Publisher pub_FeetOnFloorFlag("/FeetOnFloorFlag", &FeetOnFloor);
 
+//Current position publish
+Eigen::Vector3d effector_current_positions[6];
+ros::Publisher pub_effector_positions("effector_current_positions");
+
+void push_effector_positions()
+{
+  hexapod_ros::EffectorTargets msg[6];
+  for (int leg_id=0; leg_id<6; leg_id++)
+  {
+    msg[leg_id].target.data[0] = effector_current_positions[leg_id][0];
+    msg[leg_id].target.data[1] = effector_current_positions[leg_id][1];
+    msg[leg_id].target.data[2] = effector_current_positions[leg_id][2];
+  }
+  
+  pub_effector_positions.publish(msg);
+}
 
 void push_log(char* message)
 {
@@ -285,6 +301,8 @@ void setup()
   nh.advertise(pub_log);
   //Feet step
   nh.advertise(pub_FeetOnFloorFlag);
+  // Current position
+  nh.advertise(pub_effector_positions)
   //broadcaster.init(nh);       // set up broadcaster fot tf
   //nh.advertise(pub_eye);   // advertise eye topic
  
@@ -317,7 +335,6 @@ Eigen::Vector3d targets[6] = {
 
 IK ik(&dxl, push_log);
 
-
 void loop()
 {
   nh.spinOnce();
@@ -330,6 +347,11 @@ void loop()
     //On Startup
     if(startUp == 0)
     {
+      for (int leg_id=0; leg_id<6; leg_id++)
+      {
+        effector_current_positions[leg_id] = ik.solve_current_position(leg_id);
+      }
+      
       // static long startUp_startTime = millis();
       ik.set_final_targets(effector_targets);
       ik.solve_next_angles(theta1[0], theta2[0], theta3[0], 0);
@@ -340,6 +362,7 @@ void loop()
       ik.solve_next_angles(theta1[5], theta2[5], theta3[5], 5);
       
       SetAngles(theta1,theta2,theta3,5,5,5);
+      pub_effe
     }
 
     //Teleop demo Mode

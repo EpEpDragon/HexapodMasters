@@ -4,7 +4,7 @@
 IK::IK(MyDynamixel* dxl, void (*push_log)(char*))
 {
     this->dxl = dxl;
-    this->push_log = push_log;
+    this->push_log = push_log;    
 }
 
 void IK::set_final_targets(Eigen::Vector3d targets[6])
@@ -14,35 +14,39 @@ void IK::set_final_targets(Eigen::Vector3d targets[6])
         this->final_targets[i] = LEG_INV_QUATS[i] * (targets[i] - LEG_OFFSETS[i]);
     }
 }
+
+
 void IK::test()
 {
-  double curr_theta1 = this->dxl->PresentPos(0);
-  double curr_theta2 = this->dxl->PresentPos(1);
-  double curr_theta3 = this->dxl->PresentPos(2);
-  Eigen::Vector3d present_pos = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
+//   double curr_theta1 = this->dxl->PresentPos(0);
+//   double curr_theta2 = this->dxl->PresentPos(1);
+//   double curr_theta3 = this->dxl->PresentPos(2);
+//   Eigen::Vector3d present_pos = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
 
-  Eigen::Vector3d move_dir = this->solve_move_vector(present_pos, this->final_targets[0]);
+  Eigen::Vector3d move_dir = this->solve_move_vector(this->effector_current_positions[0], this->final_targets[0]);
 
   char msg[50];
-  sprintf(msg, "current_pos: %.2f, %.2f, %.2f\ntarget_pos: %.2f, %.2f, %.2f", present_pos[0], present_pos[1], present_pos[2], this->final_targets[0][0], this->final_targets[0][1], this->final_targets[0][2]);
+  sprintf(msg, "current_pos: %.2f, %.2f, %.2f\ntarget_pos: %.2f, %.2f, %.2f", effector_current_positions[0][0], effector_current_positions[0][1], effector_current_positions[0][2], this->final_targets[0][0], this->final_targets[0][1], this->final_targets[0][2]);
   this->push_log(msg);
 }
+
+
 void IK::solve_next_angles(double& theta1, double& theta2, double& theta3, uint8_t leg_id)
 {
     // Get servo angles in leg
-    double curr_theta1 = this->dxl->PresentPos(leg_id*3);
-    double curr_theta2 = this->dxl->PresentPos(leg_id*3 + 1);
-    double curr_theta3 = this->dxl->PresentPos(leg_id*3 + 2);
+    // double curr_theta1 = this->dxl->PresentPos(leg_id*3);
+    // double curr_theta2 = this->dxl->PresentPos(leg_id*3 + 1);
+    // double curr_theta3 = this->dxl->PresentPos(leg_id*3 + 2);
     
-    // Calculate current pos through forward kinematics
-    Eigen::Vector3d present_pos = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
+    // // Calculate current pos through forward kinematics
+    // Eigen::Vector3d present_pos = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
 //
 //    char msg[50];
 //    sprintf(msg, "present: %.2f, %.2f, %.2f, target: %.2f, %.2f, %.2f", present_pos[0], present_pos[1], present_pos[2], final_targets[0][0], final_targets[0][1], final_targets[0][2]);
 //    this->push_log(msg);
 
     // Snap to final target is close enough
-    Eigen::Vector3d delta = present_pos-this->final_targets[leg_id];
+    Eigen::Vector3d delta = this->effector_current_positions[leg_id] - this->final_targets[leg_id];
     if( delta.dot(delta) < 10*10)
     {
       this->solve_ik(theta1, theta2, theta3, this->final_targets[leg_id]);
@@ -52,17 +56,27 @@ void IK::solve_next_angles(double& theta1, double& theta2, double& theta3, uint8
       return;
     }
     // Calculate the required movement direction
-    Eigen::Vector3d move_dir = this->solve_move_vector(present_pos, this->final_targets[leg_id]);
+    Eigen::Vector3d move_dir = this->solve_move_vector(this->effector_current_positions[leg_id], this->final_targets[leg_id]);
     
     
     // char msg[50];
     // sprintf(msg, "pos: %.2f, %.2f, %.2f", move_dir[0], move_dir[1], move_dir[2]);
 //    this->push_log(msg);
     
-    Eigen::Vector3d immediate_target = present_pos + move_dir;
+    Eigen::Vector3d immediate_target = this->effector_current_positions[leg_id] + move_dir;
 
     this->solve_ik(theta1, theta2, theta3, immediate_target);
     //this->solve_ik(theta1, theta2, theta3, this->final_targets[leg_id]);
+}
+
+Eigen::Vector3d IK::solve_current_position(int leg_id)
+{
+    double theta1 = this->dxl->PresentPos(leg_id*3);
+    double theta2 = this->dxl->PresentPos(leg_id*3 + 1);
+    double theta3 = this->dxl->PresentPos(leg_id*3 + 2);
+
+    this->effector_current_positions[leg_id] = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
+    return this->effector_current_positions[leg_id];
 }
 
 Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target)
