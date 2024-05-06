@@ -37,6 +37,10 @@ void IK::solve_next_angles(double& theta1, double& theta2, double& theta3, uint8
     // Calculate current pos through forward kinematics
     Eigen::Vector3d present_pos = this->solve_fk(curr_theta1, curr_theta2, curr_theta3);
 
+    char msg[50];
+    sprintf(msg, "present: %.2f, %.2f, %.2f, target: %.2f, %.2f, %.2f", present_pos[0][0], present_pos[0][1], present_pos[0][2], final_targets[0][0], final_targets[0][1], final_targets[0][2]);
+    this->push_log(msg);
+
     // Snap to final target is close enough
     Eigen::Vector3d delta = present_pos-this->final_targets[leg_id];
     if( delta.dot(delta) < 10*10)
@@ -51,8 +55,8 @@ void IK::solve_next_angles(double& theta1, double& theta2, double& theta3, uint8
     Eigen::Vector3d move_dir = this->solve_move_vector(present_pos, this->final_targets[leg_id]);
     
     
-    char msg[50];
-    sprintf(msg, "pos: %.2f, %.2f, %.2f", move_dir[0], move_dir[1], move_dir[2]);
+    // char msg[50];
+    // sprintf(msg, "pos: %.2f, %.2f, %.2f", move_dir[0], move_dir[1], move_dir[2]);
 //    this->push_log(msg);
     
     Eigen::Vector3d immediate_target = present_pos + move_dir;
