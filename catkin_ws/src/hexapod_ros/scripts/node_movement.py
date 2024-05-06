@@ -26,7 +26,7 @@ def run():
     rate = rospy.Rate(30)
     while not rospy.is_shutdown():
         walk_machine.tick()
-        print(walk_machine.targets)
+        # print(walk_machine.targets)
 
         targets_msg = EffectorTargets()
         for i in range(6):
