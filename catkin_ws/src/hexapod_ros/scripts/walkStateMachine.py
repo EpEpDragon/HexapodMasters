@@ -56,7 +56,7 @@ class WalkCycleMachine(StateMachine):
     rest = State("rest", initial=True, enter="deactivate_all")
     stepping = State("stepping", enter="find_is_swinging")
 
-    walk = rest.to(stepping, cond="should_adjust") | stepping.to(rest, cond="step_finished") | rest.to.itself() | stepping.to.itself()
+    walk = rest.to(stepping, cond="should_adjust") | stepping.to(rest, cond="step_finished") #| rest.to.itself() | stepping.to.itself()
 
     def __init__(self, perception):
         self.is_swinging = np.full(6, False) # List defining if a foot is is_swinging or swinging
