@@ -63,7 +63,7 @@ Eigen::Vector3d IK::solve_current_position(int leg_id)
 }
 
 // Calculate inverse kinematics
-void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, Eigen::Vector3d target, Eigen::Vector3d dt_target)
+void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, Eigen::Vector3d target, Eigen::Vector3d dt_target, u_int8_t leg_id)
 {
     double x = target[0];
     double y = target[1];
@@ -91,6 +91,10 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     theta2 = M_PI/2 - alpha - std::atan( dmL1 / z );
     
     //-------------------- Angular rates -------------------------
+    x = this->effector_current_positions[leg_id][0];
+    y = this->effector_current_positions[leg_id][1];
+    z = -this->effector_current_positions[leg_id][2];
+
     double dt_d = 2*(x*dt_x + y*dt_y);
     
     double dt_c = ((-L1 + d)*dt_d + (z*dt_z)) / c;

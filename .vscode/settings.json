@@ -106,6 +106,7 @@
         "autodiff": "cpp",
         "eulerangles": "cpp",
         "kroneckerproduct": "cpp",
-        "splines": "cpp"
+        "splines": "cpp",
+        "__functional_03": "cpp"
     }
 }
