@@ -85,25 +85,50 @@ Eigen::Vector3d IK::solve_current_position(int leg_id)
 }
 
 // Calculate inverse kinematics
-void IK::solve_ik(double& theta1, double& theta2, double& theta3, Eigen::Vector3d target)
+void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_theta1, double& dt_theta2, double& dt_theta3, Eigen::Vector3d target, Eigen::Vector3d dt_target)
 {
     double x = target[0];
     double y = target[1];
     double z = -target[2];
 
+    double dt_x = dt_target[0];
+    double dt_y = dt_target[1];
+    double dt_z = -dt_target[2];
+
+    //----------------------- Angles -----------------------------
     theta1 = -std::atan(y/x);
 
     double d = sqrt(x*x + y*y);
     double dmL1 = d-L1;
     // c squared from pythagoras
     double c2 = (z*z + dmL1*dmL1);
+    double c = sqrt(c);
     // Beta from cosine rule
-    double beta = std::acos( (L22 + L32 - c2) / (2*L2*L3) );
+    double L22pL32mc2 = (L22 + L32 - c2);
+    double beta = std::acos( L22pL32mc2 / (2*L2*L3) );
     theta3 = M_PI - beta;
 
     // Alpha from sine rule
-    double alpha = std::asin( (L3 * std::sin(beta)) / sqrt(c2) );
+    double alpha = std::asin( (L3 * std::sin(beta)) / c );
     theta2 = M_PI/2 - alpha - std::atan( dmL1 / z );
+    
+    //-------------------- Angular rates -------------------------
+    double dt_c = ((-L1 + d)*dt_d + (z*dt_z)) / c;
+    
+    double dt_d = 2*(x*dt_x + y*dt_y);
+
+    double dt_beta = (2*L2*L3*c*dt_c) / sqrt(-L22*L32*L22pL32mc2*L22pL32mc2 + 4);
+    
+    double dt_alpha = L3*(c*cos(beta)*dt_beta - sin(beta)*dt_c) / (sqrt(-L32*sin(beta)/c2 + 1)*c2);
+    
+    dt_theta1 = (-x*dt_y + y*dt_x) / (x*x + y*y)
+
+    double L1md = L1 - d;
+    double L1md2 = L1md*L1md;
+    double z2 = z*z;
+    dt_theta2 = -(((L1md)*dt_z + z*dt_d)*alpha + (L1md2 + z2)*atan(L1md/z)*dt_alpha) / (L1md2 + z2)
+
+    dt_theta3 = -dt_beta;
 }
 
 // Calculate forward kinematics

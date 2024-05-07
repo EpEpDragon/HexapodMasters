@@ -1,6 +1,9 @@
 # import pyrealsense2 as rs
 import numpy as np
 import math
+from sympy import *
+from IPython.display import display, Math
+
 # import cv2
 
 # pipe = rs.pipeline()
@@ -55,3 +58,19 @@ for i in range(6):
     print("{%.3f, %.3f, -140}," % (240*math.cos(angle), 240*math.sin(angle)))
     angle -= 2*math.pi/6
 print("}")
+
+# Servo Rates
+init_printing()
+t = symbols('t')
+# theta1 = Function('theta1')
+# theta2 = Function('theta2')
+# theta3 = Function('theta3')
+Px = Function('Px')
+Py = Function('Py')
+Pz = Function('Pz')
+
+theta1 = atan(Px(t)/Py(t))
+dt_theta1 = diff(theta1, t)
+
+
+print(dt_theta1)
