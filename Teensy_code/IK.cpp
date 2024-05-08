@@ -116,7 +116,7 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
 
     double dt_d = (x*dt_x + y*dt_y) / d;
     double dt_c = ((-L1 + d)*dt_d + (z*dt_z)) / c;
-    double dt_beta = (2*L2*L3*c*dt_c) / sqrt(fabs(-L22*L32*L22pL32mc2*L22pL32mc2 + 4));
+    double dt_beta = (c*dt_c) / (L2*L3*sqrt(fabs( 4 - L22pL32mc2*L22pL32mc2 / (L22*L32) )))
     double dt_alpha = L3*(c*cos(beta)*dt_beta - sin(beta)*dt_c) / (sqrt(fabs(-L32*sin(beta)/c2 + 1))*c2);
     
     dt_theta1 = fabs((-x*dt_y + y*dt_x) / (x*x + y*y)) * RAD_TO_RPM;
@@ -126,7 +126,7 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     double z2 = z*z;
 
     dt_theta2 = fabs(-(((L1md)*dt_z + z*dt_d)*alpha + (L1md2 + z2)*atan(L1md/z)*dt_alpha) / (L1md2 + z2)) * RAD_TO_RPM;
-    dt_theta3 = fabs(-dt_beta) * RAD_TO_RPM;
+    dt_theta3 = fabs(dt_beta) * RAD_TO_RPM;
 
 //    char msg[50];
 //    sprintf(msg,"leg %i speeds: [%f, %f, %f]", leg_id, dt_theta1, dt_theta2, dt_theta3);
