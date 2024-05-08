@@ -56,10 +56,33 @@ Eigen::Vector3d IK::solve_current_position(int leg_id)
     return this->effector_current_positions[leg_id];
 }
 
- Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target)
+double clamp(double value, double lower, double upper)
+{
+    return std::max(0.0, std::min(value, 1.0));
+}
+
+Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target)
 {
     Eigen::Vector3d diff = target - start;
     return diff.normalized();
+}
+
+void IK::calc_shared_vars(double& d, double& dmL1, double& c2, double& c, double& L22pL32mc2, double& beta, double& alpha, double x, double y, double z)
+{
+    // Horizontal distance
+    d = sqrt(x*x + y*y);
+    dmL1 = d-L1;
+    
+    // Leg triangle distance
+    c2 = (z*z + dmL1*dmL1);
+    c = sqrt(c2);
+
+    // Internal knee angle
+    L22pL32mc2 = (L22 + L32 - c2);
+    beta = std::acos( clamp( L22pL32mc2 / (2*L2*L3), 0.0, 1.0 ) );
+
+    // Internal hip pitch angle
+    alpha = std::asin( clamp((L3 * std::sin(beta)) / c, 0.0, 1.0) );
 }
 
 // Calculate inverse kinematics
@@ -74,43 +97,32 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     double dt_z = -dt_target[2];
 
     //----------------------- Angles -----------------------------
+    double d, dmL1, c2, c, L22pL32mc2, beta, alpha;
+    IK::calc_shared_vars(d, dmL1, c2, c, L22pL32mc2, beta, alpha, x, y, z);
+
     theta1 = -std::atan(y/x);
-
-    double d = sqrt(x*x + y*y);
-    double dmL1 = d-L1;
-    // c squared from pythagoras
-    double c2 = (z*z + dmL1*dmL1);
-    double c = sqrt(c2);
-    // Beta from cosine rule
-    double L22pL32mc2 = (L22 + L32 - c2);
-    double beta = std::acos( L22pL32mc2 / (2*L2*L3) );
     theta3 = M_PI - beta;
-
-    // Alpha from sine rule
-    double alpha = std::asin( (L3 * std::sin(beta)) / c );
     theta2 = M_PI/2 - alpha - std::atan( dmL1 / z );
     
     //-------------------- Angular rates -------------------------
     x = this->effector_current_positions[leg_id][0];
     y = this->effector_current_positions[leg_id][1];
     z = -this->effector_current_positions[leg_id][2];
+    IK::calc_shared_vars(d, dmL1, c2, c, L22pL32mc2, beta, alpha, x, y, z);
 
-    double dt_d = 2*(x*dt_x + y*dt_y);
-    
+    double dt_d = (x*dt_x + y*dt_y)/d;
     double dt_c = ((-L1 + d)*dt_d + (z*dt_z)) / c;
+    double dt_beta = (2*L2*L3*c*dt_c) / sqrt(abs(-L22*L32*L22pL32mc2*L22pL32mc2 + 4));
+    double dt_alpha = L3*(c*cos(beta)*dt_beta - sin(beta)*dt_c) / (sqrt(abs(-L32*sin(beta)/c2 + 1))*c2);
     
-    double dt_beta = (2*L2*L3*c*dt_c) / sqrt(-L22*L32*L22pL32mc2*L22pL32mc2 + 4);
-    
-    double dt_alpha = L3*(c*cos(beta)*dt_beta - sin(beta)*dt_c) / (sqrt(-L32*sin(beta)/c2 + 1)*c2);
-    
-    dt_theta1 = abs((-x*dt_y + y*dt_x) / (x*x + y*y));
+    double dt_theta1 = abs((-x*dt_y + y*dt_x) / (x*x + y*y));
 
     double L1md = L1 - d;
     double L1md2 = L1md*L1md;
     double z2 = z*z;
-    dt_theta2 = abs(-(((L1md)*dt_z + z*dt_d)*alpha + (L1md2 + z2)*atan(L1md/z)*dt_alpha) / (L1md2 + z2));
 
-    dt_theta3 = abs(-dt_beta);
+    double dt_theta2 = abs(-(((L1md)*dt_z + z*dt_d)*alpha + (L1md2 + z2)*atan(L1md/z)*dt_alpha) / (L1md2 + z2));
+    double dt_theta3 = abs(-dt_beta);
 }
 
 // Calculate forward kinematics

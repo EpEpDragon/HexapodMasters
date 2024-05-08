@@ -78,13 +78,9 @@ int main()
     
     //-------------------- Angular rates -------------------------
     double dt_d = (x*dt_x + y*dt_y)/d;
-    
     double dt_c = ((-L1 + d)*dt_d + (z*dt_z)) / c;
-    
     double dt_beta = (2*L2*L3*c*dt_c) / sqrt(abs(-L22*L32*L22pL32mc2*L22pL32mc2 + 4));
-    
     double dt_alpha = L3*(c*cos(beta)*dt_beta - sin(beta)*dt_c) / (sqrt(abs(-L32*sin(beta)/c2 + 1))*c2);
-    
     double dt_theta1 = abs((-x*dt_y + y*dt_x) / (x*x + y*y));
 
     double L1md = L1 - d;

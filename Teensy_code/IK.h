@@ -67,6 +67,7 @@ class IK
         // Calculate the movement vector required to move to the target
         Eigen::Vector3d solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target);
         Eigen::Vector3d robot_to_leg_space(Eigen::Vector3d vector, int leg_id);
+        void calc_shared_vars(double& d, double& dmL1, double& c2, double& c, double& L22pL32mc2, double& beta, double& alpha, double x, double y, double z);
         
 
         Eigen::Vector3d final_targets[6];
