@@ -65,10 +65,35 @@ double clamp(double value, double lower, double upper)
     return std::max(lower, std::min(value, upper));
 }
 
+double Ch = 0.8;
+double Cs = 0.06;
+
+Eighen::Vector3d morph_to_slope(Eigen::Vector3d, double slope, double magnitude)
+{
+
+}
+
 Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target)
 {
-    Eigen::Vector3d diff = target - start;
-    return diff.normalized();
+    // Horizontal and vertical distance for vector field function
+    Eigen::Vector3d delta = target-start;
+    double dist_h = sqrt(delta[0:2].dot(delta[0:2]));
+    double dist_v = delta[3];
+
+    // Sigmoid to fix starting points below target
+    double sig = (0.6*(x - shift)) / (1 + fabs(x - shift)) - 0.59;
+    
+    // Components of parabole derivative
+    double a = -fabs(Ch/dist_h) - fabs(sig);
+    double b = dist_v/dist_h - a*dist_h;
+
+    double slope = 2*a*dist_h + b - Cs*(dist_h/fabs(dist_h));
+
+    // Return move vector with vectical calculated slope and length while maintaining original horizontal direction
+    return Eigen::Vector3d {delta[0], delta[1], dist_h / slope} * (20 / sqrt(move_vector.dot(move_vector)));
+
+    // Eigen::Vector3d diff = target - start;
+    // return diff.normalized();
 }
 
 void IK::calc_shared_vars(double& d, double& dmL1, double& c2, double& c, double& L22pL32mc2, double& beta, double& alpha, double x, double y, double z)
@@ -101,9 +126,6 @@ void IK::scale_rates(double& dt_theta1, double& dt_theta2, double& dt_theta3)
     dt_theta2 = min(dt_theta2 - delta_min, MAX_SERVO_SPEED);
     dt_theta3 = min(dt_theta3 - delta_min, MAX_SERVO_SPEED);
   }
-//  char msg[50];
-//  sprintf(msg,"leg %i speeds: [%.4f, %.4f, %.4f]", leg_id, dt_theta1[leg_id], dt_theta2[leg_id], dt_theta3[leg_id]);
-//  push_log(msg);  
 }
 
 // Calculate inverse kinematics
@@ -144,25 +166,6 @@ void IK::solve_ik(double& theta1, double& theta2, double& theta3, double& dt_the
     dt_theta2 = fabs(-(((L1md)*dt_z + z*dt_d)*alpha + (L1md2 + z2)*atan(L1md/z)*dt_alpha) / (L1md2 + z2)) * RAD_TO_RPM;
     dt_theta3 = fabs(-dt_beta) * RAD_TO_RPM;
     scale_rates(dt_theta1, dt_theta2, dt_theta3);//
-
-    
-//
-//    char msg[50];
-//    if (leg_id==5)
-//    {
-//      sprintf(msg,"leg %i pos: [%.4f, %.4f, %.4f]", 5, x, y, z);
-//      push_log(msg);  
-//      sprintf(msg,"leg %i move_vec: [%.4f, %.4f, %.4f]", 5, dt_target[0], dt_target[1], dt_target[2]);
-//      push_log(msg);  
-//      sprintf(msg,"leg %i beta: %.2f, dt_beta: %.2f, c: %.2f dt_c %.2f]", 5, beta, dt_beta, c, dt_c);
-//      push_log(msg);  
-//    }
-
-//    char msg[50];
-//    sprintf(msg,"leg %i speeds: [%f, %f, %f]", leg_id, dt_theta1, dt_theta2, dt_theta3);
-//    push_log(msg);
-//    sprintf(msg,"leg %i pos: [%.2f, %.2f, %.2f]", leg_id, x, y, z);
-//    push_log(msg);
 }
 
 // Calculate forward kinematics
