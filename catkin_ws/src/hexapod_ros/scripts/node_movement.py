@@ -33,6 +33,7 @@ def run():
             targets_msg.targets[i].data[0] = walk_machine.targets[i][0]
             targets_msg.targets[i].data[1] = walk_machine.targets[i][1]
             targets_msg.targets[i].data[2] = walk_machine.targets[i][2]
+            targets_msg.swinging[i] = walk_machine.is_swinging[i]
         effector_targets_pub.publish(targets_msg)
         rate.sleep()
 

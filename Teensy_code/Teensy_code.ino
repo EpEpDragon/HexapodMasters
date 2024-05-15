@@ -189,12 +189,14 @@ ros::Subscriber<geometry_msgs::Twist> rosSubTeleop("/cmd_vel", teleop_cb);
 
 // Get effector targets from message
 Eigen::Vector3d effector_targets[6];
+bool is_swinging[6];
 void targets_cb(const hexapod_ros::EffectorTargets& msg)
 {
   for (int i=0; i<6; i++)
   {
     effector_targets[i] = (Eigen::Vector3f {msg.targets[i].data}).cast<double>();
   }
+  is_swinging = msg.is_swinging;
 }
 ros::Subscriber<hexapod_ros::EffectorTargets> rosSubEffectorTargets("effector_targets", targets_cb);
 
@@ -347,6 +349,7 @@ void loop()
   nh.spinOnce();
   currentmillis = millis();
 
+  // If servos are sent updates at too high a frequency jitter occurs
   if(currentmillis - prevmillis >= 100)
   {
     char msg[50];
@@ -356,7 +359,7 @@ void loop()
     
 //    char msg[50];
 //    sprintf(msg,"leg %i speeds: [%.4f, %.4f, %.4f]", 5, dt_theta1[5], dt_theta2[5], dt_theta3[5]);
-//    push_log(msg);  
+//    push_log(msg);
 
     //On Startup
     if(startUp == 0)

@@ -79,6 +79,7 @@ class IK
         
 
         Eigen::Vector3d final_targets[6];
+        bool is_swinging[6];
         
 //        const uint8_t DEPin = 19; // DYNAMIXEL DIR PIN
         MyDynamixel* dxl;
