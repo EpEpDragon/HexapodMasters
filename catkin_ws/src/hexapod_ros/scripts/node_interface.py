@@ -101,7 +101,9 @@ MODE_STARTUP = 0
 MODE_LEAN_ONLY = 1
 MODE_WALK = 2
 
-MAX_SPEED = 1
+MAX_SPEED = 200.0
+MAX_HEIGHT = 200.0
+
 class ControlInterface():
     SCREEN_COLOR = (60,25,60)
     ON_COLOR = (115, 235, 30)
@@ -340,7 +342,10 @@ class ControlInterface():
 
         self.mode_pub = rospy.Publisher('hexapod_mode', Int32, queue_size=10)
         self.set_mode(MODE_TORQUE_OFF)
-        self.speed = 0.5
+        self.speed = 60.0
+        self.height = 140.0
+        self.rising = False
+        self.falling = False
 
     
     def set_mode(self, mode):
@@ -361,20 +366,34 @@ class ControlInterface():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     self.set_mode(MODE_TORQUE_OFF)
+
+                if event.key == pygame.K_UP:
+                    self.rising = True
+                elif event.key == pygame.K_DOWN:
+                    self.falling = True
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_UP:
+                    self.rising = False
+                if event.key == pygame.K_DOWN:
+                    self.falling = False
+                    
+
             if event.type == pygame.VIDEORESIZE:
                 self.redraw_display()
             if event.type == pygame.MOUSEWHEEL:
-                    self.speed = max(min(self.speed + 0.1*event.y, MAX_SPEED), 0.0)
+                    self.speed = max(min(self.speed + 5.0*event.y, MAX_SPEED), 0.0)
 
 
-    def update(self):
-        width = self.screen.get_width()
-        height = self.screen.get_height()
-
+    def update(self, td):
         for e in self.elements:
             pygame.display.update(e.draw(self.screen))
         
         self.check_input()
+        if self.rising:
+            self.height = max(min(self.height + 70*td, MAX_HEIGHT), 0.0)
+        elif self.falling:
+            self.height = max(min(self.height - 70*td, MAX_HEIGHT), 0.0)
 
 
 def run():
@@ -397,6 +416,7 @@ def run():
     dir_pick = control_interface.add_element(ControlInterface.PointLine(start=(0.8,0.15), length=0.15, color=(255,0,0), thicc=2))
     text_box_dir = control_interface.add_element(ControlInterface.Text(start=(0.65,0.30),prefix="Direction: ", font=control_interface.font, color=(252, 194, 3)))
     text_box_speed = control_interface.add_element(ControlInterface.Text(start=(0.65,0.32),prefix="Speed: ", font=control_interface.font, color=(252, 194, 3)))
+    text_box_robot_height = control_interface.add_element(ControlInterface.Text(start=(0.65,0.34),prefix="Height: ", font=control_interface.font, color=(252, 194, 3)))
     control_interface.add_element(ControlInterface.Line(start=(0.6,0.05), end=(0.6,0.95), color=(255,255,255), thicc=2))
 
     text_box_rgb = control_interface.add_element(ControlInterface.Text(prefix="Color: ", font=control_interface.font, color=(252, 194, 3)))
@@ -417,6 +437,7 @@ def run():
     #####################################
 
     rate = rospy.Rate(30)
+    td = 0.0
     while not rospy.is_shutdown() and control_interface.running:
         t = rospy.Time.now()
         
@@ -425,6 +446,7 @@ def run():
 
         text_box_dir.set_text(str(np.around(walk_dir,2)))
         text_box_speed.set_text(str(control_interface.speed))
+        text_box_robot_height.set_text(str(control_interface.height))
         dir_pick.multiple = control_interface.speed/MAX_SPEED
         if data_in.rgb_ready:
             img_rgb.set_data(data_in.rgb)
@@ -433,16 +455,18 @@ def run():
         if data_in.hmap_ready:
             img_hmap.set_data(data_in.hmap*10)
 
-        control_interface.update()
+        control_interface.update(td)
         
         ############## Push Hexapod Commands ##############
         command_msg.walk_dir = walk_dir
+        command_msg.speed = control_interface.speed
+        command_msg.height = control_interface.height
         command_pub.publish(command_msg)
         ###################################################
 
         rate.sleep()
-        td = (rospy.Time.now()-t)/1000000
-        # print(str(td)+" ms")
+        td = (rospy.Time.now()-t).nsecs/1000000000.0
+        # print(str(td)+" s")
 
 
 if __name__ == '__main__':

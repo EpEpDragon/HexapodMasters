@@ -52,9 +52,9 @@ int main()
     const double L22 = L2*L2;
     const double L32 = L3*L3;
 
-    double x = L1+L2;
-    double y = 0;
-    double z = L3;
+    double x = 124.46;
+    double y = -0.05;
+    double z = 58.29;
 
     double dt_x = 0;
     double dt_y = 0;
@@ -95,9 +95,9 @@ int main()
     std::cout << "dt_c: " << dt_c << "\n";
     std::cout << "d: " << d << "\n";
     std::cout << "dt_d: " << dt_d << "\n";
-    std::cout << "alpha: " << alpha*180/M_PI << "\n";
+    std::cout << "alpha: " << alpha << "\n";
     std::cout << "dt_alpha: " << dt_alpha << "\n";
-    std::cout << "beta: " << beta*180/M_PI << "\n";
+    std::cout << "beta: " << beta << "\n";
     std::cout << "dt_beta: " << dt_beta << "\n";
     std::cout << "rate: " << dt_theta1 << " " << dt_theta2 << " " << dt_theta3 << "\n\n";
     std::cout << (2*L2*L3*c*dt_c) << "\n\n";
