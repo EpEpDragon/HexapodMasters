@@ -30,6 +30,7 @@ class Perception():
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=hmap_buffer.nbytes)
         self.hmap_buffer = np.ndarray(hmap_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.hmap_buffer[:] = hmap_buffer[:]
+        self.score_buffer = np.zeros_like(self.hmap_buffer, dtype=float)
         # Index of current cell
         hmap_index = np.zeros(3, dtype=np.int32)
         self.hmap_index_shm = shared_memory.SharedMemory(create=True,size=hmap_index.nbytes)
@@ -43,6 +44,7 @@ class Perception():
         self.cell_offset = np.zeros(3) # Position offset from cell origin
         self.heightmap_program = glCreateProgram()
         self.clean_heightmap_program = glCreateProgram()
+        self.map_view = [0]
 
         # visualize window
         cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
@@ -59,7 +61,7 @@ class Perception():
         clean_heightmap_src = open('compute/clean_heightmap.glsl','r').readlines()
         self.clean_heightmap_program = compileProgram(compileShader(clean_heightmap_src, GL_COMPUTE_SHADER))
         
-        self.glbuffers  = glGenBuffers(3)
+        self.glbuffers  = glGenBuffers(4)
 
         # Bind image buffer
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, self.glbuffers[0])
@@ -73,6 +75,12 @@ class Perception():
         # Bind temporal buffer
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, self.glbuffers[2])
         glBufferData(GL_SHADER_STORAGE_BUFFER, self.hmap_buffer.nbytes * 4, None, GL_DYNAMIC_READ)
+
+
+        # Bind scores buffer
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, self.glbuffers[3])
+        glBufferData(GL_SHADER_STORAGE_BUFFER, self.hmap_buffer.nbytes * 4, None, GL_DYNAMIC_READ)
+
 
         # Bind points buffer
         # glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, self.glbuffers[2])
@@ -109,9 +117,12 @@ class Perception():
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
         self.hmap_buffer[:] = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.hmap_buffer.nbytes), dtype=self.hmap_buffer.dtype).reshape(HMAP_EXTENTS,HMAP_EXTENTS)[:]
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[3])
+        self.score_buffer[:] = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.score_buffer.nbytes), dtype=self.score_buffer.dtype).reshape(HMAP_EXTENTS,HMAP_EXTENTS)[:]
 
     # HACK for visualisation of feet
-    def add_walkmachine(self, walkmachine):
+    def add_refs(self, walkmachine):
         self.walmachine = walkmachine
     
     def _local_to_hmap(self, local_pos):
@@ -119,17 +130,22 @@ class Perception():
 
     def _display_heightmap(self):
         # img = np.ones((self.hmap_buffer.shape[0],self.hmap_buffer.shape[1],3), dtype=np.float32)
-        img = self.hmap_buffer[..., np.newaxis]
+        buffer = None
+        if self.map_view[0] == 0:
+            buffer = self.hmap_buffer
+        else:
+            buffer = self.score_buffer
+        img = buffer[..., np.newaxis]
         img = np.concatenate((img,img,img), axis=2)
-        low = self.hmap_buffer.min()
-        diff = self.hmap_buffer.max() - low
+        low = buffer.min()
+        diff = buffer.max() - low
         img = (img - low+0.1)/(diff+0.1)
 
         # TODO ~70ms very slow, make better
         # for x in range(HMAP_EXTENTS):
-            # for y in range(HMAP_EXTENTS):
-            #     img[x,y] *= (self.hmap_buffer[(x-self.hmap_index[0])%HMAP_EXTENTS, (y-self.hmap_index[1])%HMAP_EXTENTS] + 2) / 4
-                # img[x,y] = self.hmap_buffer[(x-self.hmap_index[0])%HMAP_EXTENTS, (y-self.hmap_index[1])%HMAP_EXTENTS]
+        #     for y in range(HMAP_EXTENTS):
+        #         img[x,y] *= (self.hmap_buffer[(x-self.hmap_index[0])%HMAP_EXTENTS, (y-self.hmap_index[1])%HMAP_EXTENTS] + 2) / 4
+        #         img[x,y] = self.hmap_buffer[(x-self.hmap_index[0])%HMAP_EXTENTS, (y-self.hmap_index[1])%HMAP_EXTENTS]
 
         # # Draw foot targets
         for i in range(6):

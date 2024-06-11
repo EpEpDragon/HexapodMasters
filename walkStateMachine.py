@@ -208,7 +208,7 @@ class WalkCycleMachine(StateMachine):
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
                 self.targets[i][2] += self.height_offsets[i] + effector_offset
             
-            print(f"leg {i}: {self.targets[i][2]}")
+            # print(f"leg {i}: {self.targets[i][2]}")
 
             # self.targets[i][2] = self.height_offsets[i] + effector_offset
         # self.targets[0][2] = 0.3

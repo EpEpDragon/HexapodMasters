@@ -80,11 +80,11 @@ void draw_to_height()
         ivec2 index = ivec2(int(mod((point.x-sdf_index.x), HMAP_EXTENTS)), int(mod((point.y-sdf_index.y), HMAP_EXTENTS)));
         // sdf_buffer[index[0]][index[1]] = max(point.z-sdf_index.z, sdf_buffer[index[0]][index[1]]);
 
-        temporal_buffer[temporal_i][index[0]][index[1]] = point.z;
-        float z = (temporal_buffer[0][index[0]][index[1]] + 
-                   temporal_buffer[1][index[0]][index[1]] + 
-                   temporal_buffer[2][index[0]][index[1]] + 
-                   temporal_buffer[3][index[0]][index[1]]) / 4.0;
+        // temporal_buffer[temporal_i][index[0]][index[1]] = point.z;
+        // float z = (temporal_buffer[0][index[0]][index[1]] + 
+        //            temporal_buffer[1][index[0]][index[1]] + 
+        //            temporal_buffer[2][index[0]][index[1]] + 
+        //            temporal_buffer[3][index[0]][index[1]]) / 4.0;
 
         sdf_buffer[index[0]][index[1]] = -point.z + float(sdf_index.z)/DIVISIOINS;
     }

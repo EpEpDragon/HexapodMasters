@@ -63,23 +63,23 @@ class ProgressBar():
         draw_text(v, self.v_x, self.v_y, self.v_size, self.t_color)                     # Value text
 
 
-def start_interface(walk_machine, view):
-    control_interface = ControInterface(walk_machine, view)
+def start_interface(walk_machine, view, map_view):
+    control_interface = ControInterface(walk_machine, view, map_view)
     if platform in ['Windows','win32','cywin']:
         warnings.warn("Not implemented on Windows OS")
     else:
         margins = wf.get_screen_margins()
         ctrl_x_rel = 370/(wf.get_monitor(0).width - margins[0])
         # if READ_CAMERA:
-        wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0, 0, 1, 0.2)
-        wf.move_size_window("Control Interface", 1, 0.8, 0, 0.2, 1)
-        wf.move_size_window("SDF Slice", 0, 0, 0.2, 1, 0.8)
-        wf.move_size_window("Camera", 1, 0, 0, 0.8-40/1920, 0.8)
+        # wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0, 0, 1, 0.2)
+        # wf.move_size_window("Control Interface", 1, 0.8, 0, 0.2, 1)
+        # wf.move_size_window("SDF Slice", 0, 0, 0.2, 1, 0.8)
+        # wf.move_size_window("Camera", 1, 0, 0, 0.8-40/1920, 0.8)
 
-        # wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0.45, 0, 0.4, 0.5)
-        # wf.move_size_window("Control Interface", 0, 0.85, 0, 0.15, 1)
-        # wf.move_size_window("SDF Slice", 0, 0, 0, 0.45, 1)
-        # wf.move_size_window("Camera", 0, 0.45, 0.5, 0.4, 0.5)
+        wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0.45, 0, 0.4, 0.5)
+        wf.move_size_window("Control Interface", 0, 0.85, 0, 0.15, 1)
+        wf.move_size_window("SDF Slice", 0, 0, 0, 0.45, 1)
+        wf.move_size_window("Camera", 0, 0.45, 0.5, 0.4, 0.5)
 
             
         # else:
@@ -91,7 +91,7 @@ def start_interface(walk_machine, view):
 
 
 class ControInterface():
-    def __init__(self, walk_machine, view) -> None:
+    def __init__(self, walk_machine, view, map_view) -> None:
         self.walk_machine = walk_machine
         # self.cloud_vis = CloudVis()
         self.walk_direction = Vector2(0,0)
@@ -99,6 +99,7 @@ class ControInterface():
         self.height_bar = ProgressBar(x=10, y=900, w=200, h=25, tab_x=100, c_front=Color.PURPLE, c_back=Color.DARKPURPLE, lable='Height')
         self.image = load_image("machine.png")
         self.view = view
+        self.map_view = map_view
         set_target_fps(60)
         set_config_flags(ConfigFlags.FLAG_WINDOW_RESIZABLE)
         init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Control Interface")
@@ -125,6 +126,7 @@ class ControInterface():
             if is_key_pressed(KEY_V):
                 self.view[0] += 1
                 self.view[0] = self.view[0] % (2)
+                self.map_view[0] = self.view[0]
 
 
             self.walk_machine.set_speed(self.walk_machine.speed + get_mouse_wheel_move()*0.1)

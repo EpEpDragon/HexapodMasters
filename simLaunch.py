@@ -111,15 +111,14 @@ if __name__ == '__main__':
     # Start walkin state machine
     walk_machine = WalkCycleMachine(perception)
     walk_machine.speed = 0.5
-    perception.add_walkmachine(walk_machine)
     
     # Start contorl interface
     # controlInterface.start_interface(walk_machine,perception,view)
-    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine,view))
+    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine, view, perception.map_view))
     control_interface_thread.start()
+    perception.add_refs(walk_machine)
     
  
-
     # Used for real time sim
     error = 0.0 # Timestep error integrator
     start_time = time.perf_counter()
