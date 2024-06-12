@@ -9,10 +9,10 @@ layout(location = 2) uniform int temporal_i;
 
 // CPU Shared Buffers 
 layout(std430, binding = 0) readonly restrict buffer image { float depth_image[uint(90)][uint(160)]; };
-layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[128][128]; };
+layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[256][256]; };
 
 // Temporal average buffer
-layout(std430, binding = 2) volatile buffer temp { float temporal_buffer[4][128][128]; };
+layout(std430, binding = 2) volatile buffer temp { float temporal_buffer[4][256][256]; };
 
 const uint RES_Y = uint(160);
 const uint RES_X = uint(90);
@@ -27,7 +27,7 @@ const float ZNEAR = 0.05;
 
 // TODO Make these uniforms
 const int EXTENTS = 16;                         // Extents of SDF block, in distance units
-const int DIVISIOINS = 8;                       // Cells per distance unit
+const int DIVISIOINS = 16;                       // Cells per distance unit
 const int HMAP_EXTENTS = EXTENTS*DIVISIOINS;     // Extents of SDF block, in number of cells
 
 const float PENETRATION_DEPTH = 2*DIVISIOINS;

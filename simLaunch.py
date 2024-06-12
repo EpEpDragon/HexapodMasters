@@ -88,8 +88,6 @@ if __name__ == '__main__':
     data = mujoco.MjData(model)
     timestep = model.opt.timestep
 
-
-
     # Visual sensors0
     # -------------------------------------------------------------------------------------------------------
     if READ_CAMERA:
@@ -146,7 +144,7 @@ if __name__ == '__main__':
 
         # Render camera every X timesteps(k)
         # ----------------------------------------------------------------------------------------------------
-        if READ_CAMERA and k %50 == 0:
+        if READ_CAMERA and k %30 == 0:
             # torque_file = open("torque.csv","a")
             # torque_file.write(str(data.sensordata[15])+",")
             # torque_file.close

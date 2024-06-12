@@ -11,7 +11,7 @@ from math import copysign
 # from scipy.spatial import Octree
 
 EXTENTS = 16                        # Extents of SDF block, in distance units
-DIVISIOINS = 8                      # Cells per distance unit
+DIVISIOINS = 16                      # Cells per distance unit
 HMAP_EXTENTS = EXTENTS*DIVISIOINS    # Extents of SDF block, in number of cells
 
 VOXEL_TRACE_INVOCAIONS = 32         # NB This must match the x and y invocations specified in voxel_trace.glsl
@@ -47,7 +47,10 @@ class Perception():
         self.map_view = [0]
 
         # visualize window
+        self.mouseX = 0
+        self.mouseY = 0
         cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
+        cv2.setMouseCallback('SDF Slice', self._get_hmap_mouse_pos)
         self._init_shader(n_points)
 
 
@@ -117,29 +120,37 @@ class Perception():
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[1])
         self.hmap_buffer[:] = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.hmap_buffer.nbytes), dtype=self.hmap_buffer.dtype).reshape(HMAP_EXTENTS,HMAP_EXTENTS)[:]
+        
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[3])
-        self.score_buffer[:] = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.score_buffer.nbytes), dtype=self.score_buffer.dtype).reshape(HMAP_EXTENTS,HMAP_EXTENTS)[:]
+        self.score_buffer[:] = np.frombuffer(glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, self.hmap_buffer.nbytes), dtype=self.hmap_buffer.dtype).reshape(HMAP_EXTENTS,HMAP_EXTENTS)[:]
 
     # HACK for visualisation of feet
     def add_refs(self, walkmachine):
         self.walmachine = walkmachine
     
     def _local_to_hmap(self, local_pos):
-        return (np.round(global_to_hmap(rotate(self.body_quat, -local_pos))) - self.hmap_index + int(HMAP_EXTENTS/2)) % HMAP_EXTENTS    # Transfer point to hmap space
+        return (np.round(global_to_hmap(rotate(self.body_quat, -local_pos))) - self.hmap_index + int(HMAP_EXTENTS*0.5)) % HMAP_EXTENTS    # Transfer point to hmap space
+
+    
+    def _get_hmap_mouse_pos(self, event,x,y,flags,param):
+        self.mouseX, self.mouseY = x,y
 
     def _display_heightmap(self):
         # img = np.ones((self.hmap_buffer.shape[0],self.hmap_buffer.shape[1],3), dtype=np.float32)
         buffer = None
+        img_max = 1.5
         if self.map_view[0] == 0:
             buffer = self.hmap_buffer
         else:
             buffer = self.score_buffer
-        img = buffer[..., np.newaxis]
+            img_max = 1.0
+
+        img = -buffer[..., np.newaxis]
         img = np.concatenate((img,img,img), axis=2)
-        low = buffer.min()
-        diff = buffer.max() - low
-        img = (img - low+0.1)/(diff+0.1)
+        # low = buffer.min()
+        # diff = buffer.max() - low
+        img = np.clip((img - 0)/(img - img_max), 0.0, img_max)
 
         # TODO ~70ms very slow, make better
         # for x in range(HMAP_EXTENTS):
@@ -158,6 +169,12 @@ class Perception():
         
         # ~8ms
         # img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+        # x = (self.mouseX + int(HMAP_EXTENTS*0.5) - hmap_i[0])%HMAP_EXTENTS
+        # y = (self.mouseY + int(HMAP_EXTENTS*0.5) - hmap_i[1])%HMAP_EXTENTS
+        # img
+        print('max', buffer.max())
+        print(buffer[self.mouseY, self.mouseX])
+        img[self.mouseY, self.mouseX] = [255,0,0]
         cv2.imshow('SDF Slice', (img * 255).astype(np.uint8))
         cv2.waitKey(1)
 

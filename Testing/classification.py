@@ -9,9 +9,10 @@ def quadratic_kernel(size, max, scale):
     kernel = np.empty((size,size))
     for i in range(size):
         for j in range(size):
-            x = (i-size/2)*scale
-            y = (j-size/2)*scale
-            kernel[i,j] = 40*(x*x*x*x+y*y*y*y)+0.3
+            x = (i-(size-1)/2.0)*scale
+            y = (j-(size-1)/2.0)*scale
+            # kernel[i,j] = (x*x + y*y)
+            kernel[i,j] = np.exp(-(x*x + y*y)*0.5)
     return kernel
 
 def sample_gaussian(height, offset, stand_dev, dist, size=0):
@@ -45,7 +46,14 @@ kernel_size = 6
 # kernel = quadratic_kernel(kernel_size, 1, 1/kernel_size).flatten()
 # kernel = kernel.reshape(kernel.shape[0],1)
 kernel = quadratic_kernel(kernel_size+1, 1, 2/kernel_size)
-print(kernel)
+
+print('{', end='')
+for i in range(kernel.shape[0]):
+    print('{', end='')
+    for j in range(kernel.shape[1]):
+        print(kernel[i,j], ',',end='')
+    print('},')
+print('}')
 kernel = kernel.reshape((kernel.shape[0],kernel.shape[1],1))
 
 array = np.array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
