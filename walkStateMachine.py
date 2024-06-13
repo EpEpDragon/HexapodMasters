@@ -165,7 +165,7 @@ class WalkCycleMachine(StateMachine):
             # print(self.is_swinging)
             for i in range(6):
                 if not (self.targets[i] - self.foot_pos_pre_yaw[i] == 0).all():
-                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
+                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,5])*self.speed*dt)
                 # diff = self.targets[i] - self.foot_pos_pre_yaw[i]
                 # if self.is_swinging[i]:
                 #     self.in_translation[i] = self._square_step(diff,i,dt)
@@ -199,7 +199,10 @@ class WalkCycleMachine(StateMachine):
                 if (self.walk_direction == 0).all() and self.centering_yaw[i]:
                     self.targets[i][2] += self.height_offsets[i] + effector_offset - min(abs(self.current_yaw_local[i])*3, 0.7)
                 else:
-                    self.targets[i][2] += self.height_offsets[i] +  effector_offset - min(dist, 0.7)
+                    # self.targets[i][2] += self.height_offsets[i] +  effector_offset - min(dist, 0.7)
+                    self.targets[i][2] += self.height_offsets[i] +  effector_offset - np.clip(3*(-dist*dist+0.6*dist),0,None)
+                    # tmp = 2.466*(dist-0.3)
+                    # self.targets[i][2] += self.height_offsets[i] +  effector_offset - np.clip(-tmp*tmp*tmp*tmp + 0.3,0,None)
 
                 if self.centering_yaw[i]:
                     self.target_yaw_local[i] = 0.0

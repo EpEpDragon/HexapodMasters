@@ -160,7 +160,8 @@ class Perception():
 
         # # Draw foot targets
         for i in range(6):
-            hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
+            # hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
+            hmap_i = self._local_to_hmap(self.walmachine.targets[i])
             # img_i = (hmap_i-self.hmap_index)%HMAP_EXTENTS   # Hold in center of centered image
             if (self.walmachine.is_swinging[i]):
                 img[int(hmap_i[0]), int(hmap_i[1])] = np.array([0,1,0])
