@@ -173,8 +173,8 @@ class Perception():
         # x = (self.mouseX + int(HMAP_EXTENTS*0.5) - hmap_i[0])%HMAP_EXTENTS
         # y = (self.mouseY + int(HMAP_EXTENTS*0.5) - hmap_i[1])%HMAP_EXTENTS
         # img
-        print('max', buffer.max())
-        print(buffer[self.mouseY, self.mouseX])
+        # print('max', buffer.max())
+        # print(buffer[self.mouseY, self.mouseX])
         img[self.mouseY, self.mouseX] = [255,0,0]
         cv2.imshow('SDF Slice', (img * 255).astype(np.uint8))
         cv2.waitKey(1)

@@ -57,9 +57,9 @@ class WalkCycleMachine(StateMachine):
         self.current_yaw_local = np.zeros(6)
         self.centering_yaw = np.full(6, False) # True when robot in process of centering yaw
         self.walk_direction = a([0,0,0])
-        self.foot_pos_pre_yaw = list(REST_POS)
-        self.foot_pos_post_yaw = list(REST_POS)
-        self.targets = list(REST_POS)
+        self.foot_pos_pre_yaw = np.array(REST_POS)
+        self.foot_pos_post_yaw = np.array(REST_POS)
+        self.targets = np.array(REST_POS)
         self.perception = perception
         self.step_height = 0.3
 
@@ -192,7 +192,15 @@ class WalkCycleMachine(StateMachine):
             if self.is_swinging[i]:
                 diff = self.foot_pos_pre_yaw[i] - self.targets[i]
                 dist = sqrt(diff @ diff)
-                self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
+                inv = np.invert(self.is_swinging)
+                
+                # Adjust swinging target based on remaining supporting leg stride such that it stays in the same position relative to the terrain
+                not_swing_delta = self.targets[inv] - self.foot_pos_post_yaw[inv]
+                dot = not_swing_delta[0]@not_swing_delta[0]
+                dot += not_swing_delta[1]@not_swing_delta[1]
+                dot += not_swing_delta[2]@not_swing_delta[2]
+                # self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
+                self.targets[i] = REST_POS[i] + (self.walk_direction * (STRIDE_LENGTH + np.sum(np.sqrt(dot))/3))
                 # self.targets[i][2] = self.height_offsets[i] + effector_offset
                 
                 # If not walking means rotationg in place, thus set foot height based on rotation
@@ -200,7 +208,7 @@ class WalkCycleMachine(StateMachine):
                     self.targets[i][2] += self.height_offsets[i] + effector_offset - min(abs(self.current_yaw_local[i])*3, 0.7)
                 else:
                     # self.targets[i][2] += self.height_offsets[i] +  effector_offset - min(dist, 0.7)
-                    self.targets[i][2] += self.height_offsets[i] +  effector_offset - np.clip(3*(-dist*dist+0.6*dist),0,None)
+                    self.targets[i][2] += self.height_offsets[i] +  effector_offset - np.clip(3*(-dist*dist*0.25+0.6*dist*0.5),0,None)
                     # tmp = 2.466*(dist-0.3)
                     # self.targets[i][2] += self.height_offsets[i] +  effector_offset - np.clip(-tmp*tmp*tmp*tmp + 0.3,0,None)
 
