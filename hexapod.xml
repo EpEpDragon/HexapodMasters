@@ -10,12 +10,12 @@
 
   <asset>
     <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>
-    <texture builtin="flat" height="1278" mark="cross" markrgb="1 1 1" name="texgeom" random="0.01" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" type="cube" width="127"/>
+    <!-- <texture builtin="flat" height="1278" mark="cross" markrgb="1 1 1" name="texgeom" random="0.01" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" type="cube" width="127"/> -->
     <texture builtin="checker" height="100" name="texplane" rgb1="0 0 0" rgb2="0.8 0.8 0.8" type="2d" width="100"/>
     <material name="MatPlane" reflectance="0.5" shininess="1" specular="1" texrepeat="6.1 6.1" texture="texplane"/>
-    <material name="geom" texture="texgeom" texuniform="true"/>
+    <!-- <material name="geom" texture="texgeom" texuniform="true"/> -->
 
-    <hfield name="HMap" file="hmap.png" size="5 5 0.3 0.2"/>
+    <hfield name="HMap" file="hmap.png" size="5 5 1 0.2"/>
     <!-- <mesh name="tiles" file="mesh/tiles.obj" refquat="1 -1 0 0"/> -->
   </asset>
 
@@ -48,7 +48,7 @@
     <light diffuse="0.5 0.5 0.5" pos="0 0 3" dir="0 0 -1"/>
     <!-- Floor -->
     <geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 0" rgba="0.8 0.9 0.8 1" size="40 40 40" type="plane"/>
-    <geom conaffinity="1" condim="3" material="MatPlane" name="tiles" pos="8 0 0.001" rgba="0.8 0.9 0.8 1" type="hfield" hfield="HMap"/>
+    <geom conaffinity="1" condim="3" name="rocks" pos="8 0 0.001" rgba="0.8 0.9 0.8 1" type="hfield" hfield="HMap"/>
     <geom name="cube1" pos="5 4 0.3" size="1 1 1" type="box"/>
     <geom name="cube2" pos="4 -4 0.3" size="1 1 1" type="box"/>
 

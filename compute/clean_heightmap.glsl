@@ -27,7 +27,6 @@ float kernel[K_SIZE][K_SIZE] = {{0.36787944117144233 ,0.4856717852477124 ,0.5737
 
 float calculate_score(uint x, uint y)
 {
-
     // Gradient score
     uint ym = uint(mod(y, HMAP_EXTENTS));
     uint xm = uint(mod(x, HMAP_EXTENTS));
