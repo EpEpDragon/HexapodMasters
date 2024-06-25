@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from math import cos, sqrt
+from math import cos, sqrt, exp
 import matplotlib.pyplot as plt
 
 PI = 3.141592654
@@ -11,7 +11,8 @@ def quadratic_kernel(size, max, scale):
         for j in range(size):
             x = (i-(size-1)/2.0)*scale
             y = (j-(size-1)/2.0)*scale
-            kernel[i,j] = (x*x + y*y)
+            # kernel[i,j] = (x*x + y*y)
+            kernel[i,j] = exp(-(x*x + y*y)*0.5)
     return kernel
 
 def sample_gaussian(height, offset, stand_dev, dist, size=0):
@@ -57,7 +58,7 @@ baseimg = cv2.imread("hmap_test4.png").astype(float) / 255
 baseimg = cv2.resize(baseimg, (SIZE,SIZE))
 baseimg = baseimg*5
 img = np.ones((SIZE,SIZE,3))
-img[:] = baseimg[:]
+img[:] = baseimg[:]/5.0
 
 def calculate_score(body_pos, foot_pos,x,y):
     global mouseX,mouseY
@@ -70,18 +71,28 @@ def calculate_score(body_pos, foot_pos,x,y):
     # temp = kernel - abs(baseimg[wrap_slice(baseimg,0, (y-int(kernel_size/2))%baseimg.shape[0], (y+int(kernel_size/2)+1)%baseimg.shape[0])][:,wrap_slice(baseimg,1,(x-int(kernel_size/2))%baseimg.shape[0], (x+int(kernel_size/2)+1)%baseimg.shape[0])] - baseimg[y,x,0])
     
     r,c = wrap_block(img, (y-int((kernel_size)/2))%img.shape[0], (y+int((kernel_size)/2)+1)%img.shape[0], (x-int((kernel_size)/2))%img.shape[0], (x+int((kernel_size)/2)+1)%img.shape[0])
-    temp =  kernel.reshape((kernel.size,1)) - abs(baseimg[r,c]-baseimg[y,x])
-    temp[int((kernel.size-1)/2)] = 1.0
-    terrain_proximity_score = np.average(temp)
+    temp =  kernel.reshape((kernel.size,1))*(baseimg[r,c,0]-baseimg[y,x,0])
+    # temp[int((kernel.size-1)/2)] = 1.0
+    terrain_proximity_score = abs(np.average(temp))
 
-    if x < baseimg.shape[0]-1 and y < baseimg.shape[0]-1:
-        height = baseimg[y,x,0]
-        dy = baseimg[y + 1, x,0] - height
-        dx = baseimg[y, x + 1,0] - height
+    Gx = 0.5*(+baseimg[(y-1)%img.shape[0], (x-1)%img.shape[1],0] - baseimg[(y+1)%img.shape[0], (x-1)%img.shape[1],0]
+          +2*baseimg[(y-1)%img.shape[0], (x)%img.shape[1],0] - 2*baseimg[(y+1)%img.shape[0], (x)%img.shape[1],0]
+          +baseimg[(y-1)%img.shape[0], (x+1)%img.shape[1],0] - baseimg[(y+1)%img.shape[0], (x+1)%img.shape[1],0])
+    
+    Gy = 0.5*(+baseimg[(y-1)%img.shape[0], (x-1)%img.shape[1],0] + 2*baseimg[(y)%img.shape[0], (x-1)%img.shape[1],0] + baseimg[(y+1)%img.shape[0], (x-1)%img.shape[1],0]
+          -baseimg[(y-1)%img.shape[0], (x+1)%img.shape[1],0] - 2*baseimg[(y)%img.shape[0], (x+1)%img.shape[1],0] - baseimg[(y+1)%img.shape[0], (x+1)%img.shape[1],0])
 
-        steepness_score = sqrt(dx*dx + dy*dy)
-    else:
-        steepness_score = 0
+    # print(baseimg.shape)
+    steepness_score = sqrt(Gx*Gx + Gy*Gy)*0.5
+
+    # if x < baseimg.shape[0]-1 and y < baseimg.shape[0]-1:
+    #     height = baseimg[y,x,0]
+    #     dy = 0.5*(baseimg[y + 1, x,0] - baseimg[y - 1, x,0])
+    #     dx = 0.5*(baseimg[y, x + 1,0] - baseimg[y, x - 1,0])
+
+    #     steepness_score = sqrt(dx*dx + dy*dy)
+    # else:
+    #     steepness_score = 0
 
     dist = sqrt((x-body_pos[0])*(x-body_pos[0])+(y-body_pos[1])*(y-body_pos[1])+8*8*(baseimg[y,x,0]-body_pos[2])*(baseimg[y,x,0]-body_pos[2]))
     # radius = 15
@@ -97,7 +108,7 @@ def calculate_score(body_pos, foot_pos,x,y):
 
     mouseX,mouseY = x,y
     # return img[r,c].min()
-    return terrain_proximity_score
+    return max(terrain_proximity_score, steepness_score/5)
 
 def poll_value(event,x,y,flags,param):
     print(img[y,x])
@@ -128,9 +139,9 @@ def calc_points(event,x,y,flags,param):
                 score = calculate_score(np.array([65,65,10.6]), np.array([x,y,0]),c,r)
                 # img[r,c] = score
                 if score <= 0:
-                    img[r,c] = [0,0,1]
+                    img[r,c] = [0,score,0]
                 else:
-                    img[r,c] = [0,score/5,0]
+                    img[r,c] = [score,score,score]
         cv2.imwrite("prox_score_test.png", img*255)
     
 
