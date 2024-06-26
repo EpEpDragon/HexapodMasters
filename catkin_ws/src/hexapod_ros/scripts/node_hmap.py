@@ -12,8 +12,8 @@ from perception import Perception
 import cv2
 import matplotlib.pyplot as plt
 
-RES_X = int(212)
-RES_Y = int(120)
+RES_X = int(424)
+RES_Y = int(240)
 
 
 # Get data from RGBD camera and store for use
@@ -30,7 +30,7 @@ class RGBDListener:
     def color_callback(self, data):
         try:
             self.rgb = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.uint8)
-            self.rgb = cv2.resize(self.rgb, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
+            # self.rgb = cv2.resize(self.rgb, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             self.rgb_ready = True
             # cv2.imshow('Color', (self.rgb[:,:,::-1]).astype(np.uint8))
             # cv2.waitKey(1)
@@ -42,7 +42,7 @@ class RGBDListener:
     def depth_callback(self, data):
         try:
             self.d = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.float32) / 10.0
-            self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
+            # self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             self.d_ready = True
             # rospy.loginfo({np.max(self.d)})
             # cv2.imshow('Depth', cm.jet(self.d / 10))
@@ -80,20 +80,20 @@ def run():
 
         if rgbd_in.rgb_ready:
             # Publish  downsampled rgb
-            # print(rgbd_in.rgb.shape)
+            pass
             pub_rgb.publish(bridge.cv2_to_imgmsg(rgbd_in.rgb))
         if rgbd_in.d_ready:
             # Build heightmap
             perception.update(np.array([0,0,4]), np.array([0,0,0]), np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array([1,0,0,0]), rgbd_in.d)
             
             # Publish downsampled depth and heightmap
-            pub_d.publish(bridge.cv2_to_imgmsg(rgbd_in.d))
             pub_hmap.publish(bridge.cv2_to_imgmsg(perception.hmap_buffer))
-            print(str(rospy.Time.now())+"push hmap")
+            pub_d.publish(bridge.cv2_to_imgmsg(rgbd_in.d))
+            print(rospy.Time.now(), "push hmap")
 
         rate.sleep()
         td = (rospy.Time.now()-t)/1000000
-        # print(td)
+        print(td)
 
 
 if __name__ == '__main__':

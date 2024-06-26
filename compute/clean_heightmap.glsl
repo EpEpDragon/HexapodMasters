@@ -4,11 +4,11 @@ layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 // TODO Make these uniforms
 const int EXTENTS = 16;                         // Extents of SDF block, in distance units
-const int DIVISIOINS = 8;                       // Cells per distance unit
+const int DIVISIOINS = 16;                       // Cells per distance unit
 const int HMAP_EXTENTS = EXTENTS*DIVISIOINS;     // Extents of SDF block, in number of cells
 
 layout(location = 0) uniform ivec3 sdf_index;
-layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[128][128]; };
+layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[256][256]; };
 
 void main()
 {
