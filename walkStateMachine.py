@@ -122,7 +122,7 @@ class WalkCycleMachine(StateMachine):
         
         # Check inversion required
         if has_direction:
-            if self.is_long(id):
+            if self._is_long(id):
                 self.is_swinging = np.invert(self.is_swinging)
         else:
             if not (self.is_swinging == self.centering_yaw).all():
@@ -160,26 +160,15 @@ class WalkCycleMachine(StateMachine):
         self.walk()
 
         # Update foot position for walking
-
         if self.current_state == self.stepping:
-            # print(self.is_swinging)
             for i in range(6):
                 if not (self.targets[i] - self.foot_pos_pre_yaw[i] == 0).all():
                     self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,5])*self.speed*dt)
-                # diff = self.targets[i] - self.foot_pos_pre_yaw[i]
-                # if self.is_swinging[i]:
-                #     self.in_translation[i] = self._square_step(diff,i,dt)
-                # elif self.in_translation[np.where(self.is_swinging)].all() or not self.is_swinging.any():
-                #     self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(diff)*self.speed*dt)
-                
-                # if (diff != 0).all():
-                #     self.foot_pos_pre_yaw[i] + (normalize(diff)*self.speed*dt)
 
         # Update foot position for local rotation
         for i in range(6):
             self.current_yaw_local[i] = clerp(self.current_yaw_local[i], self.target_yaw_local[i], self.yaw_rate*dt)
             self.foot_pos_post_yaw[i] = rotate_vec(self.foot_pos_pre_yaw[i], UP, self.current_yaw_local[i])
-        # print(self.targets[i] - self.foot_pos_pre_yaw[i])
 
 
     def _update_targets(self, body_quat):
@@ -217,32 +206,10 @@ class WalkCycleMachine(StateMachine):
                 # Rotate walk direction to account for pitch angle and add to targets
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
                 self.targets[i][2] += self.height_offsets[i] + effector_offset
-            
-            # print(f"leg {i}: {self.targets[i][2]}")
-
-            # self.targets[i][2] = self.height_offsets[i] + effector_offset
-        # self.targets[0][2] = 0.3
-        # self.targets[1][2] = 0.6-0.3
-        # self.targets[2][2] = 0.6
-        # self.targets[3][2] = 0.6-0.3
-        # self.targets[4][2] = 0.6-0.3
-        # self.targets[5][2] = 0.3
-
-
-    def _square_step(self, diff, i, dt):
-        # if self.is_swinging[i]:
-            if (abs(diff[0:2]) < PLACE_TOLERANCE).all():
-                self.foot_pos_pre_yaw[i][2] = self.foot_pos_pre_yaw[i][2] + math.copysign(1,diff[2])*self.speed*dt
-                return True
-            if abs(diff[2] - self.step_height) > PLACE_TOLERANCE:
-                self.foot_pos_pre_yaw[i][2] = self.foot_pos_pre_yaw[i][2] + math.copysign(1,diff[2] - self.step_height)*self.speed*dt
-                return False
-            self.foot_pos_pre_yaw[i][0:2] = self.foot_pos_pre_yaw[i][0:2] + normalize(diff[0:2])*self.speed*dt
-            return True
         
     # -------------------------------------------------------------------------------------------
 
-    def is_long(self, id):
+    def _is_long(self, id):
         if self.foot_pos_post_yaw[id]@self.foot_pos_post_yaw[id] > REST_POS[id]@REST_POS[id]:
             return True
         return False
