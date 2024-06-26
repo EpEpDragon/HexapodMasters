@@ -108,7 +108,7 @@ def calculate_score(body_pos, foot_pos,x,y):
 
     mouseX,mouseY = x,y
     # return img[r,c].min()
-    return max(terrain_proximity_score, steepness_score/5)
+    return steepness_score/2
 
 def poll_value(event,x,y,flags,param):
     print(img[y,x])
@@ -122,9 +122,110 @@ cv2.resizeWindow('image', 1024, 1024)
 # gaussian = sample_gaussian(1,1,20)
 # plt.plot(gaussian)
 # plt.show()
+search_rad = 8
+def compare(y, x, minval):
+    if img[y, x, 0] < minval:
+        minval = img[y, x, 0]
+        minx = x
+        miny = y
+        if minval < 0.1:
+            return True, minx, miny, minval
+    return False, x, y, minval
+
+def circle_search(pos_x,pos_y,r,minval):
+    # amount = 2*PI*r/
+    r2 = r*r
+    x =  1
+    x_indices = np.array([0])
+    y_indices = np.array([r])
+    while x <= r*(sqrt(2)/2):
+        i_x = int(x)
+        i_y = int(np.round(np.sqrt(r2-x*x)))
+
+        # Backfill skipped gridblocks
+        # d = abs(i_y - y_indices[-1])
+        # if (d > 1):
+        #     x_indices = np.append( x_indices, np.full(d-1, i_x) )
+        #     y_indices = np.append( y_indices, np.arange(y_indices[-1]-1, i_y,-1) )
+        
+        x_indices = np.append( x_indices, i_x )
+        y_indices = np.append( y_indices, i_y )
+        x += 1
+    
+    x_indices_temp = x_indices
+    x_indices = np.append(x_indices, y_indices)
+    y_indices = np.append(y_indices, x_indices_temp)
+
+    # x_indices = np.arange(r) + 1
+    # y_indices = (np.sqrt(r2-x_indices*x_indices)).astype(int)
+    # # for i in range(np.arange(r) + 1):
+    # #     y_indices[i]
+    img[y_indices+pos_y, x_indices+pos_x] = [1,0,0]
+    img[-y_indices+pos_y, -x_indices+pos_x] = [1,0,0]
+    img[-y_indices+pos_y, x_indices+pos_x] = [1,0,0]
+    img[y_indices+pos_y, -x_indices+pos_x] = [1,0,0]
+
+
+def find_min(anchor_x, anchor_y):
+    minval = 1000
+    minx = anchor_x
+    miny = anchor_y
+    # circle_search(anchor_x, anchor_y,16,minval)
+    # for i in range(16):
+    #     circle_search(anchor_x, anchor_y,i,minval)
+    
+    for r in range(search_rad):
+        for i in range(r+1):
+            # Left side
+            should_return, minx, miny, minval = compare(anchor_y+i, anchor_x-r, minval)
+            if should_return: return minx, miny
+            should_return, minx, miny, minval = compare(anchor_y-i, anchor_x-r, minval)
+            if should_return: return minx, miny
+
+            # Right side
+            should_return, minx, miny, minval = compare(anchor_y+i, anchor_x+r, minval)
+            if should_return: return minx, miny
+            should_return, minx, miny, minval = compare(anchor_y-i, anchor_x+r, minval)
+            if should_return: return minx, miny
+            
+            # Top side
+            should_return, minx, miny, minval = compare(anchor_y+r, anchor_x+i, minval)
+            if should_return: return minx, miny
+            should_return, minx, miny, minval = compare(anchor_y+r, anchor_x-i, minval)
+            if should_return: return minx, miny
+
+            # Bottom side
+            should_return, minx, miny, minval = compare(anchor_y-r, anchor_x+i, minval)
+            if should_return: return minx, miny
+            should_return, minx, miny, minval = compare(anchor_y-r, anchor_x-i, minval)
+            if should_return: return minx, miny
+    return minx, miny
+
+def solve_anchor_point(anchor_x, anchor_y):
+    minx, miny = find_min(anchor_x, anchor_y)
+
+    # search_block = img[(anchor_y-search_rad):(anchor_y+search_rad), (anchor_x-search_rad):(anchor_x+search_rad)][:,:,0]
+    # miny, minx = np.unravel_index(search_block.argmin(), search_block.shape)
+
+    # Coloring
+    # img[anchor_y, anchor_x] = [0,0,1]
+    img[anchor_y+1, anchor_x] = [0,0,1]
+    img[anchor_y, anchor_x+1] = [0,0,1]
+    img[anchor_y-1, anchor_x] = [0,0,1]
+    img[anchor_y, anchor_x-1] = [0,0,1]
+
+    for i in range(search_rad*2+1):
+        img[anchor_y-search_rad-1, anchor_x-search_rad+i] = [1,0,0]
+        img[anchor_y+search_rad+1, anchor_x-search_rad+i] = [1,0,0]
+        img[anchor_y-search_rad+i, anchor_x-1-search_rad] = [1,0,0]
+        img[anchor_y-search_rad+i, anchor_x+1+search_rad] = [1,0,0]
+    img[miny+1, minx] = [0,1,0]
+    img[miny, minx+1] = [0,1,0]
+    img[miny-1, minx] = [0,1,0]
+    img[miny, minx-1] = [0,1,0]
 
 def calc_points(event,x,y,flags,param):
-    print(img[y,x])
+    print(f"x: {x} y: {y} {img[y,x]}")
 
     # if event == cv2.EVENT_LBUTTONDOWN:
     #     img[:] = baseimg[:]
@@ -142,12 +243,13 @@ def calc_points(event,x,y,flags,param):
                     img[r,c] = [0,score,0]
                 else:
                     img[r,c] = [score,score,score]
+        # solve_anchor_point(63,48)
+        # solve_anchor_point(123,57)
+        # solve_anchor_point(135,100)
+        # solve_anchor_point(45,100)
+        # solve_anchor_point(60,152)
+        # solve_anchor_point(130,140)
         cv2.imwrite("prox_score_test.png", img*255)
-    
-
-    # cv2.imshow('image',img)
-    # cv2.imshow('hmap',baseimg)
-    # cv2.waitKey(0)
 cv2.setMouseCallback('image',calc_points)
 
 while(1):
