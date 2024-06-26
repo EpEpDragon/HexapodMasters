@@ -144,7 +144,7 @@ class Perception():
             buffer = self.hmap_buffer
         else:
             buffer = self.score_buffer
-            img_max = 1.0
+            img_max = 5.0
 
         img = -buffer[..., np.newaxis]
         img = np.concatenate((img,img,img), axis=2)
@@ -161,12 +161,14 @@ class Perception():
         # # Draw foot targets
         for i in range(6):
             # hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
-            hmap_i = self._local_to_hmap(self.walmachine.targets[i])
+            hmapt_i = self._local_to_hmap(self.walmachine.targets[i]) 
+            hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
             # img_i = (hmap_i-self.hmap_index)%HMAP_EXTENTS   # Hold in center of centered image
+            img[int(hmap_i[0]), int(hmap_i[1])] = np.array([1,0,0])
             if (self.walmachine.is_swinging[i]):
-                img[int(hmap_i[0]), int(hmap_i[1])] = np.array([0,1,0])
+                img[int(hmapt_i[0]), int(hmapt_i[1])] = np.array([0,1,0])
             else:
-                img[int(hmap_i[0]), int(hmap_i[1])] = np.array([0,0,1])
+                img[int(hmapt_i[0]), int(hmapt_i[1])] = np.array([0,0,1])
         
         # ~8ms
         # img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
@@ -174,7 +176,7 @@ class Perception():
         # y = (self.mouseY + int(HMAP_EXTENTS*0.5) - hmap_i[1])%HMAP_EXTENTS
         # img
         # print('max', buffer.max())
-        # print(buffer[self.mouseY, self.mouseX])
+        print(buffer[self.mouseY, self.mouseX])
         img[self.mouseY, self.mouseX] = [255,0,0]
         cv2.imshow('SDF Slice', (img * 255).astype(np.uint8))
         cv2.waitKey(1)

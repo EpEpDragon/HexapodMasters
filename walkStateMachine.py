@@ -187,9 +187,9 @@ class WalkCycleMachine(StateMachine):
         for i in range(6):
             # print(f"Leg {i} height: ({rotate(body_quat,HIP_VECTORS[i])[2]}){self.perception.get_height_at_point(self.targets[i])}")
             
-            effector_offset = self.height - self.perception.get_height_at_point(self.targets[i]) #- rotate(body_quat,HIP_VECTORS[i])[2] # Offsett based on heightmap
             # print(f"leg {i}: {effector_offset}")
             if self.is_swinging[i]:
+                effector_offset = self.height - self.perception.get_height_at_point(self.targets[i])
                 diff = self.foot_pos_pre_yaw[i] - self.targets[i]
                 dist = sqrt(diff @ diff)
                 inv = np.invert(self.is_swinging)
@@ -208,13 +208,12 @@ class WalkCycleMachine(StateMachine):
                     self.targets[i][2] += self.height_offsets[i] + effector_offset - min(abs(self.current_yaw_local[i])*3, 0.7)
                 else:
                     # self.targets[i][2] += self.height_offsets[i] +  effector_offset - min(dist, 0.7)
-                    self.targets[i][2] += self.height_offsets[i] +  effector_offset - np.clip(3*(-dist*dist*0.25+0.6*dist*0.5),0,None)
-                    # tmp = 2.466*(dist-0.3)
-                    # self.targets[i][2] += self.height_offsets[i] +  effector_offset - np.clip(-tmp*tmp*tmp*tmp + 0.3,0,None)
+                    self.targets[i][2] += self.height_offsets[i] +  effector_offset - np.clip(5*(-dist*dist*0.25+0.6*dist*0.5),0,None)
 
                 if self.centering_yaw[i]:
                     self.target_yaw_local[i] = 0.0
             else:
+                effector_offset = self.height - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
                 # Rotate walk direction to account for pitch angle and add to targets
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
                 self.targets[i][2] += self.height_offsets[i] + effector_offset

@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 
 PI = 3.141592654
 
-def quadratic_kernel(size, max, scale):
+def quadratic_kernel(size, max, scale,c,g):
     kernel = np.empty((size,size))
     for i in range(size):
         for j in range(size):
             x = (i-(size-1)/2.0)*scale
             y = (j-(size-1)/2.0)*scale
             # kernel[i,j] = (x*x + y*y)
-            kernel[i,j] = np.exp(-(x*x + y*y)*0.5)
+            kernel[i,j] = g*np.exp(-(x*x + y*y)/(2*c*c))
     return kernel
 
 def sample_gaussian(height, offset, stand_dev, dist, size=0):
@@ -42,10 +42,10 @@ def get_wrapped(matrix, i, j):
   cols = [(j-1) % n, j, (j+1) % n]
   return matrix[rows][:, cols]
 
-kernel_size = 6
+kernel_size = 8
 # kernel = quadratic_kernel(kernel_size, 1, 1/kernel_size).flatten()
 # kernel = kernel.reshape(kernel.shape[0],1)
-kernel = quadratic_kernel(kernel_size+1, 1, 2/kernel_size)
+kernel = quadratic_kernel(kernel_size+1, 1, 2/kernel_size,c=2,g=5)
 
 print('{', end='')
 for i in range(kernel.shape[0]):
@@ -62,7 +62,7 @@ SIZE = 128
 # baseimg = cv2.imread("hmap_test2.png").astype(float) / 255
 baseimg = cv2.imread("hmap.png").astype(float) / 255
 baseimg = cv2.resize(baseimg, (SIZE,SIZE))
-baseimg = baseimg*10
+baseimg = baseimg
 img = np.ones((SIZE,SIZE,3))
 img[:] = baseimg[:]
 
@@ -74,8 +74,10 @@ def calculate_score(body_pos, foot_pos,x,y):
     # img[r,c] =  kernel - abs(baseimg[r,c]-baseimg[y,x])
     # img[y,x] = 1.0
 
-    temp = kernel - abs(baseimg[wrap_slice(baseimg,0, (y-int(kernel_size/2))%baseimg.shape[0], (y+int(kernel_size/2)+1)%baseimg.shape[0])][:,wrap_slice(baseimg,1,(x-int(kernel_size/2))%baseimg.shape[0], (x+int(kernel_size/2)+1)%baseimg.shape[0])] - baseimg[y,x,0])
-    terrain_proximity_score = max(temp.min(),0)
+    r,c = wrap_block(img, (y-int((kernel_size)/2))%img.shape[0], (y+int((kernel_size)/2)+1)%img.shape[0], (x-int((kernel_size)/2))%img.shape[0], (x+int((kernel_size)/2)+1)%img.shape[0])
+    temp =  kernel.reshape((kernel.size,1))*(baseimg[r,c,0]-baseimg[y,x,0])
+    # temp[int((kernel.size-1)/2)] = 1.0
+    terrain_proximity_score = abs(np.average(temp))
 
     dist = sqrt((x-body_pos[0])*(x-body_pos[0])+(y-body_pos[1])*(y-body_pos[1])+8*8*(baseimg[y,x,0]-body_pos[2])*(baseimg[y,x,0]-body_pos[2]))
     # radius = 15
@@ -91,7 +93,7 @@ def calculate_score(body_pos, foot_pos,x,y):
 
     mouseX,mouseY = x,y
     # return img[r,c].min()
-    return body_proximity_score
+    return terrain_proximity_score
 
 def poll_value(event,x,y,flags,param):
     print(img[y,x])
@@ -114,10 +116,11 @@ def calc_points(event,x,y,flags,param):
         for r in range(SIZE):
             for c in range(SIZE):
                 score = calculate_score(np.array([65,65,10.6]),np.array([x,y,0]),c,r)
-                if score <= 0:
-                    img[r,c] = [0,0,1]
-                else:
-                    img[r,c] = [0,score,0]
+                img[r,c] = [score,score,score]
+                # if score <= 0:
+                #     img[r,c] = [0,0,1]
+                # else:
+                #     img[r,c] = [0,score,0]
 
     # cv2.imshow('image',img)
     # cv2.imshow('hmap',baseimg)
