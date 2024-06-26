@@ -5,20 +5,23 @@ from roboMath import rotate
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram,compileShader
 
+import time
 import numpy as np
 import cv2
 from math import copysign
 # from scipy.spatial import Octree
 
+from walkStateMachine import ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD
 EXTENTS = 16                        # Extents of SDF block, in distance units
 DIVISIOINS = 16                      # Cells per distance unit
+INV_DIVISIOINS = 1/DIVISIOINS                # For faster computation
 HMAP_EXTENTS = EXTENTS*DIVISIOINS    # Extents of SDF block, in number of cells
 
 VOXEL_TRACE_INVOCAIONS = 32         # NB This must match the x and y invocations specified in voxel_trace.glsl
 CELL_DISTANCE_INVOCAIONS = 32       # NB This must match the x and y invocations specified in set_cell_distance.glsl
 
 def global_to_hmap(global_pos):
-    """Convert global position to position in SDF grid, which has its corner at 0,0,0"""
+    """Convert global position to position in hmap grid, which has its corner at 0,0,0"""
     return (((global_pos)%(EXTENTS))*DIVISIOINS).astype(np.int32)
 
 class Perception():
@@ -130,8 +133,26 @@ class Perception():
         self.walmachine = walkmachine
     
     def _local_to_hmap(self, local_pos):
-        return (np.round(global_to_hmap(rotate(self.body_quat, -local_pos))) - self.hmap_index + int(HMAP_EXTENTS*0.5)) % HMAP_EXTENTS    # Transfer point to hmap space
+        temp = (np.round(global_to_hmap(rotate(self.body_quat, -local_pos))) - self.hmap_index + int(HMAP_EXTENTS*0.5))
+        return  temp % HMAP_EXTENTS, temp
+    
+    def _hmap_to_local(self, hmap_pos_raw):
+        diff = hmap_pos_raw + self.hmap_index[0:2] - int(HMAP_EXTENTS*0.5)
+        
+        x_new = 0
+        y_new = 0
+        
+        if abs(diff[0]) > HMAP_EXTENTS*0.5: 
+            x_new = -INV_DIVISIOINS*( diff[0] % -HMAP_EXTENTS )
+        else: 
+            x_new = -INV_DIVISIOINS*( diff[0] % HMAP_EXTENTS )
 
+        if abs(diff[1]) > HMAP_EXTENTS*0.5: 
+            y_new = -INV_DIVISIOINS*( diff[1] % -HMAP_EXTENTS )
+        else: 
+            y_new = -INV_DIVISIOINS*( diff[1] % HMAP_EXTENTS )
+        anchor_new = np.array([x_new, y_new, self.hmap_buffer[hmap_pos_raw[0]%HMAP_EXTENTS, hmap_pos_raw[1]%HMAP_EXTENTS]])
+        return rotate(self.body_quat*[-1,-1,-1,1], anchor_new)
     
     def _get_hmap_mouse_pos(self, event,x,y,flags,param):
         self.mouseX, self.mouseY = x,y
@@ -161,10 +182,12 @@ class Perception():
         # # Draw foot targets
         for i in range(6):
             # hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
-            hmapt_i = self._local_to_hmap(self.walmachine.targets[i]) 
-            hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
+            hmapt_i, _ = self._local_to_hmap(self.walmachine.targets[i]) 
+            hmap_i, _ = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
+            hmap_i_new, _ = self._local_to_hmap(self.walmachine.new_targets[i])
             # img_i = (hmap_i-self.hmap_index)%HMAP_EXTENTS   # Hold in center of centered image
             img[int(hmap_i[0]), int(hmap_i[1])] = np.array([1,0,0])
+            img[int(hmap_i_new[0]), int(hmap_i_new[1])] = np.array([1,1,0])
             if (self.walmachine.is_swinging[i]):
                 img[int(hmapt_i[0]), int(hmapt_i[1])] = np.array([0,1,0])
             else:
@@ -176,8 +199,13 @@ class Perception():
         # y = (self.mouseY + int(HMAP_EXTENTS*0.5) - hmap_i[1])%HMAP_EXTENTS
         # img
         # print('max', buffer.max())
-        print(buffer[self.mouseY, self.mouseX])
+        # print(buffer[self.mouseY, self.mouseX])
+        # print(self.mouseX, self.mouseY)
+        
         img[self.mouseY, self.mouseX] = [255,0,0]
+        new_anchor = (self.find_anchor(np.array([self.mouseY, self.mouseX,0]), ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD))
+        # print(new_anchor)
+        img[new_anchor[0], new_anchor[1]] = [0,1,1]
         cv2.imshow('SDF Slice', (img * 255).astype(np.uint8))
         cv2.waitKey(1)
 
@@ -188,9 +216,63 @@ class Perception():
         self._generate_heightmap(depth, camera_quat, global_to_hmap(camera_pos))
         self._display_heightmap()
         self.temporal_i = int((self.temporal_i + 1)%4)
+        # print(self.hmap_index)
 
     def get_height_at_point(self, point):
         """Returns the height at a point relative to the robot center, the height is in world space"""
-        hmap_i= self._local_to_hmap(point)
+        hmap_i, _ = self._local_to_hmap(point)
         h = self.hmap_buffer[hmap_i[0], hmap_i[1]]
         return h
+    
+    def find_anchor(self, anchor, search_rad, threshold):
+        """Find first value under threshold within search radius, expanding square"""
+        # anchor_map, anchor_map_raw = self._local_to_hmap(anchor)[0:2]
+        # anchor_map_x = anchor_map[0]
+        # anchor_map_y = anchor_map[1]
+        anchor_map_raw = anchor
+        anchor_map_x = anchor[0]
+        anchor_map_y = anchor[1]
+
+        # Early exit if initial point is valid
+        if self.score_buffer[anchor_map_x, anchor_map_y] < threshold:
+            print(self.score_buffer[anchor_map_x, anchor_map_y], "Valid")
+            return anchor
+        
+        minval = 1000 # Some sufficiently large number
+        for r in range(search_rad):
+            for i in range(r+1):
+                # Left side
+                should_return, minval = self._compare((anchor_map_y+i)%HMAP_EXTENTS, (anchor_map_x-r)%HMAP_EXTENTS, minval, threshold)
+                if should_return: return (np.array([anchor_map_raw[0]-r, anchor_map_raw[1]+i, 0]))
+                should_return, minval = self._compare((anchor_map_y-i)%HMAP_EXTENTS, (anchor_map_x-r)%HMAP_EXTENTS, minval, threshold)
+                if should_return: return (np.array([anchor_map_raw[0]-r, anchor_map_raw[1]-i, 0]))
+
+                # Right side
+                should_return, minval = self._compare((anchor_map_y+i)%HMAP_EXTENTS, (anchor_map_x+r)%HMAP_EXTENTS, minval, threshold)
+                if should_return: return (np.array([anchor_map_raw[0]+r, anchor_map_raw[1]+i, 0]))
+                should_return, minval = self._compare((anchor_map_y-i)%HMAP_EXTENTS, (anchor_map_x+r)%HMAP_EXTENTS, minval, threshold)
+                if should_return: return (np.array([anchor_map_raw[0]+r, anchor_map_raw[1]-i, 0]))
+                
+                # Top side
+                should_return, minval = self._compare((anchor_map_y+r)%HMAP_EXTENTS, (anchor_map_x+i)%HMAP_EXTENTS, minval, threshold)
+                if should_return: return (np.array([anchor_map_raw[0]+i, anchor_map_raw[1]+r, 0]))
+                should_return, minval = self._compare((anchor_map_y+r)%HMAP_EXTENTS, (anchor_map_x-i)%HMAP_EXTENTS, minval, threshold)
+                if should_return: return (np.array([anchor_map_raw[0]-i, anchor_map_raw[1]+r, 0]))
+
+                # Bottom side
+                should_return, minval = self._compare((anchor_map_y-r)%HMAP_EXTENTS, (anchor_map_x+i)%HMAP_EXTENTS, minval, threshold)
+                if should_return: return (np.array([anchor_map_raw[0]+i, anchor_map_raw[1]-r, 0]))
+                should_return, minval = self._compare((anchor_map_y-r)%HMAP_EXTENTS, (anchor_map_x-i)%HMAP_EXTENTS, minval, threshold)
+                if should_return: return (np.array([anchor_map_raw[0]-i, anchor_map_raw[1]-r, 0]))
+        
+        return (np.array([anchor_map_raw[0], anchor_map_raw[1], 0]))
+    
+
+    def _compare(self, y, x, minval, threshold):
+        """Helper function for _find_min()"""
+        if self.score_buffer[x, y] < minval:
+            minval = self.score_buffer[x, y]
+            if minval < threshold:
+                print(self.score_buffer[x, y], "Alter")
+                return True, minval
+        return False, minval
