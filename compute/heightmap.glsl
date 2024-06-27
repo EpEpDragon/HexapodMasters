@@ -52,7 +52,7 @@ vec4 compute_point()
     float z = depth_image[i][j];
     
     // Terminate if too close to camera
-    if(z < 2.5){
+    if(z < 3){
         return(vec4(0,0,0,2));
     }
 

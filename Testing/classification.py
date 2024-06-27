@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 PI = 3.141592654
 
-def quadratic_kernel(size, max, scale,c,g):
+def gauss_kernel(size, max, scale,c,g):
     kernel = np.empty((size,size))
     for i in range(size):
         for j in range(size):
@@ -42,10 +42,10 @@ def get_wrapped(matrix, i, j):
   cols = [(j-1) % n, j, (j+1) % n]
   return matrix[rows][:, cols]
 
-kernel_size = 8
-# kernel = quadratic_kernel(kernel_size, 1, 1/kernel_size).flatten()
+kernel_size = 12
+# kernel = gauss_kernel(kernel_size, 1, 1/kernel_size).flatten()
 # kernel = kernel.reshape(kernel.shape[0],1)
-kernel = quadratic_kernel(kernel_size+1, 1, 2/kernel_size,c=2,g=5)
+kernel = gauss_kernel(kernel_size+1, 1, 2/kernel_size,c=4,g=7)
 
 print('{', end='')
 for i in range(kernel.shape[0]):

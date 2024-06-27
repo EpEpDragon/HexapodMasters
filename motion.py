@@ -20,12 +20,16 @@ UPPER_LEG_2 = UPPER_LEG*UPPER_LEG
 LOWER_LEG = 1
 LOWER_LEG_2 = LOWER_LEG*LOWER_LEG
 
-OFFSETS = [{"position" : np.array([0.6062, 0.35, 0.0]), "angle" : deg2rad(30)},
-           {"position" : np.array([0.6062, -0.35, 0.0]), "angle" : deg2rad(-30)},
-           {"position" : np.array([0.0, 0.7, 0.0]), "angle" : deg2rad(90)},
-           {"position" : np.array([0.0, -0.7, 0.0]), "angle" : deg2rad(-90)},
-           {"position" : np.array([-0.6062, 0.35, 0.0]), "angle" : deg2rad(150)},
-           {"position" : np.array([-0.6062, -0.35, 0.0]), "angle" : deg2rad(-150)}]
+# HIP_VECTORS = [a([0.6928, 0.4, 0]), a([0.6928, -0.4, 0]),
+#             a([0, 0.8, 0]), a([0, -0.8, 0]),
+#             a([-0.6928, 0.4, 0]), a([-0.6928, -0.4, 0])]
+
+OFFSETS = [{"position" : np.array([0.6928, 0.4, 0.0]), "angle" : deg2rad(30)},
+           {"position" : np.array([0.6928, -0.4, 0.0]), "angle" : deg2rad(-30)},
+           {"position" : np.array([0.0, 0.8, 0.0]), "angle" : deg2rad(90)},
+           {"position" : np.array([0.0, -0.8, 0.0]), "angle" : deg2rad(-90)},
+           {"position" : np.array([-0.6928, 0.4, 0.0]), "angle" : deg2rad(150)},
+           {"position" : np.array([-0.6928, -0.4, 0.0]), "angle" : deg2rad(-150)}]
 
 class MoveType(Enum):
     LINEAR = 1

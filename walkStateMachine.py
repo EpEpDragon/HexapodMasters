@@ -11,10 +11,6 @@ REST_POS = [a([0.866, 0.500, 0.0])*2, a([0.866, -0.500, 0.0])*2,
             a([0.0, 1.000, 0.0])*2, a([0.0, -1.00, 0.0])*2,
             a([-0.866, 0.500, 0.0])*2, a([-0.866, -0.500, 0.0])*2]
 
-HIP_VECTORS = [a([0.6062, 0.35, 0]), a([0.6062, -0.35, 0]),
-            a([0, 0.7, 0]), a([0, -0.7, 0]),
-            a([-0.6062, 0.35, 0]), a([-0.6062, -0.35, 0])]
-
 STRIDE_LENGTH = 0.3
 PLACE_TOLERANCE = 0.01
 UP = a([0,0,1])
@@ -63,7 +59,7 @@ class WalkCycleMachine(StateMachine):
         self.foot_pos_pre_yaw = np.array(REST_POS)
         self.foot_pos_post_yaw = np.array(REST_POS)
         self.targets = np.array(REST_POS)
-        self.new_targets= np.full_like(self.targets,0)
+        self.targets_init= np.array(REST_POS)
         self.perception = perception
         self.step_height = 0.3
 
@@ -188,9 +184,8 @@ class WalkCycleMachine(StateMachine):
                 dot += not_swing_delta[1]@not_swing_delta[1]
                 dot += not_swing_delta[2]@not_swing_delta[2]
                 # self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
-                self.targets[i] = REST_POS[i] + (self.walk_direction * (STRIDE_LENGTH + np.sum(np.sqrt(dot))/3))
-                # self.new_targets[i] = self.perception.find_anchor(self.targets[i], ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD )
-                
+                self.targets_init[i] = REST_POS[i] + (self.walk_direction * (STRIDE_LENGTH + np.sum(np.sqrt(dot))/3))
+                self.targets[i] = self.perception.find_anchor(self.targets_init[i], ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD )
                 # Foot arcs
                 # If not walking means rotationg in place, thus set foot height based on rotation
                 if (self.walk_direction == 0).all() and self.centering_yaw[i]:
@@ -202,7 +197,6 @@ class WalkCycleMachine(StateMachine):
                 if self.centering_yaw[i]:
                     self.target_yaw_local[i] = 0.0
             else:
-                self.new_targets[i] = np.zeros(3)
                 # Rotate walk direction to account for pitch angle and add to targets
                 self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
                 self.targets[i][2] += self.height_offsets[i] + self.height - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
