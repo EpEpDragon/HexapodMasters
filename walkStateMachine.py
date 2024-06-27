@@ -185,7 +185,8 @@ class WalkCycleMachine(StateMachine):
                 dot += not_swing_delta[2]@not_swing_delta[2]
                 # self.targets[i] = REST_POS[i] + (self.walk_direction * STRIDE_LENGTH)
                 self.targets_init[i] = REST_POS[i] + (self.walk_direction * (STRIDE_LENGTH + np.sum(np.sqrt(dot))/3))
-                self.targets[i] = self.perception.find_anchor(self.targets_init[i], ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD )
+                # self.targets[i] = self.perception.find_anchor(self.targets_init[i], ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD )
+                self.targets[i] = self.targets_init[i]
                 # Foot arcs
                 # If not walking means rotationg in place, thus set foot height based on rotation
                 if (self.walk_direction == 0).all() and self.centering_yaw[i]:

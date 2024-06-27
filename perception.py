@@ -183,11 +183,15 @@ class Perception():
         for i in range(6):
             # hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
             hmapt_i, _ = self._local_to_hmap(self.walmachine.targets_init[i]) 
+            if self.walmachine.targets[i][0] != -1:
+                hmap_i_new, _ = self._local_to_hmap(self.walmachine.targets[i])
+                img[int(hmap_i_new[0]), int(hmap_i_new[1])] = np.array([1,1,0])
+                
             hmap_i, _ = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
-            hmap_i_new, _ = self._local_to_hmap(self.walmachine.targets[i])
+            
             # img_i = (hmap_i-self.hmap_index)%HMAP_EXTENTS   # Hold in center of centered image
             img[int(hmap_i[0]), int(hmap_i[1])] = np.array([1,0,0])
-            img[int(hmap_i_new[0]), int(hmap_i_new[1])] = np.array([1,1,0])
+            
             if (self.walmachine.is_swinging[i]):
                 img[int(hmapt_i[0]), int(hmapt_i[1])] = np.array([0,1,0])
             else:
@@ -203,8 +207,8 @@ class Perception():
         # print(self.mouseX, self.mouseY)
         
         # img[self.mouseY, self.mouseX] = [255,0,0]
-        # new_anchor = (self.find_anchor(np.array([self.mouseY, self.mouseX,0]), ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD))
-        # img[new_anchor[0], new_anchor[1]] = [0,1,1]
+        new_anchor = (self.find_anchor(np.array([self.mouseY, self.mouseX,0]), ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD))%HMAP_EXTENTS
+        img[new_anchor[0], new_anchor[1]] = [0,1,1]
         cv2.imshow('SDF Slice', (img * 255).astype(np.uint8))
         cv2.waitKey(1)
 
@@ -218,23 +222,24 @@ class Perception():
         # print(self.hmap_index)
 
     def get_height_at_point(self, point):
-        """Returns the height at a point relative to the robot center, the height is in world space"""
+        """Returns the height at  apoint relative to the robot center, the height is in world space"""
         hmap_i, _ = self._local_to_hmap(point)
         h = self.hmap_buffer[hmap_i[0], hmap_i[1]]
         return h
     
     def find_anchor(self, anchor, search_rad, threshold):
         """Find first value under threshold within search radius, expanding square"""
-        anchor_map, anchor_map_raw = self._local_to_hmap(anchor)[0:2]
-        anchor_map_x = anchor_map[0]
-        anchor_map_y = anchor_map[1]
-        # anchor_map_raw = anchor
-        # anchor_map_x = anchor[0]
-        # anchor_map_y = anchor[1]
+        # anchor_map, anchor_map_raw = self._local_to_hmap(anchor)[0:2]
+        # anchor_map_x = anchor_map[0]
+        # anchor_map_y = anchor_map[1]
+        anchor_map_raw = anchor
+        anchor_map_x = anchor[0]
+        anchor_map_y = anchor[1]
 
         # Early exit if initial point is valid
-        if self.score_buffer[anchor_map_x, anchor_map_y] < threshold:
-            # print(self.score_buffer[anchor_map_x, anchor_map_y], "Valid")
+        score_max = score_max = self._find_block_max(anchor_map_x, anchor_map_y)
+        if score_max < threshold:
+            print(score_max, "Valid")
             return anchor
         
         minval = 1000 # Some sufficiently large number
@@ -242,36 +247,52 @@ class Perception():
             for i in range(r+1):
                 # Left side
                 should_return, minval = self._compare((anchor_map_y+i)%HMAP_EXTENTS, (anchor_map_x-r)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]-r, anchor_map_raw[1]+i]))
+                if should_return: return (np.array([anchor_map_raw[0]-r, anchor_map_raw[1]+i]))
                 should_return, minval = self._compare((anchor_map_y-i)%HMAP_EXTENTS, (anchor_map_x-r)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]-r, anchor_map_raw[1]-i]))
+                if should_return: return (np.array([anchor_map_raw[0]-r, anchor_map_raw[1]-i]))
 
                 # Right side
                 should_return, minval = self._compare((anchor_map_y+i)%HMAP_EXTENTS, (anchor_map_x+r)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]+r, anchor_map_raw[1]+i]))
+                if should_return: return (np.array([anchor_map_raw[0]+r, anchor_map_raw[1]+i]))
                 should_return, minval = self._compare((anchor_map_y-i)%HMAP_EXTENTS, (anchor_map_x+r)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]+r, anchor_map_raw[1]-i]))
+                if should_return: return (np.array([anchor_map_raw[0]+r, anchor_map_raw[1]-i]))
                 
                 # Top side
                 should_return, minval = self._compare((anchor_map_y+r)%HMAP_EXTENTS, (anchor_map_x+i)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]+i, anchor_map_raw[1]+r]))
+                if should_return: return (np.array([anchor_map_raw[0]+i, anchor_map_raw[1]+r]))
                 should_return, minval = self._compare((anchor_map_y+r)%HMAP_EXTENTS, (anchor_map_x-i)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]-i, anchor_map_raw[1]+r]))
+                if should_return: return (np.array([anchor_map_raw[0]-i, anchor_map_raw[1]+r]))
 
                 # Bottom side
                 should_return, minval = self._compare((anchor_map_y-r)%HMAP_EXTENTS, (anchor_map_x+i)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]+i, anchor_map_raw[1]-r]))
+                if should_return: return (np.array([anchor_map_raw[0]+i, anchor_map_raw[1]-r]))
                 should_return, minval = self._compare((anchor_map_y-r)%HMAP_EXTENTS, (anchor_map_x-i)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]-i, anchor_map_raw[1]-r]))
+                if should_return: return (np.array([anchor_map_raw[0]-i, anchor_map_raw[1]-r]))
         
-        return (np.array([anchor_map_raw[0], anchor_map_raw[1], 0]))
+        return (np.array([-1, -1, -1]))
     
+    def _find_block_max(self, x,y):
+        score_block = np.full(9,1000.0)
+        score_block[0] = self.score_buffer[(x-1)%HMAP_EXTENTS, (y+1)%HMAP_EXTENTS]
+        score_block[1] = self.score_buffer[x, (y+1)%HMAP_EXTENTS]
+        score_block[2] = self.score_buffer[(x+1)%HMAP_EXTENTS, (y+1)%HMAP_EXTENTS]
+        score_block[3] = self.score_buffer[(x-1)%HMAP_EXTENTS, y]
+        score_block[4] = self.score_buffer[x, y]
+        score_block[5] = self.score_buffer[(x+1)%HMAP_EXTENTS, y]
+        score_block[6] = self.score_buffer[(x-1)%HMAP_EXTENTS, (y-1)%HMAP_EXTENTS]
+        score_block[7] = self.score_buffer[x, (y-1)%HMAP_EXTENTS]
+        score_block[8] = self.score_buffer[(x+1)%HMAP_EXTENTS, (y-1)%HMAP_EXTENTS]
+        return score_block.max()
 
     def _compare(self, y, x, minval, threshold):
         """Helper function for _find_min()"""
-        if self.score_buffer[x, y] < minval:
-            minval = self.score_buffer[x, y]
+
+        # Find max score in block
+        score_max = self._find_block_max(x,y)
+
+        if score_max < minval:
+            minval = score_max
             if minval < threshold:
-                # print(self.score_buffer[x, y], "Alter")
+                print(score_max, "Alter")
                 return True, minval
         return False, minval
