@@ -68,7 +68,7 @@ def read_camera():
     depth_linear = linearize_depth(depth, znear=znear, zfar=zfar)
                        
     # TODO Implement better filteringh method? Maybe not for performance.
-    depth_linear[depth_linear < 3] = 0 # Zero out depth that would fall on robot
+    depth_linear[depth_linear < 2.5] = 0 # Zero out depth that would fall on robot
     
     # Show the simulated camera image ~ 5ms should change
     if view[0] == 0:

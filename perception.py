@@ -30,6 +30,7 @@ class Perception():
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
         hmap_buffer = np.zeros((HMAP_EXTENTS, HMAP_EXTENTS), dtype=np.float32)
+        hmap_buffer[88:180, 88:180] = 0.2
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=hmap_buffer.nbytes)
         self.hmap_buffer = np.ndarray(hmap_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.hmap_buffer[:] = hmap_buffer[:]
@@ -93,7 +94,7 @@ class Perception():
         # glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4 * 4, None, GL_DYNAMIC_COPY)
  
  
-    def _generate_heightmap(self, depth, camera_quat, cam_hmap_i):
+    def _generate_heightmap(self, depth, camera_quat, cam_hmap_i, cam_height):
         # Set depth image data
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])        
         glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, depth.nbytes, depth)
@@ -105,6 +106,7 @@ class Perception():
         glUniform3i(0, cam_hmap_i[0], cam_hmap_i[1], cam_hmap_i[2])                     # Camera position
         glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])  # Camera rotation
         glUniform1i(2, self.temporal_i)
+        glUniform1f(3, cam_height)
         
         glDispatchCompute(int((160)/VOXEL_TRACE_INVOCAIONS), int((90)/VOXEL_TRACE_INVOCAIONS), 1)
         
@@ -203,12 +205,12 @@ class Perception():
         # y = (self.mouseY + int(HMAP_EXTENTS*0.5) - hmap_i[1])%HMAP_EXTENTS
         # img
         # print('max', buffer.max())
-        # print(buffer[self.mouseY, self.mouseX])
+        # print(self.mouseY, self.mouseX ,buffer[self.mouseY, self.mouseX])
         # print(self.mouseX, self.mouseY)
         
         # img[self.mouseY, self.mouseX] = [255,0,0]
-        new_anchor = (self.find_anchor(np.array([self.mouseY, self.mouseX,0]), ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD))%HMAP_EXTENTS
-        img[new_anchor[0], new_anchor[1]] = [0,1,1]
+        # new_anchor = (self.find_anchor(np.array([self.mouseY, self.mouseX,0]), ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD))%HMAP_EXTENTS
+        # img[new_anchor[0], new_anchor[1]] = [0,1,1]
         cv2.imshow('SDF Slice', (img * 255).astype(np.uint8))
         cv2.waitKey(1)
 
@@ -216,7 +218,7 @@ class Perception():
         self.body_quat = body_quat
         self.hmap_index = global_to_hmap(body_pos)
         self.position = body_pos%EXTENTS
-        self._generate_heightmap(depth, camera_quat, global_to_hmap(camera_pos))
+        self._generate_heightmap(depth, camera_quat, global_to_hmap(camera_pos), camera_pos[2])
         self._display_heightmap()
         self.temporal_i = int((self.temporal_i + 1)%4)
         # print(self.hmap_index)
@@ -229,17 +231,17 @@ class Perception():
     
     def find_anchor(self, anchor, search_rad, threshold):
         """Find first value under threshold within search radius, expanding square"""
-        # anchor_map, anchor_map_raw = self._local_to_hmap(anchor)[0:2]
-        # anchor_map_x = anchor_map[0]
-        # anchor_map_y = anchor_map[1]
-        anchor_map_raw = anchor
-        anchor_map_x = anchor[0]
-        anchor_map_y = anchor[1]
+        anchor_map, anchor_map_raw = self._local_to_hmap(anchor)[0:2]
+        anchor_map_x = anchor_map[0]
+        anchor_map_y = anchor_map[1]
+        # anchor_map_raw = anchor
+        # anchor_map_x = anchor[0]
+        # anchor_map_y = anchor[1]
 
         # Early exit if initial point is valid
         score_max = score_max = self._find_block_max(anchor_map_x, anchor_map_y)
         if score_max < threshold:
-            print(score_max, "Valid")
+            # print(score_max, "Valid")
             return anchor
         
         minval = 1000 # Some sufficiently large number
@@ -247,28 +249,28 @@ class Perception():
             for i in range(r+1):
                 # Left side
                 should_return, minval = self._compare((anchor_map_y+i)%HMAP_EXTENTS, (anchor_map_x-r)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return (np.array([anchor_map_raw[0]-r, anchor_map_raw[1]+i]))
+                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]-r, anchor_map_raw[1]+i]))
                 should_return, minval = self._compare((anchor_map_y-i)%HMAP_EXTENTS, (anchor_map_x-r)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return (np.array([anchor_map_raw[0]-r, anchor_map_raw[1]-i]))
+                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]-r, anchor_map_raw[1]-i]))
 
                 # Right side
                 should_return, minval = self._compare((anchor_map_y+i)%HMAP_EXTENTS, (anchor_map_x+r)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return (np.array([anchor_map_raw[0]+r, anchor_map_raw[1]+i]))
+                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]+r, anchor_map_raw[1]+i]))
                 should_return, minval = self._compare((anchor_map_y-i)%HMAP_EXTENTS, (anchor_map_x+r)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return (np.array([anchor_map_raw[0]+r, anchor_map_raw[1]-i]))
+                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]+r, anchor_map_raw[1]-i]))
                 
                 # Top side
                 should_return, minval = self._compare((anchor_map_y+r)%HMAP_EXTENTS, (anchor_map_x+i)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return (np.array([anchor_map_raw[0]+i, anchor_map_raw[1]+r]))
+                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]+i, anchor_map_raw[1]+r]))
                 should_return, minval = self._compare((anchor_map_y+r)%HMAP_EXTENTS, (anchor_map_x-i)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return (np.array([anchor_map_raw[0]-i, anchor_map_raw[1]+r]))
+                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]-i, anchor_map_raw[1]+r]))
 
                 # Bottom side
                 should_return, minval = self._compare((anchor_map_y-r)%HMAP_EXTENTS, (anchor_map_x+i)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return (np.array([anchor_map_raw[0]+i, anchor_map_raw[1]-r]))
+                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]+i, anchor_map_raw[1]-r]))
                 should_return, minval = self._compare((anchor_map_y-r)%HMAP_EXTENTS, (anchor_map_x-i)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return (np.array([anchor_map_raw[0]-i, anchor_map_raw[1]-r]))
-        
+                if should_return: return self._hmap_to_local(np.array([anchor_map_raw[0]-i, anchor_map_raw[1]-r]))
+
         return (np.array([-1, -1, -1]))
     
     def _find_block_max(self, x,y):
@@ -293,6 +295,6 @@ class Perception():
         if score_max < minval:
             minval = score_max
             if minval < threshold:
-                print(score_max, "Alter")
+                # print(score_max, "Alter")
                 return True, minval
         return False, minval
