@@ -423,10 +423,10 @@ def run():
     img_rgb = control_interface.add_element(ControlInterface.Image(start=(0.02,0.02), max_size=(0.55, 0.3), text_box=text_box_rgb))
 
     text_box_depth = control_interface.add_element(ControlInterface.Text(prefix="Depth: ", font=control_interface.font, color=(252, 194, 3)))
-    img_d = control_interface.add_element(ControlInterface.Image(start=(0.02,0.33), max_size=(0.55,0.3), colormap="plasma",vmin=10, vmax=60, text_box=text_box_depth))
+    img_d = control_interface.add_element(ControlInterface.Image(start=(0.02,0.33), max_size=(0.55,0.3), colormap="plasma",vmin=30, vmax=80, text_box=text_box_depth))
 
     text_box_height = control_interface.add_element(ControlInterface.Text(prefix="Height: ", font=control_interface.font, color=(252, 194, 3)))
-    img_hmap = control_interface.add_element(ControlInterface.Image(start=(0.02,0.66), max_size=(0.7,0.3), colormap="plasma",vmin=10, vmax=28, text_box=text_box_height))
+    img_hmap = control_interface.add_element(ControlInterface.Image(start=(0.02,0.66), max_size=(0.7,0.3), colormap="plasma",vmin=0, vmax=25, text_box=text_box_height))
 
     def button_callback(button):
         button.control_interface.set_mode(button.mode)
