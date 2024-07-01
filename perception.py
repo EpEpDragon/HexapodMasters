@@ -30,7 +30,7 @@ class Perception():
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
         hmap_buffer = np.zeros((HMAP_EXTENTS, HMAP_EXTENTS), dtype=np.float32)
-        hmap_buffer[88:180, 88:180] = 0.2
+        # hmap_buffer[88:180, 88:180] = 0.2
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=hmap_buffer.nbytes)
         self.hmap_buffer = np.ndarray(hmap_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.hmap_buffer[:] = hmap_buffer[:]
@@ -139,22 +139,44 @@ class Perception():
         return  (temp % HMAP_EXTENTS)[0:2], temp[0:2]
     
     def _hmap_to_local(self, hmap_pos_raw):
-        diff = hmap_pos_raw + self.hmap_index[0:2] - int(HMAP_EXTENTS*0.5)
+        # diff = hmap_pos_raw + self.hmap_index[0:2] - int(HMAP_EXTENTS*0.5)
+        diff = hmap_pos_raw + (self.hmap_index[0:2] - int(HMAP_EXTENTS*0.5))
         
         x_new = 0
         y_new = 0
-        
-        if abs(diff[0]) > HMAP_EXTENTS*0.5: 
-            x_new = -INV_DIVISIOINS*( diff[0] % -HMAP_EXTENTS )
-        else: 
-            x_new = -INV_DIVISIOINS*( diff[0] % HMAP_EXTENTS )
 
-        if abs(diff[1]) > HMAP_EXTENTS*0.5: 
-            y_new = -INV_DIVISIOINS*( diff[1] % -HMAP_EXTENTS )
-        else: 
-            y_new = -INV_DIVISIOINS*( diff[1] % HMAP_EXTENTS )
+        if abs(diff[0]) < HMAP_EXTENTS*0.5:
+            x_new = -INV_DIVISIOINS*diff[0]
+        # else:
+        #     x_new = -INV_DIVISIOINS*(-HMAP_EXTENTS % diff[0])
         
-        anchor_new = np.array([x_new, y_new, self.hmap_buffer[hmap_pos_raw[0]%HMAP_EXTENTS, hmap_pos_raw[1]%HMAP_EXTENTS]])
+        if abs(diff[1]) < HMAP_EXTENTS*0.5:
+            y_new = -INV_DIVISIOINS*diff[1]
+        # else:
+        #     y_new = -INV_DIVISIOINS*(-HMAP_EXTENTS % diff[1])
+        
+
+        # x_new = -INV_DIVISIOINS*(diff[0] % ( np.sign( (HMAP_EXTENTS*0.5-abs(diff[0])) * diff[0] ) * HMAP_EXTENTS ))
+        # y_new = -INV_DIVISIOINS*( diff[1] % ( np.sign((diff[1]-HMAP_EXTENTS)*diff[1]) * HMAP_EXTENTS ) )
+
+        # if abs(diff[0]) > HMAP_EXTENTS*0.5: 
+        #     x_new = -INV_DIVISIOINS*( diff[0] % np.sign(HMAP_EXTENTS-diff[0])*MAP_EXTENTS )
+        # else: 
+        #     x_new = -INV_DIVISIOINS*( diff[0] % HMAP_EXTENTS )
+
+        # if abs(diff[1]) > HMAP_EXTENTS*0.5: 
+        #     y_new = -INV_DIVISIOINS*( diff[1] % -HMAP_EXTENTS )
+        # else: 
+        #     y_new = -INV_DIVISIOINS*( diff[1] % HMAP_EXTENTS )
+        
+        # anchor_new = np.array([x_new, y_new, 0.0])
+
+        anchor_new = np.append(-INV_DIVISIOINS*diff, 0.0)
+        if abs(anchor_new[0]) > EXTENTS*0.5:
+            anchor_new[0] -= np.sign(anchor_new[0])*EXTENTS
+        if abs(anchor_new[1]) > EXTENTS*0.5:
+            anchor_new[1] -= np.sign(anchor_new[1])*EXTENTS
+
         return rotate(self.body_quat*[-1,-1,-1,1], anchor_new)
     
     def _get_hmap_mouse_pos(self, event,x,y,flags,param):
@@ -188,6 +210,7 @@ class Perception():
             hmapt_i, _ = self._local_to_hmap(self.walmachine.targets_init[i]) 
             if self.walmachine.targets[i][0] != -1:
                 hmap_i_new, _ = self._local_to_hmap(self.walmachine.targets[i])
+                # hmap_i_new = (self.walmachine.targets_map[i])
                 img[int(hmap_i_new[0]), int(hmap_i_new[1])] = np.array([1,1,0])
                 # hmap_i_new = self.walmachine.targets_map[i]
                 # img[int(hmap_i_new[0] % HMAP_EXTENTS), int(hmap_i_new[1] % HMAP_EXTENTS)] = np.array([1,1,0])
@@ -198,7 +221,8 @@ class Perception():
             img[int(hmap_i[0]), int(hmap_i[1])] = np.array([1,0,0])
             
             if (self.walmachine.is_swinging[i]):
-                img[int(hmapt_i[0]), int(hmapt_i[1])] = np.array([0,1,0])
+                pass
+                # img[int(hmapt_i[0]), int(hmapt_i[1])] = np.array([0,1,0])
             else:
                 img[int(hmapt_i[0]), int(hmapt_i[1])] = np.array([0,0,1])
         
@@ -234,7 +258,7 @@ class Perception():
     
     def find_anchor(self, anchor, search_rad, threshold):
         """Find first value under threshold within search radius, expanding square, in map space"""
-        anchor_map, anchor_map_raw = self._local_to_hmap(anchor)[0:2]
+        anchor_map, anchor_map_raw = self._local_to_hmap(anchor)
         anchor_map_x = anchor_map[0]
         anchor_map_y = anchor_map[1]
         # anchor_map_raw = anchor
@@ -245,34 +269,34 @@ class Perception():
         score_max = score_max = self._find_block_max(anchor_map_x, anchor_map_y)
         if score_max < threshold:
             # print(score_max, "Valid")
-            return anchor[0:2]
+            return anchor_map[0:2]
         
         minval = 1000 # Some sufficiently large number
         for r in range(search_rad):
             for i in range(r+1):
                 # Left side
                 should_return, minval = self._compare((anchor_map_y+i)%HMAP_EXTENTS, (anchor_map_x-r)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return np.array([anchor_map_raw[0]-r, anchor_map_raw[1]+i])
+                if should_return: return np.array([anchor_map[0]-r, anchor_map[1]+i])
                 should_return, minval = self._compare((anchor_map_y-i)%HMAP_EXTENTS, (anchor_map_x-r)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return np.array([anchor_map_raw[0]-r, anchor_map_raw[1]-i])
+                if should_return: return np.array([anchor_map[0]-r, anchor_map[1]-i])
 
                 # Right side
                 should_return, minval = self._compare((anchor_map_y+i)%HMAP_EXTENTS, (anchor_map_x+r)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return np.array([anchor_map_raw[0]+r, anchor_map_raw[1]+i])
+                if should_return: return np.array([anchor_map[0]+r, anchor_map[1]+i])
                 should_return, minval = self._compare((anchor_map_y-i)%HMAP_EXTENTS, (anchor_map_x+r)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return np.array([anchor_map_raw[0]+r, anchor_map_raw[1]-i])
+                if should_return: return np.array([anchor_map[0]+r, anchor_map[1]-i])
                 
                 # Top side
                 should_return, minval = self._compare((anchor_map_y+r)%HMAP_EXTENTS, (anchor_map_x+i)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return np.array([anchor_map_raw[0]+i, anchor_map_raw[1]+r])
+                if should_return: return np.array([anchor_map[0]+i, anchor_map[1]+r])
                 should_return, minval = self._compare((anchor_map_y+r)%HMAP_EXTENTS, (anchor_map_x-i)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return np.array([anchor_map_raw[0]-i, anchor_map_raw[1]+r])
+                if should_return: return np.array([anchor_map[0]-i, anchor_map[1]+r])
 
                 # Bottom side
                 should_return, minval = self._compare((anchor_map_y-r)%HMAP_EXTENTS, (anchor_map_x+i)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return np.array([anchor_map_raw[0]+i, anchor_map_raw[1]-r])
+                if should_return: return np.array([anchor_map[0]+i, anchor_map[1]-r])
                 should_return, minval = self._compare((anchor_map_y-r)%HMAP_EXTENTS, (anchor_map_x-i)%HMAP_EXTENTS, minval, threshold)
-                if should_return: return np.array([anchor_map_raw[0]-i, anchor_map_raw[1]-r])
+                if should_return: return np.array([anchor_map[0]-i, anchor_map[1]-r])
 
         return (np.array([-1, -1]))
     

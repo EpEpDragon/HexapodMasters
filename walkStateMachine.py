@@ -4,7 +4,7 @@ from numpy import array as a
 from numpy import deg2rad, rad2deg
 from math import sin,cos,tan, acos, sqrt
 from roboMath import clerp, rotate_vec, rotate
-import math
+import time
 
 REST_Z = 0.6
 REST_POS = [a([0.866, 0.500, 0.0])*2, a([0.866, -0.500, 0.0])*2,
@@ -45,7 +45,6 @@ class WalkCycleMachine(StateMachine):
     stepping = State()
 
     walk = rest.to(stepping, cond="should_adjust") | stepping.to(rest, cond="step_finished") | rest.to.itself(internal=True) | stepping.to.itself(internal=True)
-    new_direction = stepping.to(rest) | rest.to.itself(internal=True)
 
     def __init__(self, perception):
         self.is_swinging = np.full(6, False) # List defining if a foot is is_swinging or swinging
@@ -100,12 +99,15 @@ class WalkCycleMachine(StateMachine):
             if self.is_swinging[i]:
                 # 2x stride lenght because target anchors for next step cycle
                 self.targets_init[i] = (REST_POS[i] + self.walk_direction*STRIDE_LENGTH*2)
-                # new_target = self.perception.find_anchor(self.targets_init[i], ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD )
+                new_target = self.perception.find_anchor(self.targets_init[i], ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD )
                 
                 # Check if a valid anchor is found. Fallback to unoptimised target
                 # if new_target[0] != -1:
                     # self.targets_map[i] = new_target
-                self.targets_map[i] = self.targets_init[i,0:2]
+
+                self.targets_map[i] = new_target
+                print(time.time(), "set target_map")
+
                 # else:
                     # print(i, "No valid anchor")
                     # self.targets_map[i], _ = self.perception._local_to_hmap(self.targets_init[i])
@@ -195,7 +197,7 @@ class WalkCycleMachine(StateMachine):
         if self.current_state == self.stepping:
             for i in range(6):
                 if not (self.targets[i] - self.foot_pos_pre_yaw[i] == 0).all():
-                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,2])*self.speed*dt)
+                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*np.array([1,1,2])*self.speed*dt)
 
         # Update foot position for local rotation
         for i in range(6):
@@ -206,8 +208,10 @@ class WalkCycleMachine(StateMachine):
     def _update_targets(self):
         for i in range(6):
             # self.targets[i] = self.perception._hmap_to_local(self.targets_map[i])
-            self.targets[i] = np.append(self.targets_map[i],0)
             if self.is_swinging[i]:
+                self.targets[i] = self.perception._hmap_to_local(self.targets_map[i])
+                # self.targets[i] = np.append(self.targets_map[i],0)
+                # self.targets[i] = self.targets_init[i]
                 # print(i, self.targets[i])
                 # print(i, self.foot_pos_pre_yaw[i])
                 diff = self.foot_pos_pre_yaw[i][0:2] - self.targets[i][0:2]
@@ -263,7 +267,8 @@ class WalkCycleMachine(StateMachine):
     # TODO Standerdise coordinate frames
     def set_walk_direction(self, value):
         self.walk_direction = rotate_vec(value, a([0,1,0]), self.pitch/2)
-        self.new_direction()
+        self._set_target_anchors()
+        print(time.time(), "dir set")
 
     def adjust_height(self, value):
         self.height += value

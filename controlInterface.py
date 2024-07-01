@@ -78,7 +78,7 @@ def start_interface(walk_machine, view, map_view):
 
         wf.move_size_window("MuJoCo : MuJoCo Model", 0, 0.45, 0, 0.4, 0.5)
         wf.move_size_window("Control Interface", 0, 0.85, 0, 0.15, 1)
-        wf.move_size_window("SDF Slice", 0, 0, 0, 0.45, 1)
+        wf.move_size_window("SDF Slice", 0, 0, 0, 0.45, 0.9)
         wf.move_size_window("Camera", 0, 0.45, 0.5, 0.4, 0.5)
 
             
