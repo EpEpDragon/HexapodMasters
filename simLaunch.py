@@ -131,7 +131,7 @@ if __name__ == '__main__':
         # servo_torque.append([data.sensordata[i] for i in [15,18,21,24,27,30]])
         # servo_torque.append(data.sensordata[15])
 
-        walk_machine.update(timestep, body_quat)
+        walk_machine.update(timestep)
         # Move actuators-
         movement_handler.set_targets(walk_machine.foot_pos_post_yaw)
         movement_handler.update_moves()

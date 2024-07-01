@@ -134,10 +134,12 @@ class ControInterface():
             if is_mouse_button_down(MOUSE_BUTTON_LEFT):
                 if mouse_in_box(0,0,get_screen_width(),420):
                     self.walk_direction = vector2_normalize(vector2_subtract(get_mouse_position(), body_pos))
+                    self.walk_machine.set_walk_direction(a([-self.walk_direction.y, -self.walk_direction.x, 0.0]))
             if is_mouse_button_down(MOUSE_BUTTON_RIGHT):
                 if mouse_in_box(0,0,get_screen_width(),420):
                     self.walk_direction = Vector2(0,0)
-            self.walk_machine.set_walk_direction(a([-self.walk_direction.y, -self.walk_direction.x, 0.0]))
+                    self.walk_machine.set_walk_direction(a([-self.walk_direction.y, -self.walk_direction.x, 0.0]))
+            
             # ----------------------------------------------------------------------------------
 
             # draw
