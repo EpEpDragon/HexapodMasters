@@ -159,8 +159,8 @@ class WalkCycleMachine(StateMachine):
 
     # Logic
     # -------------------------------------------------------------------------------------------
-    def update(self, dt, body_quat):
-        self._update_targets(body_quat)
+    def update(self, dt):
+        self._update_targets()
 
         # Cycle state machine
         self.walk()
@@ -177,7 +177,7 @@ class WalkCycleMachine(StateMachine):
             self.foot_pos_post_yaw[i] = rotate_vec(self.foot_pos_pre_yaw[i], UP, self.current_yaw_local[i])
 
 
-    def _update_targets(self, body_quat):
+    def _update_targets(self):
         self.is_move_valid = True
         for i in range(6):
             diff = self.foot_pos_pre_yaw[i][0:2] - self.targets[i][0:2]
