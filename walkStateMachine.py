@@ -64,6 +64,7 @@ class WalkCycleMachine(StateMachine):
         
         self.targets_init= np.array(REST_POS)
         self.targets = np.array(REST_POS)
+        self.targets_prev = np.array(REST_POS)
         
         self.perception = perception
         self.step_height = 0.3
@@ -215,16 +216,15 @@ class WalkCycleMachine(StateMachine):
 
                     if self.centering_yaw[i]:
                         self.target_yaw_local[i] = 0.0
+                    self.targets_prev[i] = self.targets[i]
                 else:
                     # If invalid set target to current position (Stop leg)
                     self.is_move_valid = False
                     print(time.time(), i, "Invalid Anchor")
             else:
-                # Rotate walk direction to account for pitch angle and add to targets
-                # self.targets_init[i] = 
-
-                # max max is to wait a bit for lifting feet to be clear of terrain before moving
-                self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
+                move_vector = (REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)) - self.targets_init[i]
+                self.targets[i] = self.targets_prev[i] + move_vector
+                # self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
                 
                 self.targets[i][2] = self.height_offsets[i] + self.height - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
     # -------------------------------------------------------------------------------------------
