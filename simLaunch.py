@@ -68,7 +68,7 @@ def read_camera():
     depth_linear = linearize_depth(depth, znear=znear, zfar=zfar)
                        
     # TODO Implement better filteringh method? Maybe not for performance.
-    depth_linear[depth_linear < 2.5] = 0 # Zero out depth that would fall on robot
+    depth_linear[depth_linear < 3] = 0 # Zero out depth that would fall on robot
     
     # Show the simulated camera image ~ 5ms should change
     if view[0] == 0:
@@ -133,8 +133,9 @@ if __name__ == '__main__':
 
         walk_machine.update(timestep, body_quat)
         # Move actuators-
-        movement_handler.set_targets(walk_machine.foot_pos_post_yaw)
-        movement_handler.update_moves()
+        if walk_machine.is_move_valid:
+            movement_handler.set_targets(walk_machine.foot_pos_post_yaw)
+            movement_handler.update_moves()
 
         # Step by integrating timestep error to simulation in (approximatley) real time
         mujoco.mj_step(model, data)
