@@ -40,7 +40,7 @@
           <geom fromto="0 0 0 1 0 0" size="0.05"/>
         </default>
     </default>
-    <position ctrllimited="true" kp="100000"/>
+    <position ctrllimited="true" kp="15000"/>
   </default>
 
   <!-- Model Layout -->

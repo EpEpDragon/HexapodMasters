@@ -60,13 +60,11 @@ class WalkCycleMachine(StateMachine):
         
         self.foot_pos_pre_yaw = np.array(REST_POS)
         self.foot_pos_post_yaw = np.array(REST_POS)
+        self.is_move_valid = True
         
-        # targets before optimisation
-        self.targets_init = np.array(REST_POS)
-        # optimised targets in map space
-        self.targets_map = np.zeros((6,2),dtype=int)
-        # targets in local space
+        self.targets_init= np.array(REST_POS)
         self.targets = np.array(REST_POS)
+        self.targets_prev = np.array(REST_POS)
         
         self.perception = perception
         self.step_height = 0.3
@@ -197,7 +195,7 @@ class WalkCycleMachine(StateMachine):
         if self.current_state == self.stepping:
             for i in range(6):
                 if not (self.targets[i] - self.foot_pos_pre_yaw[i] == 0).all():
-                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*np.array([1,1,2])*self.speed*dt)
+                    self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
 
         # Update foot position for local rotation
         for i in range(6):
@@ -205,18 +203,13 @@ class WalkCycleMachine(StateMachine):
             self.foot_pos_post_yaw[i] = rotate_vec(self.foot_pos_pre_yaw[i], UP, self.current_yaw_local[i])
 
 
-    def _update_targets(self):
+    def _update_targets(self, body_quat):
+        self.is_move_valid = True
         for i in range(6):
-            # self.targets[i] = self.perception._hmap_to_local(self.targets_map[i])
+            diff = self.foot_pos_pre_yaw[i][0:2] - self.targets[i][0:2]
+            dist = sqrt(diff @ diff)
             if self.is_swinging[i]:
-                self.targets[i] = self.perception._hmap_to_local(self.targets_map[i])
-                # self.targets[i] = np.append(self.targets_map[i],0)
-                # self.targets[i] = self.targets_init[i]
-                # print(i, self.targets[i])
-                # print(i, self.foot_pos_pre_yaw[i])
-                diff = self.foot_pos_pre_yaw[i][0:2] - self.targets[i][0:2]
-                dist = sqrt(diff @ diff)
-                # inv = np.invert(self.is_swinging)
+                inv = np.invert(self.is_swinging)
                 
                 # Adjust swinging target based on remaining supporting leg stride such that it stays in the same position relative to the terrain
                 # not_swing_delta = self.targets[inv] - self.foot_pos_post_yaw[inv]
@@ -226,34 +219,40 @@ class WalkCycleMachine(StateMachine):
 
                 # self.targets_init[i] = REST_POS[i] + (self.walk_direction * (STRIDE_LENGTH + np.sum(np.sqrt(dot))/3))
 
-                # new_target = self.perception.find_anchor(self.targets_init[i], ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD )
-                
+                self.targets[i] = self.perception.find_anchor(self.targets_init[i], ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD)
+                # If new target valid
+                if self.targets[i][0] != -1:
+                    # self.targets[i] = self.targets_init[i]                
 
-                # self.targets[i] = self.targets_init[i]                
-
-                # Foot arcs
-                # If not walking means rotationg in place, thus set foot height based on rotation
-                if (self.walk_direction == 0).all() and self.centering_yaw[i]:
-                    self.targets[i][2] += self.height_offsets[i] + self.height - min(abs(self.current_yaw_local[i])*3, 0.7) - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
-                else:
-                    # self.targets[i][2] += self.height_offsets[i] +  effector_offset - min(dist, 0.7)
-                    # self.targets[i][2] += self.height_offsets[i] +  self.height - np.clip(10*(-dist*dist*0.25+0.6*dist*0.5),0,None) - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
-                    
-                    if dist < 0.05:
-                        step = 0
+                    # Foot arcs
+                    # If not walking means rotationg in place, thus set foot height based on rotation
+                    if (self.walk_direction == 0).all() and self.centering_yaw[i]:
+                        self.targets[i][2] += self.height_offsets[i] + self.height - min(abs(self.current_yaw_local[i])*3, 1.5) - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
                     else:
-                        step = 0.6
-                    # step = min(dist,0.6)
-                    self.targets[i][2] += self.height_offsets[i] +  self.height - step - self.perception.get_height_at_point(self.targets[i])
+                        # self.targets[i][2] += self.height_offsets[i] +  effector_offset - min(dist, 0.7)
+                        # self.targets[i][2] += self.height_offsets[i] +  self.height - np.clip(10*(-dist*dist*0.25+0.6*dist*0.5),0,None) - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
+                        
+                        # if dist < 0.05:
+                        #     step = 0
+                        # else:
+                        #     step = 0.6
+                        step = min(abs(3.5*dist), 1.5)
+                        # step = min(dist,0.6)
+                        self.targets[i][2] += self.height_offsets[i] +  self.height - step - self.perception.get_height_at_point(self.targets[i])
 
                 if self.centering_yaw[i]:
-                        self.target_yaw_local[i] = 0.0
+                    self.target_yaw_local[i] = 0.0
+                    self.targets_prev[i] = self.targets[i]
+                else:
+                    # If invalid set target to current position (Stop leg)
+                    self.is_move_valid = False
+                    print(time.time(), i, "Invalid Anchor")
             else:
-                # Rotate walk direction to account for pitch angle and add to targets
-                self.targets_init[i] = (REST_POS[i] - (self.walk_direction * STRIDE_LENGTH))
-                self.targets[i] = self.targets_init[i]
+                move_vector = (REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)) - self.targets_init[i]
+                self.targets[i] = self.targets_prev[i] + move_vector
+                # self.targets[i] = REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)
                 
-                self.targets[i][2] += self.height_offsets[i] + self.height - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
+                self.targets[i][2] = self.height_offsets[i] + self.height - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
     # -------------------------------------------------------------------------------------------
 
     def _is_long(self, id):

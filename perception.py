@@ -51,6 +51,7 @@ class Perception():
         self.map_view = [0]
 
         # visualize window
+        self.anchor_correction_windows = np.array((6,2))
         self.mouseX = 0
         self.mouseY = 0
         cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
@@ -142,25 +143,11 @@ class Perception():
         # diff = hmap_pos_raw + self.hmap_index[0:2] - int(HMAP_EXTENTS*0.5)
         diff = hmap_pos_raw + (self.hmap_index[0:2] - int(HMAP_EXTENTS*0.5))
         
-        x_new = 0
-        y_new = 0
-
-        if abs(diff[0]) < HMAP_EXTENTS*0.5:
-            x_new = -INV_DIVISIOINS*diff[0]
-        # else:
-        #     x_new = -INV_DIVISIOINS*(-HMAP_EXTENTS % diff[0])
+        # x_new = 0
+        # y_new = 0
         
-        if abs(diff[1]) < HMAP_EXTENTS*0.5:
-            y_new = -INV_DIVISIOINS*diff[1]
-        # else:
-        #     y_new = -INV_DIVISIOINS*(-HMAP_EXTENTS % diff[1])
-        
-
-        # x_new = -INV_DIVISIOINS*(diff[0] % ( np.sign( (HMAP_EXTENTS*0.5-abs(diff[0])) * diff[0] ) * HMAP_EXTENTS ))
-        # y_new = -INV_DIVISIOINS*( diff[1] % ( np.sign((diff[1]-HMAP_EXTENTS)*diff[1]) * HMAP_EXTENTS ) )
-
         # if abs(diff[0]) > HMAP_EXTENTS*0.5: 
-        #     x_new = -INV_DIVISIOINS*( diff[0] % np.sign(HMAP_EXTENTS-diff[0])*MAP_EXTENTS )
+        #     x_new = -INV_DIVISIOINS*( diff[0] % -HMAP_EXTENTS )
         # else: 
         #     x_new = -INV_DIVISIOINS*( diff[0] % HMAP_EXTENTS )
 
@@ -168,15 +155,16 @@ class Perception():
         #     y_new = -INV_DIVISIOINS*( diff[1] % -HMAP_EXTENTS )
         # else: 
         #     y_new = -INV_DIVISIOINS*( diff[1] % HMAP_EXTENTS )
+        # anchor_new = np.array([x_new, y_new, self.hmap_buffer[hmap_pos_raw[0]%HMAP_EXTENTS, hmap_pos_raw[1]%HMAP_EXTENTS]])
         
-        # anchor_new = np.array([x_new, y_new, 0.0])
-
         anchor_new = np.append(-INV_DIVISIOINS*diff, 0.0)
         if abs(anchor_new[0]) > EXTENTS*0.5:
             anchor_new[0] -= np.sign(anchor_new[0])*EXTENTS
         if abs(anchor_new[1]) > EXTENTS*0.5:
             anchor_new[1] -= np.sign(anchor_new[1])*EXTENTS
-
+        
+        
+        
         return rotate(self.body_quat*[-1,-1,-1,1], anchor_new)
     
     def _get_hmap_mouse_pos(self, event,x,y,flags,param):
@@ -194,8 +182,6 @@ class Perception():
 
         img = -buffer[..., np.newaxis]
         img = np.concatenate((img,img,img), axis=2)
-        # low = buffer.min()
-        # diff = buffer.max() - low
         img = np.clip((img - 0)/(img - img_max), 0.0, img_max)
 
         # TODO ~70ms very slow, make better
@@ -207,24 +193,28 @@ class Perception():
         # # Draw foot targets
         for i in range(6):
             # hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
-            hmapt_i, _ = self._local_to_hmap(self.walmachine.targets_init[i]) 
-            if self.walmachine.targets[i][0] != -1:
-                hmap_i_new, _ = self._local_to_hmap(self.walmachine.targets[i])
-                # hmap_i_new = (self.walmachine.targets_map[i])
-                img[int(hmap_i_new[0]), int(hmap_i_new[1])] = np.array([1,1,0])
-                # hmap_i_new = self.walmachine.targets_map[i]
-                # img[int(hmap_i_new[0] % HMAP_EXTENTS), int(hmap_i_new[1] % HMAP_EXTENTS)] = np.array([1,1,0])
-                
+            hmapt_init, _ = self._local_to_hmap(self.walmachine.targets_init[i]) 
             hmap_i, _ = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
             
             # img_i = (hmap_i-self.hmap_index)%HMAP_EXTENTS   # Hold in center of centered image
             img[int(hmap_i[0]), int(hmap_i[1])] = np.array([1,0,0])
             
             if (self.walmachine.is_swinging[i]):
-                pass
-                # img[int(hmapt_i[0]), int(hmapt_i[1])] = np.array([0,1,0])
+                img[int(hmapt_init[0]), int(hmapt_init[1])] = np.array([0,1,0])
+                box_color = np.array([0,1,0])
+                if self.walmachine.targets[i][0] != -1:
+                    hmapt, _ = self._local_to_hmap(self.walmachine.targets[i])
+                    img[int(hmapt[0]), int(hmapt[1])] = np.array([1,1,0])
+                else:
+                    box_color = np.array([0,0,1])
+                # Draw search block
+                for r in range(-ANCHOR_CORRECTION_RADIUS-1, ANCHOR_CORRECTION_RADIUS+2):
+                    img[int(hmapt_init[0]+r) % HMAP_EXTENTS, int(hmapt_init[1]+ANCHOR_CORRECTION_RADIUS+1) % HMAP_EXTENTS] = box_color
+                    img[int(hmapt_init[0]+r) % HMAP_EXTENTS, int(hmapt_init[1]-ANCHOR_CORRECTION_RADIUS-1) % HMAP_EXTENTS] = box_color
+                    img[int(hmapt_init[0]+ANCHOR_CORRECTION_RADIUS+1) % HMAP_EXTENTS, int(hmapt_init[1]+r) % HMAP_EXTENTS] = box_color
+                    img[int(hmapt_init[0]-ANCHOR_CORRECTION_RADIUS-1) % HMAP_EXTENTS, int(hmapt_init[1]+r) % HMAP_EXTENTS] = box_color
             else:
-                img[int(hmapt_i[0]), int(hmapt_i[1])] = np.array([0,0,1])
+                img[int(hmapt_init[0]), int(hmapt_init[1])] = np.array([0,0,1])
         
         # ~8ms
         # img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
