@@ -240,8 +240,8 @@ class WalkCycleMachine(StateMachine):
                         # step = min(dist,0.6)
                         self.targets[i][2] += self.height_offsets[i] +  self.height - step - self.perception.get_height_at_point(self.targets[i])
 
-                if self.centering_yaw[i]:
-                    self.target_yaw_local[i] = 0.0
+                    if self.centering_yaw[i]:
+                        self.target_yaw_local[i] = 0.0
                     self.targets_prev[i] = self.targets[i]
                 else:
                     # If invalid set target to current position (Stop leg)
