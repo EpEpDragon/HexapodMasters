@@ -41,8 +41,8 @@ def normalize(v):
 
 class WalkCycleMachine(StateMachine):
     "A walk cycle machine"
-    rest = State(initial=True, enter="deactivate_all")
-    stepping = State(enter="find_is_swinging")
+    rest = State(initial=True)
+    stepping = State()
 
     walk = rest.to(stepping, cond="should_adjust") | stepping.to(rest, cond="step_finished") | rest.to.itself(internal=True) | stepping.to.itself(internal=True)
 
@@ -65,6 +65,7 @@ class WalkCycleMachine(StateMachine):
         self.targets_init= np.array(REST_POS)
         self.targets = np.array(REST_POS)
         self.targets_prev = np.array(REST_POS)
+        self.targets_global = np.array(REST_POS)
         
         self.perception = perception
         self.step_height = 0.3
@@ -76,6 +77,11 @@ class WalkCycleMachine(StateMachine):
 
     # Enter actions
     # -------------------------------------------------------------------------------------------
+    def on_enter_rest(self):
+        self.deactivate_all()
+    def on_enter_stepping(self):
+        self.find_is_swinging()
+
     def deactivate_all(self):
         self.is_swinging[0] = False
         self.is_swinging[1] = False
@@ -133,6 +139,24 @@ class WalkCycleMachine(StateMachine):
         else:
             if not (self.is_swinging == self.centering_yaw).all():
                 self.is_swinging = np.invert(self.is_swinging)
+
+    def select_anchors(self):
+        """Select the anchor points for the current step"""
+        
+        # Calculate average supporting leg stride
+        inv = np.invert(self.is_swinging)
+        not_swing_delta = self.targets[inv] - self.foot_pos_post_yaw[inv]
+        dot = not_swing_delta[0]@not_swing_delta[0]
+        dot += not_swing_delta[1]@not_swing_delta[1]
+        dot += not_swing_delta[2]@not_swing_delta[2]
+        avg_supporing_stride_length = np.sum(np.sqrt(dot))/3
+
+        for i in range(6):
+            if self.is_swinging[i]:
+                 # Look forward by one stride plus the avg stride of the supporting legs
+                self.targets_init[i] = REST_POS[i] + (self.walk_direction * (STRIDE_LENGTH + avg_supporing_stride_length))
+                self.targets[i] = self.perception.find_anchor(self.targets_init[i], ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD)
+
     # -------------------------------------------------------------------------------------------
 
     # Conditions
