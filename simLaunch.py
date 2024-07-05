@@ -17,17 +17,20 @@ import motion
 
 READ_CAMERA = True
 
+ARC_COLORS = np.array([[247, 5, 5,255], [247, 130, 5,255], [247, 203, 5,255], [114, 247, 5,255], [5, 247, 162,255], [5, 61, 247,255], [178, 5, 247,255]])/255
+
 # Camera
 RES_X = int(160)
 RES_Y = int(90)
 POINT_CLOUD_DIVISOR = 10
+
+
 # Changed from control interface thread, thus list for mutable
 view = [0]
 snapshot = [False]
 
 is_sim_running = True
 
-servo_torque = []
 
 # Linearize Depth from an OpenGL buffer
 def linearize_depth(depth, znear, zfar):
@@ -80,7 +83,7 @@ def read_camera():
     return depth_linear
 
 def read_sensors():
-    return data.sensordata[0:3], data.sensordata[3:6], data.sensordata[[7,8,9,6]], data.sensordata[[11,12,13,10]]
+    return data.sensordata[0:3], data.sensordata[3:6], data.sensordata[[7,8,9,6]], data.sensordata[[11,12,13,10]], [data.sensordata[14:17], data.sensordata[17:20], data.sensordata[20:23], data.sensordata[23:26], data.sensordata[26:29], data.sensordata[29:32]]
 
 if __name__ == '__main__':
     # Setup model
@@ -122,16 +125,40 @@ if __name__ == '__main__':
     start_time = time.perf_counter()
     dt = 0.0
     k = 0
+    arc_draw_count = 0
+    plot_i = 0
 
     while is_sim_running:
         # control_interface.update_input()
         step_start = time.perf_counter()
-        cam_pos, body_pos, cam_quat, body_quat = read_sensors()
+        cam_pos, body_pos, cam_quat, body_quat, feet_positions = read_sensors()
+        # print("foot0", feet_positions[0])
+        # print("camer", cam_pos)
         # print(data.sensordata[14:32])
         # servo_torque.append([data.sensordata[i] for i in [15,18,21,24,27,30]])
         # servo_torque.append(data.sensordata[15])
 
         walk_machine.update(timestep)
+
+        # Draw foot walking arcs
+
+        if arc_draw_count%50 == 0:
+            # Body arc
+            model.site_pos[plot_i] = body_pos
+            model.site_rgba[plot_i] = ARC_COLORS[6]
+            plot_i = (plot_i + 1)%3000
+
+            # Foot arcs
+            if walk_machine.current_state == walk_machine.stepping:
+                for i in range(6):
+                    if walk_machine.is_swinging[i]:
+                        model.site_pos[plot_i] = feet_positions[i]
+                        model.site_rgba[plot_i] = ARC_COLORS[i]
+                        plot_i = (plot_i + 1)%3000
+            arc_draw_count = 0
+        arc_draw_count += 1
+
+
         # Move actuators-
         if walk_machine.is_move_valid:
             movement_handler.set_targets(walk_machine.foot_pos_post_yaw)

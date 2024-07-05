@@ -45,6 +45,13 @@
 
   <!-- Model Layout -->
   <worldbody>
+    <!-- For step arc visulaisations -->
+    <body pos="0 0 0">
+      <replicate count="3000">
+      <site name="viz_point" size="0.05 0.05 0.05" pos="0 0 -1" rgba="0 1 0 1"/>
+      </replicate>
+    </body>
+    
     <light diffuse="0.5 0.5 0.5" pos="0 0 3" dir="0 0 -1"/>
     <!-- Floor -->
     <geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 0" rgba="0.8 0.9 0.8 1" size="40 40 40" type="plane"/>
@@ -81,6 +88,7 @@
           <geom/>
           <body pos="1 0 0" childclass="knee">
             <joint name="front_left_knee"/>
+            <site name="0" pos="1 0 0" size="0.1 0.1 0.1"/>
             <geom/>
           </body>
         </body>
@@ -95,6 +103,7 @@
           <geom/>
           <body pos="1 0 0" childclass="knee">
             <joint name="front_right_knee"/>
+            <site name="1" pos="1 0 0" size="0.1 0.1 0.1"/>
             <geom/>
           </body>  
         </body>
@@ -109,6 +118,7 @@
           <geom/>
           <body pos="1 0 0" childclass="knee">
             <joint name="mid_left_knee"/>
+            <site name="2" pos="1 0 0" size="0.1 0.1 0.1"/>
             <geom/>
           </body>  
         </body>
@@ -123,6 +133,7 @@
           <geom/>
           <body pos="1 0 0" childclass="knee">
             <joint name="mid_right_knee"/>
+            <site name="3" pos="1 0 0" size="0.1 0.1 0.1"/>
             <geom/>
           </body>  
         </body>
@@ -137,6 +148,7 @@
           <geom/>
           <body pos="1 0 0" childclass="knee">
             <joint name="back_left_knee"/>
+            <site name="4" pos="1 0 0" size="0.1 0.1 0.1"/>
             <geom/>
           </body>  
         </body>
@@ -151,6 +163,7 @@
           <geom/>
           <body pos="1 0 0" childclass="knee">
             <joint name="back_right_knee"/>
+            <site name="5" pos="1 0 0" size="0.1 0.1 0.1"/>
             <geom/>
           </body>  
         </body>
@@ -189,8 +202,16 @@
     <framepos name="body_position" objtype="body" objname="torso"/>
     <framequat name="cam_quaternion" objtype="camera" objname="cam"/>
     <framequat name="body_quaternion" objtype="body" objname="torso"/>
+
+    <framepos name="posfoot0" objtype="site" objname="0"/>
+    <framepos name="posfoot1" objtype="site" objname="1"/>
+    <framepos name="posfoot2" objtype="site" objname="2"/>
+    <framepos name="posfoot3" objtype="site" objname="3"/>
+    <framepos name="posfoot4" objtype="site" objname="4"/>
+    <framepos name="posfoot5" objtype="site" objname="5"/>
+
     
-    <actuatorfrc actuator="front_left_yaw"/>
+    <!-- <actuatorfrc actuator="front_left_yaw"/>
     <actuatorfrc actuator="front_left_pitch"/>
     <actuatorfrc actuator="front_left_knee"/>
 
@@ -212,6 +233,6 @@
 
     <actuatorfrc actuator="back_right_yaw"/>
     <actuatorfrc actuator="back_right_pitch"/>
-    <actuatorfrc actuator="back_right_knee"/>
+    <actuatorfrc actuator="back_right_knee"/> -->
   </sensor>
 </mujoco>
