@@ -141,7 +141,6 @@ if __name__ == '__main__':
         walk_machine.update(timestep)
 
         # Draw foot walking arcs
-
         if arc_draw_count%50 == 0:
             # Body arc
             model.site_pos[plot_i] = body_pos

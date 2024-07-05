@@ -51,6 +51,7 @@ class WalkCycleMachine(StateMachine):
         self.speed = 0.5
         self.yaw_rate = deg2rad(25)
         self.height = REST_Z
+        self.floor_height = 0.0
         self.height_offsets = np.zeros(6)
         self.pitch = 0.0
         self.target_yaw_local = np.zeros(6)
@@ -165,12 +166,13 @@ class WalkCycleMachine(StateMachine):
         return not (self.walk_direction == 0).all()
     # -------------------------------------------------------------------------------------------
 
-    # Logic
+    # Per cycle logic
     # -------------------------------------------------------------------------------------------
     def update(self, dt):
         # Cycle state machine
         self.walk()
         self._update_targets()
+        self._update_floor_height()
 
         if self.is_move_valid:
             # Update foot position for walking
@@ -184,15 +186,32 @@ class WalkCycleMachine(StateMachine):
                 self.current_yaw_local[i] = clerp(self.current_yaw_local[i], self.target_yaw_local[i], self.yaw_rate*dt)
                 self.foot_pos_post_yaw[i] = rotate_vec(self.foot_pos_pre_yaw[i], UP, self.current_yaw_local[i])
 
+    def _update_floor_height(self):
+        """Set floor height to the average of next anchor points"""
+        if (self.is_swinging==True).any():
+            max_heights = np.zeros(6)
+            for i in range(6):
+                max_heights[i] = self.perception.get_height_at_point(self.targets[i])
+            max_heights.sort()
+            max_heights = max_heights[3:]
+            self.floor_height = np.sum(max_heights)/3
 
+            # feet_i = self.targets[(self.is_swinging==True).nonzero()[0]]
+            # height1 = self.perception.get_height_at_point(feet_i[0])
+            # height2 = self.perception.get_height_at_point(feet_i[1])
+            # height3 = self.perception.get_height_at_point(feet_i[2])
+            # self.floor_height = (height1+height2+height3)/3
+            print(self.floor_height)
+    
     def _update_targets(self):
+        """Update the foot targets"""
         self.is_move_valid = True
         not_swinging = self.is_swinging == False
         for i in not_swinging.nonzero()[0]:
             move_vector = (REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)) - self.targets_init[i]
             self.targets[i] = self.targets_prev[i] + move_vector
                 
-            self.targets[i][2] = self.height_offsets[i] + self.height - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
+            self.targets[i][2] = self.height_offsets[i] + self.height + self.floor_height - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
 
         for i in (self.is_swinging==True).nonzero()[0]:
             diff = self.foot_pos_pre_yaw[i][0:2] - self.targets[i][0:2]
@@ -212,11 +231,11 @@ class WalkCycleMachine(StateMachine):
                 # Foot arcs
                 # If not walking means rotationg in place, thus set foot height based on rotation
                 if (self.walk_direction == 0).all() and self.centering_yaw[i]:
-                    self.targets[i][2] += self.height_offsets[i] + self.height - min(abs(self.current_yaw_local[i])*3, 1.5) - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
+                    self.targets[i][2] = self.height_offsets[i] + self.height + self.floor_height - min(abs(self.current_yaw_local[i])*3, 1.5) - self.perception.get_height_at_point(self.targets[i])
                 else:
                     step = min(abs(3.5*dist), 1.5)
                     # step = min(dist,0.6)
-                    self.targets[i][2] += self.height_offsets[i] +  self.height - step - self.perception.get_height_at_point(self.targets[i])
+                    self.targets[i][2] = self.height_offsets[i] +  self.height + self.floor_height - step - self.perception.get_height_at_point(self.targets[i])
 
                 if self.centering_yaw[i]:
                     self.target_yaw_local[i] = 0.0
