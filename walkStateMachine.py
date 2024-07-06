@@ -20,7 +20,7 @@ YAW_MAX = deg2rad(20)
 PITCH_MAX = deg2rad(30)
 BODY_RADIUS = 0.7
 
-ANCHOR_CORRECTION_RADIUS = 4
+ANCHOR_CORRECTION_RADIUS = 8
 ANCHOR_CORRECTION_THRESHOLD = 0.4
 
 
@@ -84,10 +84,10 @@ class WalkCycleMachine(StateMachine):
         self.deactivate_all()
 
     def on_enter_stepping(self):
+        self.perception.position_prev[:] = self.perception.position[:]
         self.find_is_swinging()
         self.select_targets()
         print("Set_pos_prev")
-        self.perception.position_prev[:] = self.perception.position[:]
 
     def select_targets(self):
         move_vector_avg = 0
@@ -204,7 +204,6 @@ class WalkCycleMachine(StateMachine):
     # -------------------------------------------------------------------------------------------
     def update(self, dt):
         # Cycle state machine
-        print("Pos", self.perception.position)
         self.walk()
         self._update_targets()
         self._update_floor_height()
@@ -261,11 +260,11 @@ class WalkCycleMachine(StateMachine):
             self.targets[i] = self.perception._hmap_to_local(self.targets_map[i])
             # Foot arcs
             # If not walking means rotationg in place, thus set foot height based on rotation
-            # self.targets[i][2] = self.height_offsets[i] + self.height + self.floor_height - self.perception.get_height_at_point(self.targets[i])
-            if (self.walk_direction == 0).all() and self.centering_yaw[i]:
-                self.targets[i][2] = self.height_offsets[i] + self.height + self.floor_height - self.perception.get_height_at_point(self.targets[i])
-            else:
-                self.targets[i][2] = self.height_offsets[i] +  self.height + self.floor_height - self.perception.get_height_at_point(self.targets[i])
+            self.targets[i][2] = self.height_offsets[i] + self.height + self.floor_height - self.perception.get_height_at_point(self.targets[i])
+            # if (self.walk_direction == 0).all() and self.centering_yaw[i]:
+            #     self.targets[i][2] = self.height_offsets[i] + self.height + self.floor_height - self.perception.get_height_at_point(self.targets[i])
+            # else:
+            #     self.targets[i][2] = self.height_offsets[i] +  self.height + self.floor_height - self.perception.get_height_at_point(self.targets[i])
             if self.centering_yaw[i]:
                 self.target_yaw_local[i] = 0.0
             self.targets_prev[i] = self.targets[i]
