@@ -11,8 +11,8 @@ REST_POS = np.array([[0.866, 0.500, 0.0], [0.866, -0.500, 0.0],
                     [0.0, 1.000, 0.0], [0.0, -1.00, 0.0],
                     [-0.866, 0.500, 0.0], [-0.866, -0.500, 0.0]])*2
 
-STRIDE_LENGTH = 0.3
-PLACE_TOLERANCE = 0.15
+STRIDE_LENGTH = 0.25
+PLACE_TOLERANCE = 0.1
 UP = a([0,0,1])
 SPEED_MAX = 2
 HEIGHT_MAX = 1.15
@@ -101,7 +101,6 @@ class WalkCycleMachine(StateMachine):
 
         for i in (self.is_swinging==True).nonzero()[0]:
             pos_diff = rotate(self.perception.body_quat*[-1,-1,-1,1], self.perception.position - self.perception.position_prev)
-            print("Pos diff", pos_diff)
             self.targets_init[i] = REST_POS[i] - pos_diff + (self.walk_direction * (STRIDE_LENGTH))
             targets_init_far = REST_POS[i]- pos_diff + (self.walk_direction * (STRIDE_LENGTH + supporting_stride_avg))
             self.targets_init_map[i] = self.perception._local_to_hmap(targets_init_far)[0]
@@ -215,7 +214,7 @@ class WalkCycleMachine(StateMachine):
                         # self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
                         if self.is_swinging[i]:
                             # pass
-                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + normalize(self._calculate_flow(1,14,i))*self.speed*dt*a([1,1,3])
+                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + normalize(self._calculate_flow(2.5,14,i))*self.speed*dt
                         else:
                             self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*self.speed*dt)
 
@@ -236,7 +235,7 @@ class WalkCycleMachine(StateMachine):
             Fb = y/x - Fa*x
             Ftheta = np.arctan(2*Fa*x + Fb)
 
-            Ex = np.cos(Ftheta)
+            Ex = np.cos(Ftheta)*1.5
             Ey = np.sin(Ftheta)
             
             return np.append((diff/dist)[:2]*Ex, Ey)

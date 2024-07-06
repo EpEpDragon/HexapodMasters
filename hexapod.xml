@@ -23,7 +23,7 @@
   <default>
     <default class="body">
       <geom  type="box" condim="1" density="500"/>
-      <joint type="hinge" damping="300" armature=".01" limited="true"/>
+      <joint type="hinge" damping="800" armature=".01" limited="true"/>
       <default class="yaw">
         <joint axis="0 0 1" range="-90 90"/>
         <position ctrlrange="-1.5708 1.5708"/>
@@ -37,10 +37,10 @@
       <default class="knee">
         <joint axis="0 1 0" range="-90 120"/>
         <position ctrlrange="-1.5708 2.0944"/>
-        <geom fromto="0 0 0 1 0 0" size="0.05" friction="2 0.005 0.0001"/>
+        <geom fromto="0 0 0 1 0 0" size="0.05" friction="1 0.005 0.0001"/>
       </default>
     </default>
-    <position ctrllimited="true" kp="15000"/>
+    <position ctrllimited="true" kp="20000"/>
   </default>
 
   <!-- Model Layout -->
