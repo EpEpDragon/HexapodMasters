@@ -99,7 +99,12 @@ class WalkCycleMachine(StateMachine):
         for i in (self.is_swinging==True).nonzero()[0]:
             self.targets_init[i] = REST_POS[i] + (self.walk_direction * (STRIDE_LENGTH))
             targets_init_far = REST_POS[i] + (self.walk_direction * (STRIDE_LENGTH + supporting_stride_avg))
-            self.targets_map[i] = self.perception.find_anchor(targets_init_far, ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD)
+            optimised_target = self.perception.find_anchor(targets_init_far, ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD)
+            if optimised_target[0] != -1:
+                self.targets_map[i] = optimised_target
+                self.is_move_valid = True
+            else:
+                self.is_move_valid = False
 
 
     def deactivate_all(self):
@@ -206,9 +211,9 @@ class WalkCycleMachine(StateMachine):
                         # self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
                         if self.is_swinging[i]:
                             # pass
-                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + normalize(self._calculate_flow(2,10,i))*a([1,1,3])*self.speed*dt
+                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + normalize(self._calculate_flow(1,10,i))*self.speed*dt
                         else:
-                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*self.speed*dt)
+                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*0.5*self.speed*dt)
 
 
             # Update foot position for local rotation

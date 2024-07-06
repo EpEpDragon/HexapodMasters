@@ -287,7 +287,7 @@ class Perception():
                 should_return, minval = self._compare((anchor_map_y-r)%HMAP_EXTENTS, (anchor_map_x-i)%HMAP_EXTENTS, minval, threshold)
                 if should_return: return np.array([anchor_map_raw[0]-i, anchor_map_raw[1]-r])
 
-        return (np.array([-1, -1, -1]))
+        return (np.array([-1, -1]))
     
     def _find_block_max(self, x,y):
         score_block = np.full(9,1000.0)
