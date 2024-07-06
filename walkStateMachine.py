@@ -86,6 +86,8 @@ class WalkCycleMachine(StateMachine):
     def on_enter_stepping(self):
         self.find_is_swinging()
         self.select_targets()
+        print("Set_pos_prev")
+        self.perception.position_prev[:] = self.perception.position[:]
 
     def select_targets(self):
         move_vector_avg = 0
@@ -98,15 +100,16 @@ class WalkCycleMachine(StateMachine):
         supporting_stride_avg = np.sqrt(move_vector_avg@move_vector_avg)/3
 
         for i in (self.is_swinging==True).nonzero()[0]:
-            self.targets_init[i] = REST_POS[i] + (self.walk_direction * (STRIDE_LENGTH))
-            targets_init_far = REST_POS[i] + (self.walk_direction * (STRIDE_LENGTH + supporting_stride_avg))
+            pos_diff = rotate(self.perception.body_quat*[-1,-1,-1,1], self.perception.position - self.perception.position_prev)
+            print("Pos diff", pos_diff)
+            self.targets_init[i] = REST_POS[i] - pos_diff + (self.walk_direction * (STRIDE_LENGTH))
+            targets_init_far = REST_POS[i]- pos_diff + (self.walk_direction * (STRIDE_LENGTH + supporting_stride_avg))
             self.targets_init_map[i] = self.perception._local_to_hmap(targets_init_far)[0]
             optimised_target = self.perception.find_anchor(targets_init_far, ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD)
             if optimised_target[0] != -1:
                 self.targets_map[i] = optimised_target
             else:
                 self.is_move_valid = False
-                print("MoveInvalid")
 
 
     def deactivate_all(self):
@@ -201,6 +204,7 @@ class WalkCycleMachine(StateMachine):
     # -------------------------------------------------------------------------------------------
     def update(self, dt):
         # Cycle state machine
+        print("Pos", self.perception.position)
         self.walk()
         self._update_targets()
         self._update_floor_height()

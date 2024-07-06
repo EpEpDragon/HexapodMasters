@@ -41,6 +41,7 @@ class Perception():
         self.hmap_index = np.ndarray(hmap_index.shape, dtype=np.int32, buffer=self.hmap_index_shm.buf)
         self.hmap_index[:] = hmap_index[:]
         self.position = np.zeros(3)
+        self.position_prev = np.zeros(3)
         self.body_quat = np.zeros(4)
         self.temporal_i = 0
         #---------------------------------------------------------------------------------
@@ -233,7 +234,7 @@ class Perception():
     def update(self, camera_pos, body_pos, camera_quat, body_quat, depth):
         self.body_quat = body_quat
         self.hmap_index = global_to_hmap(body_pos)
-        self.position = body_pos%EXTENTS
+        self.position = body_pos
         self._generate_heightmap(depth, camera_quat, global_to_hmap(camera_pos), camera_pos[2])
         self._display_heightmap()
         self.temporal_i = int((self.temporal_i + 1)%4)
