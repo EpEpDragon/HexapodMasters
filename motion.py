@@ -83,7 +83,7 @@ class MovementHandler:
         knee_rel = np.array([cos(curr_pitch)*cos(curr_yaw), cos(curr_pitch)*sin(curr_yaw), sin(curr_pitch)])*UPPER_LEG
         foot_rel = np.array([cos(curr_pitch+curr_knee)*cos(curr_yaw), cos(curr_pitch+curr_knee)*sin(curr_yaw), sin(curr_pitch+curr_knee)])*LOWER_LEG
         return  knee_rel + foot_rel
-        
+
     def update_moves(self):
          for id in range(NUM_ACTUATORS):
             if self.movements[id] == None:

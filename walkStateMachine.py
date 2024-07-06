@@ -12,7 +12,7 @@ REST_POS = [a([0.866, 0.500, 0.0])*2, a([0.866, -0.500, 0.0])*2,
             a([-0.866, 0.500, 0.0])*2, a([-0.866, -0.500, 0.0])*2]
 
 STRIDE_LENGTH = 0.3
-PLACE_TOLERANCE = 0.05
+PLACE_TOLERANCE = 0.1
 UP = a([0,0,1])
 SPEED_MAX = 2
 HEIGHT_MAX = 1.15
@@ -203,12 +203,34 @@ class WalkCycleMachine(StateMachine):
             if self.current_state == self.stepping:
                 for i in range(6):
                     if not (self.targets[i] - self.foot_pos_pre_yaw[i] == 0).all():
-                        self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
+                        # self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
+                        if self.is_swinging[i]:
+                            # pass
+                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + normalize(self._calculate_flow(2,10,i))*a([1,1,3])*self.speed*dt
+                        else:
+                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*self.speed*dt)
+
 
             # Update foot position for local rotation
             for i in range(6):
                 self.current_yaw_local[i] = clerp(self.current_yaw_local[i], self.target_yaw_local[i], self.yaw_rate*dt)
                 self.foot_pos_post_yaw[i] = rotate_vec(self.foot_pos_pre_yaw[i], UP, self.current_yaw_local[i])
+    
+    def _calculate_flow(self, Ch, q, i):
+            diff = self.targets[i] - self.foot_pos_pre_yaw[i]
+            dist = sqrt(diff @ diff)
+            # Mult 100 for scaling (cm to mm)
+            x = max(sqrt(diff[:2] @ diff[:2]) * 100, 0.00001)
+            y = diff[2] * 100
+            Fa = -abs(Ch/x) - abs(0.515*(y-q) / (1+abs(y-q)) - 0.513)
+            
+            Fb = y/x - Fa*x
+            Ftheta = np.arctan(2*Fa*x + Fb)
+
+            Ex = np.cos(Ftheta)
+            Ey = np.sin(Ftheta)
+            
+            return np.append((diff/dist)[:2]*Ex, Ey)
 
     def _update_floor_height(self):
         """Set floor height to the average of next anchor points"""
@@ -236,7 +258,7 @@ class WalkCycleMachine(StateMachine):
                     self.targets[i][2] = self.height_offsets[i] + self.height + self.floor_height - min(abs(self.current_yaw_local[i])*3, 1.5) - self.perception.get_height_at_point(self.targets[i])
                 else:
                     step = min(abs(3.5*dist), 1.5)
-                    self.targets[i][2] = self.height_offsets[i] +  self.height + self.floor_height - step - self.perception.get_height_at_point(self.targets[i])
+                    self.targets[i][2] = self.height_offsets[i] +  self.height + self.floor_height - self.perception.get_height_at_point(self.targets[i])
                 if self.centering_yaw[i]:
                     self.target_yaw_local[i] = 0.0
                 self.targets_prev[i] = self.targets[i]

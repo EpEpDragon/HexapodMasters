@@ -118,7 +118,6 @@ if __name__ == '__main__':
     control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine, view, perception.map_view))
     control_interface_thread.start()
     perception.add_refs(walk_machine)
-    
  
     # Used for real time sim
     error = 0.0 # Timestep error integrator
