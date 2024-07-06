@@ -192,7 +192,7 @@ class Perception():
         # # Draw foot targets
         for i in range(6):
             # hmap_i = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
-            hmapt_init, _ = self._local_to_hmap(self.walmachine.targets_init[i]) 
+            hmapt_init = self.walmachine.targets_init_map[i]
             hmap_i, _ = self._local_to_hmap(self.walmachine.foot_pos_post_yaw[i])
             
             # img_i = (hmap_i-self.hmap_index)%HMAP_EXTENTS   # Hold in center of centered image
@@ -201,7 +201,7 @@ class Perception():
             if (self.walmachine.is_swinging[i]):
                 img[int(hmapt_init[0]), int(hmapt_init[1])] = np.array([0,1,0])
                 box_color = np.array([0,1,0])
-                if self.walmachine.targets[i][0] != -1:
+                if self.walmachine.is_move_valid:
                     hmapt, _ = self._local_to_hmap(self.walmachine.targets[i])
                     img[int(hmapt[0]), int(hmapt[1])] = np.array([1,1,0])
                 else:
@@ -247,19 +247,15 @@ class Perception():
     
     def find_anchor(self, anchor, search_rad, threshold):
         """Find first value under threshold within search radius, expanding square"""
+        # Early exit if initial point is valid
         anchor_map, anchor_map_raw = self._local_to_hmap(anchor)[0:2]
         anchor_map_x = anchor_map[0]
         anchor_map_y = anchor_map[1]
-        # anchor_map_raw = anchor
-        # anchor_map_x = anchor[0]
-        # anchor_map_y = anchor[1]
-
-        # Early exit if initial point is valid
         score_max = score_max = self._find_block_max(anchor_map_x, anchor_map_y)
         if score_max < threshold:
             # print(score_max, "Valid")
             return self._local_to_hmap(anchor)[0]
-        
+
         minval = 1000 # Some sufficiently large number
         for r in range(search_rad):
             for i in range(r+1):
