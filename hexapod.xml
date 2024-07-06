@@ -35,10 +35,10 @@
         <geom fromto="0 0 0 1 0 0" size="0.1"/>
       </default>
       <default class="knee">
-          <joint axis="0 1 0" range="-90 120"/>
-          <position ctrlrange="-1.5708 2.0944"/>
-          <geom fromto="0 0 0 1 0 0" size="0.05"/>
-        </default>
+        <joint axis="0 1 0" range="-90 120"/>
+        <position ctrlrange="-1.5708 2.0944"/>
+        <geom fromto="0 0 0 1 0 0" size="0.05" friction="2 0.005 0.0001"/>
+      </default>
     </default>
     <position ctrllimited="true" kp="15000"/>
   </default>
@@ -88,7 +88,7 @@
           <geom/>
           <body pos="1 0 0" childclass="knee">
             <joint name="front_left_knee"/>
-            <site name="0" pos="1 0 0" size="0.1 0.1 0.1"/>
+            <site name="0" pos="1 0 0"/>
             <geom/>
           </body>
         </body>
@@ -103,7 +103,7 @@
           <geom/>
           <body pos="1 0 0" childclass="knee">
             <joint name="front_right_knee"/>
-            <site name="1" pos="1 0 0" size="0.1 0.1 0.1"/>
+            <site name="1" pos="1 0 0"/>
             <geom/>
           </body>  
         </body>
@@ -118,7 +118,7 @@
           <geom/>
           <body pos="1 0 0" childclass="knee">
             <joint name="mid_left_knee"/>
-            <site name="2" pos="1 0 0" size="0.1 0.1 0.1"/>
+            <site name="2" pos="1 0 0"/>
             <geom/>
           </body>  
         </body>
@@ -133,7 +133,7 @@
           <geom/>
           <body pos="1 0 0" childclass="knee">
             <joint name="mid_right_knee"/>
-            <site name="3" pos="1 0 0" size="0.1 0.1 0.1"/>
+            <site name="3" pos="1 0 0"/>
             <geom/>
           </body>  
         </body>
@@ -148,7 +148,7 @@
           <geom/>
           <body pos="1 0 0" childclass="knee">
             <joint name="back_left_knee"/>
-            <site name="4" pos="1 0 0" size="0.1 0.1 0.1"/>
+            <site name="4" pos="1 0 0"/>
             <geom/>
           </body>  
         </body>
@@ -163,7 +163,7 @@
           <geom/>
           <body pos="1 0 0" childclass="knee">
             <joint name="back_right_knee"/>
-            <site name="5" pos="1 0 0" size="0.1 0.1 0.1"/>
+            <site name="5" pos="1 0 0"/>
             <geom/>
           </body>  
         </body>

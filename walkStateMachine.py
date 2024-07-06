@@ -12,7 +12,7 @@ REST_POS = [a([0.866, 0.500, 0.0])*2, a([0.866, -0.500, 0.0])*2,
             a([-0.866, 0.500, 0.0])*2, a([-0.866, -0.500, 0.0])*2]
 
 STRIDE_LENGTH = 0.3
-PLACE_TOLERANCE = 0.1
+PLACE_TOLERANCE = 0.15
 UP = a([0,0,1])
 SPEED_MAX = 2
 HEIGHT_MAX = 1.15
@@ -211,9 +211,9 @@ class WalkCycleMachine(StateMachine):
                         # self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*a([1,1,3])*self.speed*dt)
                         if self.is_swinging[i]:
                             # pass
-                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + normalize(self._calculate_flow(1,10,i))*self.speed*dt
+                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + normalize(self._calculate_flow(1,10,i))*self.speed*dt*a([1,1,3])
                         else:
-                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*0.5*self.speed*dt)
+                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*self.speed*dt)
 
 
             # Update foot position for local rotation
