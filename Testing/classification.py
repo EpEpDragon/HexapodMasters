@@ -45,7 +45,7 @@ def get_wrapped(matrix, i, j):
 kernel_size = 10
 # kernel = gauss_kernel(kernel_size, 1, 1/kernel_size).flatten()
 # kernel = kernel.reshape(kernel.shape[0],1)
-kernel = gauss_kernel(kernel_size+1, 1, 2/kernel_size,c=2,g=10)
+kernel = gauss_kernel(kernel_size+1, 1, 2/kernel_size,c=1,g=10)
 
 print('{', end='')
 for i in range(kernel.shape[0]):
