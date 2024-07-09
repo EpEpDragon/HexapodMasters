@@ -63,6 +63,7 @@ class WalkCycleMachine(StateMachine):
         self.foot_pos_post_yaw = np.array(REST_POS)
         self.is_move_valid = True
         self.invert_gait = False
+        self.forward_i = 0
         
         self.targets_init= np.array(REST_POS)
         self.targets_init_map = self.targets_map = np.zeros((6,2))
@@ -146,6 +147,7 @@ class WalkCycleMachine(StateMachine):
             id = 3
         elif deg2rad(-60.0) <= angle and angle < 0.0:
             id = 1
+
         if id == 0 or id == 3 or id == 4:
             self.is_swinging[0] = True
             self.is_swinging[1] = False
@@ -153,6 +155,7 @@ class WalkCycleMachine(StateMachine):
             self.is_swinging[3] = True
             self.is_swinging[4] = True
             self.is_swinging[5] = False
+            self.forward_i = id
         elif id == 1 or id == 2 or id == 5:
             self.is_swinging[0] = False
             self.is_swinging[1] = True
@@ -160,6 +163,7 @@ class WalkCycleMachine(StateMachine):
             self.is_swinging[3] = False
             self.is_swinging[4] = False
             self.is_swinging[5] = True
+            self.forward_i = id
         else:
             print("id not found")
         
@@ -251,6 +255,7 @@ class WalkCycleMachine(StateMachine):
                 max_heights[i] = self.perception.get_height_at_point(self.targets[i])
             max_heights.sort()
             max_heights = max_heights[3:]
+            # diff = max_heights[2] - max_heights[0]
             self.floor_height = np.sum(max_heights)/3
     
     def _update_targets(self):
@@ -291,6 +296,11 @@ class WalkCycleMachine(StateMachine):
         self.height_offsets[0:2] = -offset
         self.height_offsets[4:6] = offset
 
+    def is_long(self, i, threshold):
+        dist = sqrt(self.foot_pos_pre_yaw[i] @ self.foot_pos_pre_yaw[i])
+        dist_nominal = sqrt(REST_POS[i] @ REST_POS[i])
+        return dist-dist_nominal > threshold
+    
     def adjust_local_yaw(self, value):
         for i in range(6):
                 # if not self.is_swinging[i]:
