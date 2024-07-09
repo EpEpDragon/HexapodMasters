@@ -8,7 +8,7 @@ import numpy as np
 from numpy import deg2rad, rad2deg
 
 import cv2
-import os
+import csv
 
 from walkStateMachine import WalkCycleMachine
 from perception import Perception
@@ -126,6 +126,7 @@ if __name__ == '__main__':
     k = 0
     arc_draw_count = 0
     plot_i = 0
+    # plot_big_i = 0 
 
     while is_sim_running:
         # control_interface.update_input()
@@ -138,21 +139,31 @@ if __name__ == '__main__':
         # servo_torque.append(data.sensordata[15])
 
         walk_machine.update(timestep)
-
-        # Draw foot walking arcs
-        if arc_draw_count%50 == 0:
-            # Body arc
-            model.site_pos[plot_i] = body_pos
-            model.site_rgba[plot_i] = ARC_COLORS[6]
-            plot_i = (plot_i + 1)%3000
-
-            # Foot arcs
+        # Draw arcs
+        if arc_draw_count%40 == 0:
             if walk_machine.current_state == walk_machine.stepping:
+                # Body arc
+                model.site_pos[plot_i] = body_pos
+                model.site_rgba[plot_i] = ARC_COLORS[6]
+                plot_i = (plot_i + 1)%5000
+                # Foot arcs
                 for i in range(6):
                     if walk_machine.is_swinging[i]:
                         model.site_pos[plot_i] = feet_positions[i]
                         model.site_rgba[plot_i] = ARC_COLORS[i]
-                        plot_i = (plot_i + 1)%3000
+                        plot_i = (plot_i + 1)%5000
+                for i in walk_machine.draw_anchor:
+                    model.site_pos[plot_i] = feet_positions[i]
+                    model.site_rgba[plot_i] = ARC_COLORS[i]
+                    model.site_size[plot_i] = [0.12,0.12,0.12]
+                    plot_i = (plot_i + 1)%5000
+            walk_machine.draw_anchor = []
+            # Record data
+            with open("body.csv", "a") as csv_file:
+                csv.writer(csv_file).writerow(np.append(body_pos, body_quat))
+            with open("feet.csv", "a") as csv_file:
+                csv.writer(csv_file).writerow(np.append(feet_positions[0],[feet_positions[1:]]))
+
             arc_draw_count = 0
         arc_draw_count += 1
 

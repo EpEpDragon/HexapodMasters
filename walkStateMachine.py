@@ -75,6 +75,9 @@ class WalkCycleMachine(StateMachine):
 
         self.in_translation = self.is_swinging = np.full(6, False) # Translation phase for square step
 
+        # For vis
+        self.draw_anchor = []
+
 
         super(WalkCycleMachine, self).__init__()
 
@@ -87,7 +90,6 @@ class WalkCycleMachine(StateMachine):
         self.perception.position_prev[:] = self.perception.position[:]
         self.find_is_swinging()
         self.select_targets()
-        print("Set_pos_prev")
 
     def select_targets(self):
         move_vector_avg = 0
@@ -187,6 +189,7 @@ class WalkCycleMachine(StateMachine):
                 else:
                     self.centering_yaw[i] = False
         print(time.time(), "step fin:", abs(self.foot_pos_pre_yaw[i] - self.targets[i]), (abs(self.foot_pos_pre_yaw[i] - self.targets[i]) > PLACE_TOLERANCE).all())
+        self.draw_anchor = (self.is_swinging==True).nonzero()[0]
         return True
 
     def should_adjust(self):
@@ -216,7 +219,7 @@ class WalkCycleMachine(StateMachine):
                             # pass
                             self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + normalize(self._calculate_flow(2.5,14,i))*self.speed*dt
                         else:
-                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*self.speed*dt)
+                            self.foot_pos_pre_yaw[i] = self.foot_pos_pre_yaw[i] + (normalize(self.targets[i] - self.foot_pos_pre_yaw[i])*self.speed*0.5*dt)
 
 
             # Update foot position for local rotation
