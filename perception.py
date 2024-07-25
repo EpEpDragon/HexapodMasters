@@ -30,7 +30,7 @@ class Perception():
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
         hmap_buffer = np.zeros((HMAP_EXTENTS, HMAP_EXTENTS), dtype=np.float32)
-        # hmap_buffer[88:180, 88:180] = 0.2
+        hmap_buffer[:,:] = 0.2
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=hmap_buffer.nbytes)
         self.hmap_buffer = np.ndarray(hmap_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.hmap_buffer[:] = hmap_buffer[:]
@@ -241,7 +241,7 @@ class Perception():
         # print(self.hmap_index)
 
     def get_height_at_point(self, point):
-        """Returns the height at  apoint relative to the robot center, the height is in world space"""
+        """Returns the height at a point relative to the robot center, the height is in world space"""
         hmap_i, _ = self._local_to_hmap(point)
         h = self.hmap_buffer[hmap_i[0], hmap_i[1]]
         return h

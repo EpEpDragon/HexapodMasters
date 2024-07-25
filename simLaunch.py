@@ -140,6 +140,7 @@ if __name__ == '__main__':
 
         walk_machine.update(timestep)
         # Draw arcs
+        feet_floor_h = []
         if arc_draw_count%40 == 0:
             if walk_machine.current_state == walk_machine.stepping:
                 # Body arc
@@ -159,10 +160,13 @@ if __name__ == '__main__':
                     plot_i = (plot_i + 1)%5000
             walk_machine.draw_anchor = []
             # Record data
+            feet_floor_h = []
+            for i in range(6):
+                feet_floor_h.append(perception.get_height_at_point(walk_machine.foot_pos_pre_yaw[i]))
             with open("body.csv", "a") as csv_file:
-                csv.writer(csv_file).writerow(np.append(body_pos, body_quat))
+                csv.writer(csv_file).writerow(np.append(np.append(np.append(body_pos, body_quat), walk_machine.height + walk_machine.floor_height), perception.get_height_at_point(np.array([0,0,0]))))
             with open("feet.csv", "a") as csv_file:
-                csv.writer(csv_file).writerow(np.append(feet_positions[0],[feet_positions[1:]]))
+                csv.writer(csv_file).writerow(np.append(np.append(feet_positions[0],[feet_positions[1:]]), feet_floor_h))
 
             arc_draw_count = 0
         arc_draw_count += 1

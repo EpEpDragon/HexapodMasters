@@ -93,19 +93,26 @@ class WalkCycleMachine(StateMachine):
         self.select_targets()
 
     def select_targets(self):
-        move_vector_avg = 0
+        move_vector = 0
         self.is_move_valid = True
+        # Set supporting xy targets
         for i in (self.is_swinging == False).nonzero()[0]:
             move_vector = (REST_POS[i] - (self.walk_direction * STRIDE_LENGTH)) - self.targets_init[i]
-            move_vector_avg += move_vector
+            print(move_vector)
+            # move_vector = - self.walk_direction * STRIDE_LENGTH
             self.targets[i] = self.targets_prev[i] + move_vector
+        # supporting_stride_avg = np.sqrt(move_vector_avg@move_vector_avg)/3
+        # Update floor height
+        self._update_floor_height()
+        # Set supporting z targets
+        for i in (self.is_swinging == False).nonzero()[0]:
             self.targets[i][2] = self.height_offsets[i] + self.height + self.floor_height - self.perception.get_height_at_point(self.foot_pos_post_yaw[i])
-        supporting_stride_avg = np.sqrt(move_vector_avg@move_vector_avg)/3
-
+        # Set xy swinging targets
         for i in (self.is_swinging==True).nonzero()[0]:
-            pos_diff = rotate(self.perception.body_quat*[-1,-1,-1,1], self.perception.position - self.perception.position_prev)
-            self.targets_init[i] = REST_POS[i] - pos_diff + (self.walk_direction * (STRIDE_LENGTH))
-            targets_init_far = REST_POS[i]- pos_diff + (self.walk_direction * (STRIDE_LENGTH + supporting_stride_avg))
+            # pos_diff = rotate(self.perception.body_quat*[-1,-1,-1,1], self.perception.position - self.perception.position_prev)
+            # print(pos_diff)
+            self.targets_init[i] = REST_POS[i] + (self.walk_direction * (STRIDE_LENGTH))
+            targets_init_far = REST_POS[i] + (self.walk_direction * (STRIDE_LENGTH + sqrt(move_vector@move_vector)))
             self.targets_init_map[i] = self.perception._local_to_hmap(targets_init_far)[0]
             optimised_target = self.perception.find_anchor(targets_init_far, ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD)
             if optimised_target[0] != -1:
@@ -170,10 +177,10 @@ class WalkCycleMachine(StateMachine):
         # Check inversion required
         if has_direction:
             if self.invert_gait:
-                print("Invert")
+                # print("Invert")
                 self.is_swinging = np.invert(self.is_swinging)
-            else:
-                print("Dont Invert")
+            # else:
+                # print("Dont Invert")
             self.invert_gait = not self.invert_gait
         else:
             if not (self.is_swinging == self.centering_yaw).all():
@@ -192,14 +199,14 @@ class WalkCycleMachine(StateMachine):
                     return False
                 else:
                     self.centering_yaw[i] = False
-        print(time.time(), "step fin:", abs(self.foot_pos_pre_yaw[i] - self.targets[i]), (abs(self.foot_pos_pre_yaw[i] - self.targets[i]) > PLACE_TOLERANCE).all())
+        # print(time.time(), "step fin:", abs(self.foot_pos_pre_yaw[i] - self.targets[i]), (abs(self.foot_pos_pre_yaw[i] - self.targets[i]) > PLACE_TOLERANCE).all())
         self.draw_anchor = (self.is_swinging==True).nonzero()[0]
         return True
 
     def should_adjust(self):
         for i in range(6):
             if (abs(self.foot_pos_pre_yaw[i] - self.targets[i]) > PLACE_TOLERANCE).any():
-                print(time.time(), "adjust:", abs(self.foot_pos_pre_yaw[i] - self.targets[i]), )
+                # print(time.time(), "adjust:", abs(self.foot_pos_pre_yaw[i] - self.targets[i]), )
                 return True
             if self.centering_yaw[i]:
                 return True

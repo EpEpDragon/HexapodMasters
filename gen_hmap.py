@@ -12,6 +12,7 @@ pil_img = generate(
     border_size = 10,
     background = "#000000",
     blur = 5,
+    # color_algorithm = ColorAlgorithm.no_adjacent_same,
 )
 hmap = (np.array(pil_img)/255)[:,:,0]
 cv2.imwrite("hmap.png", hmap*255)
