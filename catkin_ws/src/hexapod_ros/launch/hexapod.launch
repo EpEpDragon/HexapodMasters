@@ -1,5 +1,7 @@
 <launch>
     <arg name = "pkg_root"  default="$(find hexapod_ros)"/>
+    <arg name = "orbslam_root"  default="$(find ORB_SLAM3)"/>
+
     
     <!-- Camera Parameters -->
     <arg name = "width"     default="424"/>
@@ -44,6 +46,10 @@
         <arg name="enable_color"    value="true" /> 
         <arg name="enable_depth"    value="true" />
     </include>
-
+    
+    <!-- ORB SLAM -->
+    <node pkg = "ORB_SLAM3" type = "RGBD" name = "RGBDSLAM"
+	args="$(arg orbslam_root)/../../../Vocabulary/ORBvoc.txt $(arg orbslam_root)/../../../Examples/RGB-D/RealSense_D435i.yaml" output="screen">
+    </node>
 
 </launch>
