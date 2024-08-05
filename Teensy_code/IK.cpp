@@ -97,7 +97,7 @@ double clamp(double value, double lower, double upper)
 }
 
 
-double Ch = 0.15;
+double Ch = 0.20;
 double Cs = 0;
 Eigen::Vector3d IK::solve_move_vector(Eigen::Vector3d start, Eigen::Vector3d target)
 {

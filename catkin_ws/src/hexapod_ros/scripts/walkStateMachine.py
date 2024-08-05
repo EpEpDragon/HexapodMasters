@@ -164,8 +164,8 @@ class WalkCycleMachine(StateMachine):
     # -------------------------------------------------------------------------------------------
     def step_finished(self):
         for i in range(6):
-            print("diffs: " + str(i) + str(abs(self.current_feet_positions[i] - self.targets[i])))
-            print("current: " + str(i) + str(self.current_feet_positions[i]) + "target: " + str(self.targets[i]))
+            #print("diffs: " + str(i) + str(abs(self.current_feet_positions[i] - self.targets[i])))
+            #print("current: " + str(i) + str(self.current_feet_positions[i]) + "target: " + str(self.targets[i]))
             if not (abs(self.current_feet_positions[i] - self.targets[i]) < PLACE_TOLERANCE).all():
                 return False
             if self.is_swinging[i]:

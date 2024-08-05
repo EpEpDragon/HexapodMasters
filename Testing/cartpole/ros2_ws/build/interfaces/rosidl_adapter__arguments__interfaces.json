@@ -1,6 +1,0 @@
-{
-  "package_name": "interfaces",
-  "non_idl_tuples": [
-    "/home/epep/Documents/HexapodMasters/Testing/cartpole/ros2_ws/src/interfaces:msg/CartData.msg"
-  ]
-}

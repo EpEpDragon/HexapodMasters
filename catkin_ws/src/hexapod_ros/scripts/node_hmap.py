@@ -10,7 +10,6 @@ import numpy as np
 from perception import Perception
 
 import cv2
-import matplotlib.pyplot as plt
 
 RES_X = int(424)
 RES_Y = int(240)

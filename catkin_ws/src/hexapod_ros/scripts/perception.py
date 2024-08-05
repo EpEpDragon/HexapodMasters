@@ -11,8 +11,6 @@ import glfw
 from math import copysign
 # from scipy.spatial import Octree
 
-import matplotlib.pyplot as plt
-
 import rospy
 
 EXTENTS = 16                        # Extents of SDF block, in distance units
