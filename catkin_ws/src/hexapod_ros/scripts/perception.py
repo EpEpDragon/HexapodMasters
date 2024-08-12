@@ -126,7 +126,7 @@ class Perception():
         glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])  # Camera rotation
         glUniform1i(2, self.temporal_i)
         
-        glDispatchCompute(int((424)/VOXEL_TRACE_INVOCAIONS), int((240)/VOXEL_TRACE_INVOCAIONS), 1)
+        glDispatchCompute(int((640/2)/VOXEL_TRACE_INVOCAIONS), int((480/2)/VOXEL_TRACE_INVOCAIONS), 1)
         
         # Sync
         # glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT)

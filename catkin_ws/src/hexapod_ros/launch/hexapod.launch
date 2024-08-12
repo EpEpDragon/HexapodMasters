@@ -4,16 +4,16 @@
 
     
     <!-- Camera Parameters -->
-
+<!--
     <arg name = "width"     default="424"/>
     <arg name = "height"    default="240"/>
-
-<!--    <arg name = "width"     default="640"/>
-   <arg name = "height"    default="480"/>
 --> 
+    <arg name = "width"     default="640"/>
+   <arg name = "height"    default="480"/>
+
     <arg name = "fps"       default="30"/>
     <arg name = "exposure"  default="2000"/>
-    <arg name = "camera_pitch_offset"    default="23"/>
+    <arg name = "camera_pitch_offset"    default="30"/>
     <!-- Serial Port -->
     <arg name="port" default="/dev/Arduino_port"/>
 
@@ -49,15 +49,15 @@
 
 <!-- Align is slow for some reason...-->
         <arg name="align_depth"     value="true" /> 
-<!--        <arg name="enable_sync"     value="true" /> -->
+        <arg name="enable_sync"     value="true" />
         <arg name="enable_color"    value="true" /> 
         <arg name="enable_depth"    value="true" />
 
     </include>
     
-    <!-- ORB SLAM 
+    <!-- ORB SLAM -->
     <node pkg = "ORB_SLAM3" type = "RGBD" name = "RGBDSLAM"
 	args="$(arg orbslam_root)/../../../Vocabulary/ORBvoc.txt $(arg orbslam_root)/../../../Examples/RGB-D/RealSense_D435i.yaml" output="screen">
-    </node>-->
+    </node>
 
 </launch>

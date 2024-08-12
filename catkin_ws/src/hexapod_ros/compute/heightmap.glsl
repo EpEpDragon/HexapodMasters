@@ -8,7 +8,8 @@ layout(location = 1) uniform vec4 camera_quat;
 layout(location = 2) uniform int temporal_i;
 
 // CPU Shared Buffers 
-layout(std430, binding = 0) readonly restrict buffer image { float depth_image[uint(240)][uint(424)]; };
+//layout(std430, binding = 0) readonly restrict buffer image { float depth_image[uint(240)][uint(424)]; };
+layout(std430, binding = 0) readonly restrict buffer image { float depth_image[uint(240)][uint(320)]; };
 layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[256][256]; };
 
 // Temporal average buffer
@@ -22,10 +23,15 @@ layout(std430, binding = 1) volatile buffer sdf { float sdf_buffer[256][256]; };
 // const float CX = (RES_Y-1) / 2;
 // const float CY = (RES_X-1) / 2;
 
-const float FX = 242.381683349609;
-const float FY = FX;
-const float CX = 241.763366699219;
-const float CY = 132.375762939453;
+//const float FX = 242.381683349609;
+//const float FY = FX;
+//const float CX = 241.763366699219;
+//const float CY = 132.375762939453;
+
+const float FX = 603.866088867188/2;
+const float FY = 603.895080566406/2;
+const float CX = 313.156494140625/2;
+const float CY = 253.278518676758/2;
 
 
 const float ZFAR = 7.4;
