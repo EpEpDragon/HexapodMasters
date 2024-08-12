@@ -49,9 +49,9 @@
 
     </include>
     
-    <!-- ORB SLAM -->
+    <!-- ORB SLAM 
     <node pkg = "ORB_SLAM3" type = "RGBD" name = "RGBDSLAM"
 	args="$(arg orbslam_root)/../../../Vocabulary/ORBvoc.txt $(arg orbslam_root)/../../../Examples/RGB-D/RealSense_D435i.yaml" output="screen">
     </node>
-
+-->
 </launch>

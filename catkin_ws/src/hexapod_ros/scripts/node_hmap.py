@@ -15,7 +15,7 @@ RES_X = int(640/2)
 RES_Y = int(480/2)
 
 frame_i = 0
-color_test_file = "./../../../../Results/Color/"
+color_test_file = "/home/sheldon/HexapodMasters/Results/Color/"
 # Get data from RGBD camera and store for use
 class RGBDListener:
     def __init__(self, topic_rgb, topic_d):
@@ -34,8 +34,9 @@ class RGBDListener:
             print(e)
             return
         else:
+            if not cv2.imwrite(color_test_file+str(data.header.stamp)+'.jpeg', self.rgb):
+				print("Save error")
             self.rgb = cv2.resize(self.rgb, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
-            cv2.imwrite(color_test_file+str(data.header.stamp)+'.jpeg', self.rgb)
             self.rgb_ready = True
             # cv2.imshow('Color', (self.rgb[:,:,::-1]).astype(np.uint8))
             # cv2.waitKey(1)
