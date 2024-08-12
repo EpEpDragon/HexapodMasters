@@ -3,6 +3,7 @@ import rospy
 
 from rospy.numpy_msg import numpy_msg
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import PoseStamped
 
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
@@ -17,17 +18,19 @@ RES_X = int(640/2)
 RES_Y = int(480/2)
 
 frame_i = 0
-test_file = os.path.join(rospy.get_param("camera_pitch_offset"),'..','..','..','Results')
-color_test_file = os.path.join(test_file,'Color')
-depth_test_file = os.path.join(test_file,'Depth')
-hmap_test_file = os.path.join(test_file,'Hmap')
-pose_file = os.paht.join(test_file,'PoseData.csv')
+test_file = os.path.join(rospy.get_param("pkg_root"),'..','..','..','Results')
+color_test_file = os.path.join(test_file,'Color','')
+depth_test_file = os.path.join(test_file,'Depth','')
+hmap_test_file = os.path.join(test_file,'Hmap','')
+pose_file = os.path.join(test_file,'PoseData.csv')
+
 # Get data from RGBD camera and store for use
 class RGBDListener:
-    def __init__(self, topic_rgb, topic_d):
+    def __init__(self, topic_rgb, topic_d, topic_pose):
         self.bridge = CvBridge()
         self.rgb_sub = rospy.Subscriber(topic_rgb, Image, self.color_callback)
         self.d_sub = rospy.Subscriber(topic_d, Image, self.depth_callback)
+        self.pose_sub = rospy.Subscriber(topic_pose,PoseStamped,self.pose_callback)
         self.rgb = 0
         self.d = 0
         self.rgb_ready = False
@@ -61,7 +64,7 @@ class RGBDListener:
             if not cv2.imwrite(depth_test_file+str(data.header.stamp)+'.jpeg', self.d):
                 print("Save depth error")
             self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
-            self.d_stamp = data.header.d
+            self.d_stamp = data.header.stamp
             self.d_ready = True
             # rospy.loginfo({np.max(self.d)})
             # cv2.imshow('Depth', cm.jet(self.d / 10))
@@ -70,7 +73,7 @@ class RGBDListener:
     def pose_callback(self, data):
         self.pose = data.pose
         # Write pose data
-        with open(pose_file, 'a', newline='') as csvfile:
+        with open(pose_file, 'a') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow([data.header.stamp, self.pose.position.x, self.pose.position.y, self.pose.position.z,
                              self.pose.orientation.x, self.pose.orientation.y, self.pose.orientation.z, self.pose.orientation.w])
@@ -95,7 +98,7 @@ def run():
     pub_d = rospy.Publisher('d_data', Image, queue_size=10)
     pub_hmap = rospy.Publisher('hmap_data', Image, queue_size=10)
     
-    rgbd_in = RGBDListener('/camera/color/image_raw', '/camera/aligned_depth_to_color/image_raw')
+    rgbd_in = RGBDListener('/camera/color/image_raw', '/camera/aligned_depth_to_color/image_raw', 'orb_pose')
 
     rate = rospy.Rate(15)
     # Camera tilt angle
