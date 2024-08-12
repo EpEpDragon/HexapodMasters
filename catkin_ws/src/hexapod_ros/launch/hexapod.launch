@@ -4,8 +4,13 @@
 
     
     <!-- Camera Parameters -->
+
     <arg name = "width"     default="424"/>
     <arg name = "height"    default="240"/>
+
+<!--    <arg name = "width"     default="640"/>
+   <arg name = "height"    default="480"/>
+--> 
     <arg name = "fps"       default="30"/>
     <arg name = "exposure"  default="2000"/>
     <arg name = "camera_pitch_offset"    default="23"/>
@@ -22,9 +27,10 @@
     <node pkg = "hexapod_ros" type = "node_movement.py" name = "hexapod_movement" output="screen"> </node>  
 
     <!-- Map Generation -->
-    <node pkg = "hexapod_ros" type = "node_hmap.py" name = "hexapod_hmap" output="screen"> </node>  
+        <node pkg = "hexapod_ros" type = "node_hmap.py" name = "hexapod_hmap" output="screen"> </node>  
         <param name = "pkg_root" value = '$(arg pkg_root)'/>
         <param name = "camera_pitch_offset" value = '$(arg camera_pitch_offset)'/>
+
 
     <!-- Camera -->
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
@@ -41,15 +47,17 @@
         </rosparam>
         <!-- <arg name="stereo_module/exposure/1"  default="$(arg exposure)"/> -->
 
+<!-- Align is slow for some reason...-->
         <arg name="align_depth"     value="true" /> 
-        <arg name="enable_sync"     value="true" /> 
+<!--        <arg name="enable_sync"     value="true" /> -->
         <arg name="enable_color"    value="true" /> 
         <arg name="enable_depth"    value="true" />
+
     </include>
     
-    <!-- ORB SLAM -->
+    <!-- ORB SLAM 
     <node pkg = "ORB_SLAM3" type = "RGBD" name = "RGBDSLAM"
 	args="$(arg orbslam_root)/../../../Vocabulary/ORBvoc.txt $(arg orbslam_root)/../../../Examples/RGB-D/RealSense_D435i.yaml" output="screen">
-    </node>
+    </node>-->
 
 </launch>
