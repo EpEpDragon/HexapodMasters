@@ -14,7 +14,8 @@ import cv2
 RES_X = int(640/2)
 RES_Y = int(480/2)
 
-
+frame_i = 0
+color_test_file = "./../../../../Results/Color/"
 # Get data from RGBD camera and store for use
 class RGBDListener:
     def __init__(self, topic_rgb, topic_d):
@@ -29,27 +30,28 @@ class RGBDListener:
     def color_callback(self, data):
         try:
             self.rgb = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.uint8)
-            self.rgb = cv2.resize(self.rgb, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
-            self.rgb_ready = True
-            # cv2.imshow('Color', (self.rgb[:,:,::-1]).astype(np.uint8))
-            # cv2.waitKey(1)
-        
         except CvBridgeError as e:
             print(e)
             return
+        else:
+            self.rgb = cv2.resize(self.rgb, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
+            cv2.imwrite(color_test_file+str(data.header.stamp)+'.jpeg', self.rgb)
+            self.rgb_ready = True
+            # cv2.imshow('Color', (self.rgb[:,:,::-1]).astype(np.uint8))
+            # cv2.waitKey(1)
 
     def depth_callback(self, data):
         try:
             self.d = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.float32) / 10.0
+        except CvBridgeError as e:
+            print(e)
+            return
+        else:
             self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             self.d_ready = True
             # rospy.loginfo({np.max(self.d)})
             # cv2.imshow('Depth', cm.jet(self.d / 10))
             # cv2.waitKey(1)
-            
-        except CvBridgeError as e:
-            print(e)
-            return
 
     
 def run():

@@ -1,23 +1,17 @@
 <launch>
     <arg name = "pkg_root"  default="$(find hexapod_ros)"/>
     <arg name = "orbslam_root"  default="$(find ORB_SLAM3)"/>
-
     
     <!-- Camera Parameters -->
-<!--
-    <arg name = "width"     default="424"/>
-    <arg name = "height"    default="240"/>
---> 
     <arg name = "width"     default="640"/>
-   <arg name = "height"    default="480"/>
+    <arg name = "height"    default="480"/>
 
     <arg name = "fps"       default="30"/>
     <arg name = "exposure"  default="2000"/>
     <arg name = "camera_pitch_offset"    default="30"/>
-    <!-- Serial Port -->
-    <arg name="port" default="/dev/Arduino_port"/>
 
     <!-- Serial Comms -->
+    <arg name="port" default="/dev/Arduino_port"/>
     <node pkg ="rosserial_python" type="serial_node.py" name="hexapod_serial_node" output="screen">
         <param name="port" value="$(arg port)"/>
         <param name="baud" value="115200"/>
