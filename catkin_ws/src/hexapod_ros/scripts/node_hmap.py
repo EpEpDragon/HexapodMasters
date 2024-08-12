@@ -16,6 +16,8 @@ RES_Y = int(480/2)
 
 frame_i = 0
 color_test_file = "/home/sheldon/HexapodMasters/Results/Color/"
+depth_test_file = "/home/sheldon/HexapodMasters/Results/Depth/"
+hmap_test_file = "/home/sheldon/HexapodMasters/Results/Hmap/"
 # Get data from RGBD camera and store for use
 class RGBDListener:
     def __init__(self, topic_rgb, topic_d):
@@ -26,6 +28,7 @@ class RGBDListener:
         self.d = 0
         self.rgb_ready = False
         self.d_ready = False
+        self.d_stamp = 0
         
     def color_callback(self, data):
         try:
@@ -34,8 +37,9 @@ class RGBDListener:
             print(e)
             return
         else:
+            # Save Color
             if not cv2.imwrite(color_test_file+str(data.header.stamp)+'.jpeg', self.rgb):
-				print("Save error")
+                print("Save color error")
             self.rgb = cv2.resize(self.rgb, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             self.rgb_ready = True
             # cv2.imshow('Color', (self.rgb[:,:,::-1]).astype(np.uint8))
@@ -48,7 +52,11 @@ class RGBDListener:
             print(e)
             return
         else:
+            # Save Depth
+            if not cv2.imwrite(depth_test_file+str(data.header.stamp)+'.jpeg', self.d):
+                print("Save depth error")
             self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
+            self.d_stamp = data.header.d
             self.d_ready = True
             # rospy.loginfo({np.max(self.d)})
             # cv2.imshow('Depth', cm.jet(self.d / 10))
@@ -87,6 +95,10 @@ def run():
         if rgbd_in.d_ready:
             # Build heightmap
             perception.update(np.array([0,0,4]), np.array([0,0,0]), np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array([1,0,0,0]), rgbd_in.d)
+            
+            # Save Hmap
+            if not cv2.imwrite(hmap_test_file+str(rgbd_in.d_stamp)+'.jpeg', perception.hmap_buffer):
+                print("Save hmap error")
             
             # Publish downsampled depth and heightmap
             pub_hmap.publish(bridge.cv2_to_imgmsg(perception.hmap_buffer))
