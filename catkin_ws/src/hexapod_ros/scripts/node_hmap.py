@@ -75,6 +75,8 @@ class RGBDListener:
             writer.writerow([data.header.stamp, self.pose.position.x, self.pose.position.y, self.pose.position.z,
                              self.pose.orientation.x, self.pose.orientation.y, self.pose.orientation.z, self.pose.orientation.w])
             csvfile.close()
+            print("Position:", self.pose.position.x, self.pose.position.y, self.pose.position.z,
+                  "Rotation:", self.pose.orientation.x, self.pose.orientation.y, self.pose.orientation.z, self.pose.orientation.w)
 
 def run():
     bridge = CvBridge()
