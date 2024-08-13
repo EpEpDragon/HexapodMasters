@@ -10,14 +10,18 @@ import numpy as np
 from perception import Perception
 
 import cv2
+import csv
+import os
 
 RES_X = int(640/2)
 RES_Y = int(480/2)
 
 frame_i = 0
-color_test_file = "/home/sheldon/HexapodMasters/Results/Color/"
-depth_test_file = "/home/sheldon/HexapodMasters/Results/Depth/"
-hmap_test_file = "/home/sheldon/HexapodMasters/Results/Hmap/"
+test_file = os.path.join(rospy.get_param("camera_pitch_offset"),'..','..','..','Results')
+color_test_file = os.path.join(test_file,'Color')
+depth_test_file = os.path.join(test_file,'Depth')
+hmap_test_file = os.path.join(test_file,'Hmap')
+pose_file = os.paht.join(test_file,'PoseData.csv')
 # Get data from RGBD camera and store for use
 class RGBDListener:
     def __init__(self, topic_rgb, topic_d):
@@ -29,6 +33,7 @@ class RGBDListener:
         self.rgb_ready = False
         self.d_ready = False
         self.d_stamp = 0
+        open(pose_file,'w').close()
         
     def color_callback(self, data):
         try:
@@ -62,7 +67,15 @@ class RGBDListener:
             # cv2.imshow('Depth', cm.jet(self.d / 10))
             # cv2.waitKey(1)
 
-    
+    def pose_callback(self, data):
+        self.pose = data.pose
+        # Write pose data
+        with open(pose_file, 'a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow([data.header.stamp, self.pose.position.x, self.pose.position.y, self.pose.position.z,
+                             self.pose.orientation.x, self.pose.orientation.y, self.pose.orientation.z, self.pose.orientation.w])
+            csvfile.close()
+
 def run():
     bridge = CvBridge()
     rospy.init_node('hexapod_heightmap_generate')
