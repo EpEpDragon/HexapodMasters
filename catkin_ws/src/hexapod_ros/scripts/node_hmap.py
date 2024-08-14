@@ -34,9 +34,11 @@ class RGBDListener:
         rospy.Subscriber(topic_rgb, Image, self.color_callback)
         
         # Synchronise depth and pose callback
-        d_sub = message_filters.Subscriber(topic_d, Image, self.depth_callback)
-        pose_sub = message_filters.Subscriber(topic_pose,PoseStamped,self.pose_callback)
-        message_filters.TimeSynchronizer([d_sub, pose_sub], self.sync_callback)
+        d_sub = message_filters.Subscriber(topic_d, Image)
+        pose_sub = message_filters.Subscriber(topic_pose, PoseStamped)
+        ts = message_filters.TimeSynchronizer([d_sub, pose_sub], 100)
+        ts.registerCallback(self.sync_callback)
+		
 
         self.rgb = 0
         self.d = 0
@@ -63,10 +65,9 @@ class RGBDListener:
             # cv2.imshow('Color', (self.rgb[:,:,::-1]).astype(np.uint8))
             # cv2.waitKey(1)
 
-    def sync_callback(self, data):
-        print("Sync!")
-        self.depth_callback(data)
-        self.pose_callback(data)
+    def sync_callback(self, depth, pose):
+        self.depth_callback(depth)
+        self.pose_callback(pose)
 
     def depth_callback(self, data):
         try:
@@ -80,7 +81,7 @@ class RGBDListener:
                 print("Save depth error")
             self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             # self.depth_queue.append([data.header.stamp, cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)])
-            # self.d_stamp = data.header.stamp
+            self.d_stamp = data.header.stamp
             self.d_ready = True
             # rospy.loginfo({np.max(self.d)})
             # cv2.imshow('Depth', cm.jet(self.d / 10))
