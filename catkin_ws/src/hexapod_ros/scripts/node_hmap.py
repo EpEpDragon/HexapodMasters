@@ -74,16 +74,15 @@ class RGBDListener:
             # cv2.waitKey(1)
 
     def pose_callback(self, data):
-        # self.pose = data.pose
         self.pose_queue.append([data.header.stamp, data.pose])
         # Write pose data
         with open(pose_file, 'a') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow([data.header.stamp, self.pose.position.x, self.pose.position.y, self.pose.position.z,
-                             self.pose.orientation.x, self.pose.orientation.y, self.pose.orientation.z, self.pose.orientation.w])
+            writer.writerow([data.header.stamp, data.pose.position.x, data.pose.position.y, data.pose.position.z,
+                             data.pose.orientation.x, data.pose.orientation.y, data.pose.orientation.z, data.pose.orientation.w])
             csvfile.close()
-            print("Position:", self.pose.position.x, self.pose.position.y, self.pose.position.z,
-                  "Rotation:", self.pose.orientation.x, self.pose.orientation.y, self.pose.orientation.z, self.pose.orientation.w)
+            print("Position:", data.pose.position.x, data.pose.position.y, data.pose.position.z,
+                  "Rotation:", data.pose.orientation.x, data.pose.orientation.y, data.pose.orientation.z, data.pose.orientation.w)
 
 def run():
     bridge = CvBridge()
