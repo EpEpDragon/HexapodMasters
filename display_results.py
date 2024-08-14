@@ -4,6 +4,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
+from catkin_ws.src.hexapod_ros.scripts.roboMath import rotate
 
 
 with open(os.path.join("Results", "PoseData.csv"),'r') as file:
@@ -32,8 +33,9 @@ plt.ion()
 plt.show()
 
 
-
+angle = np.deg2rad(-17)
 path = "Results/Color"
+path_hmap = "Results/Hmap"
 files = sorted(os.listdir(path))
 frame_time_initial = int(os.path.splitext(files[0])[0])/1000_000_000.0
 x = np.linspace(0,len(files),len(files))
@@ -58,7 +60,11 @@ for i in range(len(files)-1):
     if frametimes[i] >= 25.0:
         cv2.imshow("Color", cv2.imread(os.path.join(path, files[i]))[:,:,[2,1,0]])
         if frametimes[i] >= (int(pose_line[0])-int(os.path.splitext(files[0])[0]))/1_000_000_000 and not pose_end:
+            hmap=cv2.imread(os.path.join(path_hmap, pose_line[0])+".jpeg")
+            if hmap is not None:
+                cv2.imshow("Hmap", hmap*100)
             pose_data[pose_i] = pose_line
+            pose_data[pose_i][1:4] = rotate(np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array(pose_line[1:4],dtype=np.float))
             try:
                 pose_line = next(csvfile)
             except StopIteration:
@@ -80,4 +86,19 @@ for i in range(len(files)-1):
         cv2.waitKey(1)
         time.sleep(delta_frametimes[i])
 cv2.imshow("Color", cv2.imread(os.path.join(path, files[-1]))[:,:,[2,1,0]])
+
+# while True:
+#     angle += np.deg2rad(1)
+#     ax[0].plot(-pose_data[:, 1], pose_data[:, 3], color='black')
+#     ax[0].plot(-pose_data[:, 1], pose_data[:, 3],'o', color='black')
+#     ax[0].plot(-pose_data[-1, 1], pose_data[-1, 3],'o', color='red')
+#     ax[0].plot(-pose_data[0, 1], pose_data[0, 3],'o', color='blue')
+#     h = -pose_data[:, 2]
+#     ax[1].plot(-pose_data[:, 1], h, color='black')
+#     ax[1].plot(-pose_data[:, 1], h, 'o', color='black')
+#     ax[1].plot(-pose_data[-1, 1], -pose_data[-1, 2], 'o', color='red')
+#     ax[1].plot(-pose_data[0, 1], -pose_data[0, 2], 'o', color='blue')
+#     plt.draw()
+
+
 input("Enter end")
