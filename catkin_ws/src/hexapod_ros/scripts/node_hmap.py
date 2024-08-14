@@ -25,9 +25,6 @@ depth_test_file = os.path.join(test_file,'Depth','')
 hmap_test_file = os.path.join(test_file,'Hmap','')
 pose_file = os.path.join(test_file,'PoseData.csv')
 
-angle = 0
-perception = None
-
 # Get data from RGBD camera and store for use
 class RGBDListener:
     def __init__(self, topic_rgb, topic_d, topic_pose):
@@ -114,7 +111,10 @@ class RGBDListener:
 def run():
     bridge = CvBridge()
     rospy.init_node('hexapod_heightmap_generate')
+    global angle
     angle = np.deg2rad(rospy.get_param("camera_pitch_offset"))
+    
+    global perception
     perception = Perception(int(RES_Y*RES_X))
 
     rospy.loginfo("Initialiseing perception module...")
