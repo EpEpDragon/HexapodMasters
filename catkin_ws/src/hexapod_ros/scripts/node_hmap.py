@@ -9,6 +9,7 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 
 from perception import Perception
+from collections import deque
 
 import cv2
 import csv
@@ -17,7 +18,6 @@ import os
 RES_X = int(640/2)
 RES_Y = int(480/2)
 
-frame_i = 0
 test_file = os.path.join(rospy.get_param("pkg_root"),'..','..','..','Results')
 color_test_file = os.path.join(test_file,'Color','')
 depth_test_file = os.path.join(test_file,'Depth','')
@@ -36,6 +36,8 @@ class RGBDListener:
         self.rgb_ready = False
         self.d_ready = False
         self.d_stamp = 0
+        self.depth_queue = deque()
+        self.pose_queue = deque()
         open(pose_file,'w').close()
         
     def color_callback(self, data):
@@ -63,15 +65,17 @@ class RGBDListener:
             # Save Depth
             if not cv2.imwrite(depth_test_file+str(data.header.stamp)+'.jpeg', self.d):
                 print("Save depth error")
-            self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
-            self.d_stamp = data.header.stamp
+            # self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
+            self.depth_queue.append([data.header.stamp, cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)])
+            # self.d_stamp = data.header.stamp
             self.d_ready = True
             # rospy.loginfo({np.max(self.d)})
             # cv2.imshow('Depth', cm.jet(self.d / 10))
             # cv2.waitKey(1)
 
     def pose_callback(self, data):
-        self.pose = data.pose
+        # self.pose = data.pose
+        self.pose_queue.append([data.header.stamp, data.pose])
         # Write pose data
         with open(pose_file, 'a') as csvfile:
             writer = csv.writer(csvfile)
@@ -110,18 +114,21 @@ def run():
             # Publish  downsampled rgb
             pass
             pub_rgb.publish(bridge.cv2_to_imgmsg(rgbd_in.rgb))
-        if rgbd_in.d_ready:
-            # Build heightmap
-            perception.update(np.array([0,0,4]), np.array([0,0,0]), np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array([1,0,0,0]), rgbd_in.d)
-            
-            # Save Hmap
-            if not cv2.imwrite(hmap_test_file+str(rgbd_in.d_stamp)+'.jpeg', perception.hmap_buffer):
-                print("Save hmap error")
-            
-            # Publish downsampled depth and heightmap
-            pub_hmap.publish(bridge.cv2_to_imgmsg(perception.hmap_buffer))
-            pub_d.publish(bridge.cv2_to_imgmsg(rgbd_in.d))
-            # print(rospy.Time.now(), "push hmap")
+        if len(rgbd_in.depth_queue) != 0 and len(rgbd_in.pose_queue) != 0:
+            # Wait for pose to sync with depth frame
+            if rgbd_in.pose_queue[0][0] >= rgbd_in.depth_queue[0][0]:
+                # Build heightmap
+                rgbd_in.pose_queue.popleft()
+                perception.update(np.array([0,0,4]), np.array([0,0,0]), np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array([1,0,0,0]), rgbd_in.depth_queue.popleft())
+                
+                # Save Hmap
+                if not cv2.imwrite(hmap_test_file+str(rgbd_in.d_stamp)+'.jpeg', perception.hmap_buffer):
+                    print("Save hmap error")
+                
+                # Publish downsampled depth and heightmap
+                pub_hmap.publish(bridge.cv2_to_imgmsg(perception.hmap_buffer))
+                pub_d.publish(bridge.cv2_to_imgmsg(rgbd_in.d))
+                # print(rospy.Time.now(), "push hmap")
 
         rate.sleep()
         td = (rospy.Time.now()-t)/1000000
