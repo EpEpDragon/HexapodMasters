@@ -27,7 +27,7 @@ pose_file = os.path.join(test_file,'PoseData.csv')
 
 # Get data from RGBD camera and store for use
 class RGBDListener:
-    def __init__(self, topic_rgb, topic_d, topic_pose):
+    def __init__(self, topic_rgb, topic_d, topic_pose, perception):
         self.bridge = CvBridge()
         
         # Color sub
@@ -44,6 +44,7 @@ class RGBDListener:
         self.d = 0
         self.rgb_ready = False
         self.d_ready = False
+        self.building_hmap = False
         self.d_stamp = 0
         self.pose = 0
         # self.depth_queue = deque()
@@ -66,17 +67,12 @@ class RGBDListener:
             # cv2.waitKey(1)
 
     def sync_callback(self, depth, pose):
-        if perception:
-            print("Sync!")
-            self.depth_callback(depth)
-            self.pose_callback(pose)
-
-            # Build heightmap
-            perception.update(np.array([0,0,4]), np.array([0,0,0]), np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array([1,0,0,0]), self.d)
-            
-            # Save Hmap
-            if not cv2.imwrite(hmap_test_file+str(self.d_stamp)+'.jpeg', perception.hmap_buffer):
-                print("Save hmap error")
+        while self.building_hmap:
+            pass
+        print("Sync!")
+        self.depth_callback(depth)
+        self.pose_callback(pose)
+        self.building_hmap = True
 
     def depth_callback(self, data):
         try:
@@ -111,12 +107,8 @@ class RGBDListener:
 def run():
     bridge = CvBridge()
     rospy.init_node('hexapod_heightmap_generate')
-    global angle
-    angle = np.deg2rad(rospy.get_param("camera_pitch_offset"))
-    
-    global perception
     perception = Perception(int(RES_Y*RES_X))
-
+    angle = np.deg2rad(rospy.get_param("camera_pitch_offset"))
     rospy.loginfo("Initialiseing perception module...")
 
     if perception:
@@ -129,7 +121,7 @@ def run():
     pub_d = rospy.Publisher('d_data', Image, queue_size=10)
     pub_hmap = rospy.Publisher('hmap_data', Image, queue_size=10)
     
-    rgbd_in = RGBDListener('/camera/color/image_raw', '/camera/aligned_depth_to_color/image_raw', 'orb_pose')
+    rgbd_in = RGBDListener('/camera/color/image_raw', '/camera/aligned_depth_to_color/image_raw', 'orb_pose', perception)
 
     rate = rospy.Rate(15)
     # Camera tilt angle
@@ -143,7 +135,14 @@ def run():
             pub_hmap.publish(bridge.cv2_to_imgmsg(perception.hmap_buffer))
             pub_d.publish(bridge.cv2_to_imgmsg(rgbd_in.d))
             # print(rospy.Time.now(), "push hmap")
-
+        if rgbd_in.building_hmap:
+            # Build heightmap
+            perception.update(np.array([0,0,4]), np.array([0,0,0]), np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array([1,0,0,0]), rgbd_in.d)
+                
+            # Save Hmap
+            if not cv2.imwrite(hmap_test_file+str(rgbd_in.d_stamp)+'.jpeg', perception.hmap_buffer):
+                print("Save hmap error")
+            rgbd_in.building_hmap = False
         rate.sleep()
         td = (rospy.Time.now()-t)/1000000
         # print(td)
