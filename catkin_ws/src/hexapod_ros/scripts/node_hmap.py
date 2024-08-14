@@ -25,8 +25,8 @@ depth_test_file = os.path.join(test_file,'Depth','')
 hmap_test_file = os.path.join(test_file,'Hmap','')
 pose_file = os.path.join(test_file,'PoseData.csv')
 
-angle = np.deg2rad(rospy.get_param("camera_pitch_offset"))
-perception = Perception(int(RES_Y*RES_X))
+angle = 0
+perception = None
 
 # Get data from RGBD camera and store for use
 class RGBDListener:
@@ -69,15 +69,17 @@ class RGBDListener:
             # cv2.waitKey(1)
 
     def sync_callback(self, depth, pose):
-        self.depth_callback(depth)
-        self.pose_callback(pose)
+        if perception:
+            print("Sync!")
+            self.depth_callback(depth)
+            self.pose_callback(pose)
 
-        # Build heightmap
-        perception.update(np.array([0,0,4]), np.array([0,0,0]), np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array([1,0,0,0]), self.d)
-        
-        # Save Hmap
-        if not cv2.imwrite(hmap_test_file+str(self.d_stamp)+'.jpeg', perception.hmap_buffer):
-            print("Save hmap error")
+            # Build heightmap
+            perception.update(np.array([0,0,4]), np.array([0,0,0]), np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array([1,0,0,0]), self.d)
+            
+            # Save Hmap
+            if not cv2.imwrite(hmap_test_file+str(self.d_stamp)+'.jpeg', perception.hmap_buffer):
+                print("Save hmap error")
 
     def depth_callback(self, data):
         try:
@@ -112,6 +114,8 @@ class RGBDListener:
 def run():
     bridge = CvBridge()
     rospy.init_node('hexapod_heightmap_generate')
+    angle = np.deg2rad(rospy.get_param("camera_pitch_offset"))
+    perception = Perception(int(RES_Y*RES_X))
 
     rospy.loginfo("Initialiseing perception module...")
 
