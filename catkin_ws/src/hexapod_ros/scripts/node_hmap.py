@@ -25,6 +25,9 @@ depth_test_file = os.path.join(test_file,'Depth','')
 hmap_test_file = os.path.join(test_file,'Hmap','')
 pose_file = os.path.join(test_file,'PoseData.csv')
 
+angle = np.deg2rad(rospy.get_param("camera_pitch_offset"))
+perception = Perception(int(RES_Y*RES_X))
+
 # Get data from RGBD camera and store for use
 class RGBDListener:
     def __init__(self, topic_rgb, topic_d, topic_pose):
@@ -69,6 +72,13 @@ class RGBDListener:
         self.depth_callback(depth)
         self.pose_callback(pose)
 
+        # Build heightmap
+        perception.update(np.array([0,0,4]), np.array([0,0,0]), np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array([1,0,0,0]), self.d)
+        
+        # Save Hmap
+        if not cv2.imwrite(hmap_test_file+str(self.d_stamp)+'.jpeg', perception.hmap_buffer):
+            print("Save hmap error")
+
     def depth_callback(self, data):
         try:
             self.d = self.bridge.imgmsg_to_cv2(data, data.encoding).astype(np.float32) / 10.0
@@ -104,7 +114,6 @@ def run():
     rospy.init_node('hexapod_heightmap_generate')
 
     rospy.loginfo("Initialiseing perception module...")
-    perception = Perception(int(RES_Y*RES_X))
 
     if perception:
         rospy.loginfo("Initialised!")
@@ -120,22 +129,12 @@ def run():
 
     rate = rospy.Rate(15)
     # Camera tilt angle
-    angle = np.deg2rad(rospy.get_param("camera_pitch_offset"))
     while not rospy.is_shutdown():
         t = rospy.Time.now()
-
         if rgbd_in.rgb_ready:
             # Publish  downsampled rgb
-            pass
             pub_rgb.publish(bridge.cv2_to_imgmsg(rgbd_in.rgb))
         if rgbd_in.d_ready:
-            # Build heightmap
-            perception.update(np.array([0,0,4]), np.array([0,0,0]), np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array([1,0,0,0]), rgbd_in.d)
-            
-            # Save Hmap
-            if not cv2.imwrite(hmap_test_file+str(rgbd_in.d_stamp)+'.jpeg', perception.hmap_buffer):
-                print("Save hmap error")
-            
             # Publish downsampled depth and heightmap
             pub_hmap.publish(bridge.cv2_to_imgmsg(perception.hmap_buffer))
             pub_d.publish(bridge.cv2_to_imgmsg(rgbd_in.d))
@@ -144,7 +143,6 @@ def run():
         rate.sleep()
         td = (rospy.Time.now()-t)/1000000
         # print(td)
-
 
 if __name__ == '__main__':
     try:
