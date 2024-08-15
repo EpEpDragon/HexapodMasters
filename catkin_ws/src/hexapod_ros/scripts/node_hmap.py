@@ -5,7 +5,7 @@ from rospy.numpy_msg import numpy_msg
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import PoseStamped
 import message_filters
-
+from roboMath import rotate
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 
@@ -46,7 +46,8 @@ class RGBDListener:
         self.d_ready = False
         self.building_hmap = False
         self.d_stamp = 0
-        self.pose = 0
+        self.position = 0
+        self.orb_tilt_quat = np.array([0, np.sin(np.deg2rad(17)), 0, np.cos(np.deg2rad(17))])
         # self.depth_queue = deque()
         # self.pose_queue = deque()
         open(pose_file,'w').close()
@@ -93,12 +94,12 @@ class RGBDListener:
             # cv2.waitKey(1)
 
     def pose_callback(self, data):
-        self.pose = data.pose
+        self.position = rotate(self.orb_tilt_quat, np.array(data.pose.position.z, -data.pose.position.x, -data.pose.position.y))
         # self.pose_queue.append([data.header.stamp, data.pose])
         # Write pose data
         with open(pose_file, 'a') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow([data.header.stamp, data.pose.position.x, data.pose.position.y, data.pose.position.z,
+            writer.writerow([data.header.stamp, self.position[0], self.position[1], self.position[2],
                              data.pose.orientation.x, data.pose.orientation.y, data.pose.orientation.z, data.pose.orientation.w])
             csvfile.close()
             #print("Position:", data.pose.position.x, data.pose.position.y, data.pose.position.z,
@@ -109,6 +110,7 @@ def run():
     rospy.init_node('hexapod_heightmap_generate')
     perception = Perception(int(RES_Y*RES_X))
     angle = np.deg2rad(rospy.get_param("camera_pitch_offset"))
+    cam_tilt_quat = np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)])
     rospy.loginfo("Initialiseing perception module...")
 
     if perception:
@@ -137,7 +139,7 @@ def run():
             # print(rospy.Time.now(), "push hmap")
         if rgbd_in.building_hmap:
             # Build heightmap
-            perception.update(np.array([0,0,4]), np.array([0,0,0]), np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array([1,0,0,0]), rgbd_in.d)
+            perception.update(rgbd_in.position + np.array([0,0,35]), cam_tilt_quat, np.array([1,0,0,0]), rgbd_in.d)
                 
             # Save Hmap
             if not cv2.imwrite(hmap_test_file+str(rgbd_in.d_stamp)+'.jpeg', perception.hmap_buffer):

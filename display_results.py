@@ -76,9 +76,9 @@ for i in range(len(files)-1):
                 ax[0].plot(-pose_data[0:pose_i, 1], pose_data[0:pose_i, 3],'o', color='black')
                 ax[0].plot(-pose_data[pose_i-1, 1], pose_data[pose_i-1, 3],'o', color='red')
                 ax[0].plot(-pose_data[0, 1], pose_data[0, 3],'o', color='blue')
-                h = -pose_data[0:pose_i, 2]
-                ax[1].plot(-pose_data[0:pose_i, 1], h, color='black')
-                ax[1].plot(-pose_data[0:pose_i, 1], h, 'o', color='black')
+
+                ax[1].plot(-pose_data[0:pose_i, 1], -pose_data[0:pose_i, 2], color='black')
+                ax[1].plot(-pose_data[0:pose_i, 1], -pose_data[0:pose_i, 2], 'o', color='black')
                 ax[1].plot(-pose_data[pose_i-1, 1], -pose_data[pose_i-1, 2], 'o', color='red')
                 ax[1].plot(-pose_data[0, 1], -pose_data[0, 2], 'o', color='blue')
                 plt.draw()

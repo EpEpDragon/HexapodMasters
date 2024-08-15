@@ -184,10 +184,8 @@ class Perception():
         cv2.waitKey(1)
 
 
-    def update(self, camera_pos, body_pos, camera_quat, body_quat, depth):
+    def update(self, camera_pos, camera_quat, body_quat, depth):
         self.body_quat = body_quat
-        self.hmap_index = global_to_hmap(body_pos)
-        self.position = body_pos%EXTENTS
         self._generate_heightmap(depth, camera_quat, global_to_hmap(camera_pos))
         # self._display_heightmap()
         self.temporal_i = int((self.temporal_i + 1)%4)
