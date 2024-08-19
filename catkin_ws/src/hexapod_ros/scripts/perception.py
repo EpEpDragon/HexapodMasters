@@ -100,7 +100,7 @@ class Perception():
         # glBufferData(GL_SHADER_STORAGE_BUFFER, n_points * 4 * 4, None, GL_DYNAMIC_COPY)
  
  
-    def _generate_heightmap(self, depth, camera_quat, cam_hmap_i):
+    def _generate_heightmap(self, depth, camera_quat, cam_hmap_i, cam_height):
         # Set depth image data
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.glbuffers[0])
         try:        
@@ -125,6 +125,7 @@ class Perception():
         glUniform3i(0, cam_hmap_i[0], cam_hmap_i[1], cam_hmap_i[2])                     # Camera position
         glUniform4f(1, camera_quat[0], camera_quat[1], camera_quat[2], camera_quat[3])  # Camera rotation
         glUniform1i(2, self.temporal_i)
+        glUniform1f(3, cam_height)
         
         glDispatchCompute(int((640/2)/VOXEL_TRACE_INVOCAIONS), int((480/2)/VOXEL_TRACE_INVOCAIONS), 1)
         
@@ -186,7 +187,7 @@ class Perception():
 
     def update(self, camera_pos, camera_quat, body_quat, depth):
         self.body_quat = body_quat
-        self._generate_heightmap(depth, camera_quat, global_to_hmap(camera_pos))
+        self._generate_heightmap(depth, camera_quat, global_to_hmap(camera_pos), camera_pos[2])
         # self._display_heightmap()
         self.temporal_i = int((self.temporal_i + 1)%4)
 

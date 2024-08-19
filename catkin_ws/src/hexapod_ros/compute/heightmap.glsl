@@ -6,6 +6,7 @@ layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 layout(location = 0) uniform ivec3 sdf_index;
 layout(location = 1) uniform vec4 camera_quat;
 layout(location = 2) uniform int temporal_i;
+layout(location = 3) uniform float height;
 
 // CPU Shared Buffers 
 //layout(std430, binding = 0) readonly restrict buffer image { float depth_image[uint(240)][uint(424)]; };
@@ -65,7 +66,7 @@ vec4 compute_point()
     float z = depth_image[i][j] / 10.0;
     
     // Terminate if too close to camera
-    if(z < 0.1){
+    if(z < 3.5){
         return(vec4(0,0,0,2));
     }
 
@@ -100,7 +101,7 @@ void draw_to_height()
         //            temporal_buffer[2][index[0]][index[1]] + 
         //            temporal_buffer[3][index[0]][index[1]]) / 4.0;
 
-        sdf_buffer[index[0]][index[1]] = -point.z + float(sdf_index.z)/DIVISIOINS;
+        sdf_buffer[index[0]][index[1]] = (-point.z + height)*0.1;
     }
 }
 

@@ -28,9 +28,9 @@ void main()
 {
     uint x = gl_GlobalInvocationID.x;
     uint y = gl_GlobalInvocationID.y;
-    // if (HMAP_EXTENTS-sdf_index.x == x || HMAP_EXTENTS-sdf_index.y == y)
-    // {
-    //     sdf_buffer[x][y] = 0.0;
-    // }
-    sdf_buffer[x][y] = 0.0;
+    if (HMAP_EXTENTS-sdf_index.x == x || HMAP_EXTENTS-sdf_index.y == y)
+    {
+        sdf_buffer[x][y] = 0.0;
+    }
+//    sdf_buffer[x][y] = 0.0;
 }

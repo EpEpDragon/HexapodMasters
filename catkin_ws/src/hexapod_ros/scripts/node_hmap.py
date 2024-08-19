@@ -70,7 +70,7 @@ class RGBDListener:
     def sync_callback(self, depth, pose):
         while self.building_hmap:
             pass
-        print("Sync!")
+        #print("Sync!")
         self.depth_callback(depth)
         self.pose_callback(pose)
         self.building_hmap = True
@@ -94,7 +94,7 @@ class RGBDListener:
             # cv2.waitKey(1)
 
     def pose_callback(self, data):
-        self.position = rotate(self.orb_tilt_quat, np.array(data.pose.position.z, -data.pose.position.x, -data.pose.position.y))
+        self.position = rotate(self.orb_tilt_quat, np.array([data.pose.position.z, -data.pose.position.x, -data.pose.position.y]))*10
         # self.pose_queue.append([data.header.stamp, data.pose])
         # Write pose data
         with open(pose_file, 'a') as csvfile:
@@ -134,14 +134,16 @@ def run():
             pub_rgb.publish(bridge.cv2_to_imgmsg(rgbd_in.rgb))
         if rgbd_in.d_ready:
             # Publish downsampled depth and heightmap
-            pub_hmap.publish(bridge.cv2_to_imgmsg(perception.hmap_buffer))
             pub_d.publish(bridge.cv2_to_imgmsg(rgbd_in.d))
             # print(rospy.Time.now(), "push hmap")
         if rgbd_in.building_hmap:
             # Build heightmap
-            perception.update(rgbd_in.position + np.array([0,0,35]), cam_tilt_quat, np.array([1,0,0,0]), rgbd_in.d)
+            print(rgbd_in.position)
+            perception.update(rgbd_in.position[[1,0,2]]*np.array([-1,1,1])+np.array([0,0,4]), cam_tilt_quat, np.array([1,0,0,0]), rgbd_in.d)
+            pub_hmap.publish(bridge.cv2_to_imgmsg(perception.hmap_buffer))
                 
             # Save Hmap
+            print(np.min(perception.hmap_buffer), np.max(perception.hmap_buffer))
             if not cv2.imwrite(hmap_test_file+str(rgbd_in.d_stamp)+'.jpeg', perception.hmap_buffer):
                 print("Save hmap error")
             rgbd_in.building_hmap = False
