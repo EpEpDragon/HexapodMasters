@@ -83,8 +83,7 @@ class RGBDListener:
             return
         else:
             # Save Depth
-            if not cv2.imwrite(depth_test_file+str(data.header.stamp)+'.jpeg', self.d):
-                print("Save depth error")
+            np.save(depth_test_file+str(data.header.stamp)+'.npy', self.d):
             self.d = cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)
             # self.depth_queue.append([data.header.stamp, cv2.resize(self.d, (RES_X, RES_Y), interpolation=cv2.INTER_NEAREST)])
             self.d_stamp = data.header.stamp
@@ -143,9 +142,7 @@ def run():
             pub_hmap.publish(bridge.cv2_to_imgmsg(perception.hmap_buffer))
                 
             # Save Hmap
-            print(np.min(perception.hmap_buffer), np.max(perception.hmap_buffer))
-            if not cv2.imwrite(hmap_test_file+str(rgbd_in.d_stamp)+'.jpeg', perception.hmap_buffer):
-                print("Save hmap error")
+            np.save(hmap_test_file+str(rgbd_in.d_stamp)+'.npy', perception.hmap_buffer):            
             rgbd_in.building_hmap = False
         rate.sleep()
         td = (rospy.Time.now()-t)/1000000
