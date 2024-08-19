@@ -62,9 +62,10 @@ for i in range(len(files)-1):
         if frametimes[i] >= (int(pose_line[0])-int(os.path.splitext(files[0])[0]))/1_000_000_000 and not pose_end:
             hmap=cv2.imread(os.path.join(path_hmap, pose_line[0])+".jpeg")
             if hmap is not None:
-                cv2.imshow("Hmap", hmap*100)
+                print(np.min(hmap), np.max(hmap))
+                cv2.imshow("Hmap", hmap*200)
             pose_data[pose_i] = pose_line
-            pose_data[pose_i][1:4] = rotate(np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array(pose_line[1:4],dtype=np.float))
+            # pose_data[pose_i][1:4] = rotate(np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array(pose_line[1:4],dtype=np.float))
             try:
                 pose_line = next(csvfile)
             except StopIteration:
@@ -72,15 +73,25 @@ for i in range(len(files)-1):
             else:
                 # print(pose_line)
                 pose_i += 1
-                ax[0].plot(-pose_data[0:pose_i, 1], pose_data[0:pose_i, 3], color='black')
-                ax[0].plot(-pose_data[0:pose_i, 1], pose_data[0:pose_i, 3],'o', color='black')
-                ax[0].plot(-pose_data[pose_i-1, 1], pose_data[pose_i-1, 3],'o', color='red')
-                ax[0].plot(-pose_data[0, 1], pose_data[0, 3],'o', color='blue')
+                # ax[0].plot(-pose_data[0:pose_i, 1], pose_data[0:pose_i, 3], color='black')
+                # ax[0].plot(-pose_data[0:pose_i, 1], pose_data[0:pose_i, 3],'o', color='black')
+                # ax[0].plot(-pose_data[pose_i-1, 1], pose_data[pose_i-1, 3],'o', color='red')
+                # ax[0].plot(-pose_data[0, 1], pose_data[0, 3],'o', color='blue')
 
-                ax[1].plot(-pose_data[0:pose_i, 1], -pose_data[0:pose_i, 2], color='black')
-                ax[1].plot(-pose_data[0:pose_i, 1], -pose_data[0:pose_i, 2], 'o', color='black')
-                ax[1].plot(-pose_data[pose_i-1, 1], -pose_data[pose_i-1, 2], 'o', color='red')
-                ax[1].plot(-pose_data[0, 1], -pose_data[0, 2], 'o', color='blue')
+                # ax[1].plot(-pose_data[0:pose_i, 1], -pose_data[0:pose_i, 2], color='black')
+                # ax[1].plot(-pose_data[0:pose_i, 1], -pose_data[0:pose_i, 2], 'o', color='black')
+                # ax[1].plot(-pose_data[pose_i-1, 1], -pose_data[pose_i-1, 2], 'o', color='red')
+                # ax[1].plot(-pose_data[0, 1], -pose_data[0, 2], 'o', color='blue')
+
+                ax[0].plot(pose_data[0:pose_i, 2], pose_data[0:pose_i, 1], color='black')
+                ax[0].plot(pose_data[0:pose_i, 2], pose_data[0:pose_i, 1],'o', color='black')
+                ax[0].plot(pose_data[pose_i-1, 2], pose_data[pose_i-1, 1],'o', color='red')
+                ax[0].plot(pose_data[0, 2], pose_data[0, 1],'o', color='blue')
+
+                ax[1].plot(pose_data[0:pose_i, 2], pose_data[0:pose_i, 3], color='black')
+                ax[1].plot(pose_data[0:pose_i, 2], pose_data[0:pose_i, 3], 'o', color='black')
+                ax[1].plot(pose_data[pose_i-1, 2], pose_data[pose_i-1, 3], 'o', color='red')
+                ax[1].plot(pose_data[0, 2], pose_data[0, 3], 'o', color='blue')
                 plt.draw()
                 plt.pause(0.001)
         cv2.waitKey(1)
