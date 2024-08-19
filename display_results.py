@@ -14,7 +14,8 @@ pose_file = open(os.path.join("Results", "PoseData.csv"),'r')
 csvfile = csv.reader(pose_file)
 pose_line = next(csvfile)
 pose_data = np.zeros((row_count,8))
-fig, ax = plt.subplots(2)
+fig, ax = plt.subplots(2,1)
+plt.figure(1)
 ax[0].xaxis.set_inverted(True)
 ax[1].xaxis.set_inverted(True)
 ax[0].axis('equal')
@@ -24,6 +25,8 @@ ax[0].set(ylabel='Forward Backwards (X)')
 ax[1].set(ylabel='Up Down (Z)')
 plt.gca().set_aspect('equal')
 
+plt.figure(2)
+plt.title("Heightmap")
 
 # ax[0].set_xlim(0.01, -0.2)
 # ax[0].set_ylim(-0.13, 0.02)
@@ -34,20 +37,24 @@ plt.show()
 
 
 angle = np.deg2rad(-17)
-path = "Results/Color"
+
+path_color = "Results/Color"
+path_depth = "Results/Depth"
 path_hmap = "Results/Hmap"
-files = sorted(os.listdir(path))
-frame_time_initial = int(os.path.splitext(files[0])[0])/1000_000_000.0
-x = np.linspace(0,len(files),len(files))
+color_files = sorted(os.listdir(path_color))
+depth_files = sorted(os.listdir(path_depth))
+hmap_files = sorted(os.listdir(path_hmap))
+frame_time_initial = int(os.path.splitext(color_files[0])[0])/1000_000_000.0
+x = np.linspace(0,len(color_files),len(color_files))
 
-time_total = int(os.path.splitext(files[-1])[0])/1000_000_000.0 - frame_time_initial
+time_total = int(os.path.splitext(color_files[-1])[0])/1000_000_000.0 - frame_time_initial
 print(time_total)
-frametimes = np.zeros(len(files))
-delta_frametimes = np.zeros(len(files))
+frametimes = np.zeros(len(color_files))
+delta_frametimes = np.zeros(len(color_files))
 
-for i in range(len(files)-1):
-    frametimes[i] = (int(os.path.splitext(files[i])[0]) - int(os.path.splitext(files[0])[0]))/1_000_000_000
-    delta_frame_time = (int(os.path.splitext(files[i+1])[0]) - int(os.path.splitext(files[i])[0]))/1_000_000_000
+for i in range(len(color_files)-1):
+    frametimes[i] = (int(os.path.splitext(color_files[i])[0]) - int(os.path.splitext(color_files[0])[0]))/1_000_000_000
+    delta_frame_time = (int(os.path.splitext(color_files[i+1])[0]) - int(os.path.splitext(color_files[i])[0]))/1_000_000_000
     delta_frametimes[i] = delta_frame_time
 
 # plt.plot(x, delta_frametimes)
@@ -55,15 +62,38 @@ for i in range(len(files)-1):
 # plt.show()
 pose_i = 0
 pose_end = False
-print((int(pose_line[0])-int(os.path.splitext(files[0])[0]))/1_000_000_000)
-for i in range(len(files)-1):
+i_depth = 0
+depth_frames = []
+hmap_frames = []
+
+for depth_file in depth_files:
+    depth_frames.append(np.load(os.path.join(path_depth,depth_file)))
+
+for hmap_file in hmap_files:
+    hmap_frames.append(np.load(os.path.join(path_hmap,hmap_file)))
+
+print((int(pose_line[0])-int(os.path.splitext(color_files[0])[0]))/1_000_000_000)
+
+for i in range(len(color_files)-1):
+    t_now = time.time()
     if frametimes[i] >= 25.0:
-        cv2.imshow("Color", cv2.imread(os.path.join(path, files[i]))[:,:,[2,1,0]])
-        if frametimes[i] >= (int(pose_line[0])-int(os.path.splitext(files[0])[0]))/1_000_000_000 and not pose_end:
-            hmap=cv2.imread(os.path.join(path_hmap, pose_line[0])+".jpeg")
-            if hmap is not None:
-                print(np.min(hmap), np.max(hmap))
-                cv2.imshow("Hmap", hmap*200)
+        cv2.imshow("Color", cv2.imread(os.path.join(path_color, color_files[i]))[:,:,[2,1,0]])
+        if i_depth < len(depth_frames) and frametimes[i] >= (int(os.path.splitext(depth_files[i_depth])[0]) - int(os.path.splitext(color_files[0])[0]))/1_000_000_000:
+            plt.figure(3)
+            plt.imshow(depth_frames[i_depth])
+            # cv2.imshow("Hmap",depth_frames[i_depth])
+            i_depth += 1
+        if frametimes[i] >= (int(pose_line[0])-int(os.path.splitext(color_files[0])[0]))/1_000_000_000 and not pose_end:
+            hmap_i = hmap_files.index(pose_line[0]+".npy")
+            if hmap_i is not None:
+                hmap = hmap_frames[hmap_i]
+                plt.figure(2)
+                hmap[:5,:5] = 0
+                plt.imshow(np.flip(hmap.transpose(),1),extent=(hmap.shape[0]*0.5, -hmap.shape[0]*0.5, -hmap.shape[1]*0.5, hmap.shape[1]*0.5), cmap='plasma')
+                # cv2.imshow("Hmap", np.flip(hmap.transpose(),1))
+                plt.show()
+                
+                # cv2.imshow("Hmap", hmap)
             pose_data[pose_i] = pose_line
             # pose_data[pose_i][1:4] = rotate(np.array([np.sin(angle)*1, np.sin(angle)*0, np.sin(angle)*0, np.cos(angle)]), np.array(pose_line[1:4],dtype=np.float))
             try:
@@ -93,10 +123,11 @@ for i in range(len(files)-1):
                 ax[1].plot(pose_data[pose_i-1, 2], pose_data[pose_i-1, 3], 'o', color='red')
                 ax[1].plot(pose_data[0, 2], pose_data[0, 3], 'o', color='blue')
                 plt.draw()
-                plt.pause(0.001)
         cv2.waitKey(1)
-        time.sleep(delta_frametimes[i])
-cv2.imshow("Color", cv2.imread(os.path.join(path, files[-1]))[:,:,[2,1,0]])
+        t_delta_true = time.time() - t_now
+        print(t_delta_true, delta_frametimes[i])
+        time.sleep(delta_frametimes[i] - (t_now - time.time()))
+cv2.imshow("Color", cv2.imread(os.path.join(path_color, color_files[-1]))[:,:,[2,1,0]])
 
 # while True:
 #     angle += np.deg2rad(1)
@@ -111,5 +142,6 @@ cv2.imshow("Color", cv2.imread(os.path.join(path, files[-1]))[:,:,[2,1,0]])
 #     ax[1].plot(-pose_data[0, 1], -pose_data[0, 2], 'o', color='blue')
 #     plt.draw()
 
-
+plt.figure(2)
+plt.savefig("myImagePDF.pdf", format="pdf", bbox_inches="tight")
 input("Enter end")
