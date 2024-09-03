@@ -53,12 +53,20 @@ kernel = kernel.reshape((kernel.shape[0],kernel.shape[1],1))
 array = np.array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
 
 SIZE = 16*12
+# SIZE = 256
 # baseimg = cv2.imread("hmap_test2.png").astype(float) / 255
-baseimg = cv2.imread("hmap_test4.png").astype(float) / 255
-baseimg = cv2.resize(baseimg, (SIZE,SIZE))
-baseimg = baseimg*5
+# baseimg = cv2.imread("hmap_test4.png").astype(float) / 255
+# baseimg = cv2.resize(baseimg, (SIZE,SIZE))
+# baseimg = baseimg*5
+baseimg = np.ones((SIZE,SIZE,3))
+load = cv2.resize(np.flip(np.load("Results/Hmap/1724073751545141697.npy").transpose(), axis=1), (SIZE,SIZE))
+baseimg[:,:,0] = load
+baseimg[:,:,1] = load
+baseimg[:,:,2] = load
+# baseimg = np.expand_dims(baseimg, axis=2)
+
 img = np.ones((SIZE,SIZE,3))
-img[:] = baseimg[:]/5.0
+img[:] = baseimg[:]/2.6
 
 def calculate_score(body_pos, foot_pos,x,y):
     global mouseX,mouseY
@@ -83,7 +91,7 @@ def calculate_score(body_pos, foot_pos,x,y):
           -baseimg[(y-1)%img.shape[0], (x+1)%img.shape[1],0] - 2*baseimg[(y)%img.shape[0], (x+1)%img.shape[1],0] - baseimg[(y+1)%img.shape[0], (x+1)%img.shape[1],0])
 
     # print(baseimg.shape)
-    steepness_score = sqrt(Gx*Gx + Gy*Gy)*0.5
+    steepness_score = sqrt(Gx*Gx + Gy*Gy)
 
     # if x < baseimg.shape[0]-1 and y < baseimg.shape[0]-1:
     #     height = baseimg[y,x,0]
@@ -108,7 +116,7 @@ def calculate_score(body_pos, foot_pos,x,y):
 
     mouseX,mouseY = x,y
     # return img[r,c].min()
-    return terrain_proximity_score + steepness_score*0.5
+    return terrain_proximity_score + steepness_score 
 
 def poll_value(event,x,y,flags,param):
     print(img[y,x])
@@ -204,17 +212,19 @@ def calc_points(event,x,y,flags,param):
                     img[r,c] = [0,score,0]
                 else:
                     img[r,c] = [score,score,score]
-        solve_anchor_point(63,48, 0.1)
-        solve_anchor_point(123,57, 0.1)
-        solve_anchor_point(135,100, 0.1)
-        solve_anchor_point(45,100, 0.1)
-        solve_anchor_point(60,152, 0.1)
-        solve_anchor_point(130,140, 0.1)
-        cv2.imwrite("prox_score_test.png", img*255)
+        # solve_anchor_point(x,y,0.1)
+        solve_anchor_point(159,13, 0.1)
+        solve_anchor_point(107,48, 0.1)
+        solve_anchor_point(181,51, 0.1)
+        solve_anchor_point(159,52, 0.1)
+        solve_anchor_point(71,37, 0.1)
+        solve_anchor_point(131,41, 0.1)
+        cv2.imwrite("score_test_hardware_points.png", img*255)
 cv2.setMouseCallback('image',calc_points)
 
 while(1):
     cv2.imshow('image',img)
+    cv2.imwrite("hardware_map.png", baseimg*100)
     k = cv2.waitKey(20) & 0xFF
     if k == 27:
         break
