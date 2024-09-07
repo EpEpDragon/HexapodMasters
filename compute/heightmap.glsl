@@ -67,7 +67,7 @@ vec4 compute_point()
     float x = (j - CX) * z / FX;
     float y = (i - CY) * z / FY;
     // vec3 point = vec3(x,y,z); 
-    vec4 point = vec4((rotate(camera_quat, vec3(-x,y,z)) + vec3(EXTENTS*0.05,EXTENTS*0.5,0)), clip);
+    vec4 point = vec4((rotate(camera_quat, vec3(-x,y,z)) + vec3(EXTENTS*0.5,EXTENTS*0.5,0)), clip);
     point[0] *= DIVISIOINS;
     point[1] *= DIVISIOINS;
     return point;
