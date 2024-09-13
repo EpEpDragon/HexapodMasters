@@ -6,6 +6,28 @@ import matplotlib.pyplot as plt
 import csv
 from catkin_ws.src.hexapod_ros.scripts.roboMath import rotate
 
+def euler_from_quaternion(x, y, z, w):
+        """
+        Convert a quaternion into euler angles (roll, pitch, yaw)
+        roll is rotation around x in radians (counterclockwise)
+        pitch is rotation around y in radians (counterclockwise)
+        yaw is rotation around z in radians (counterclockwise)
+        """
+        t0 = +2.0 * (w * x + y * z)
+        t1 = +1.0 - 2.0 * (x * x + y * y)
+        roll_x = np.arctan2(t0, t1)
+
+        t2 = +2.0 * (w * y - z * x)
+        t2 = +1.0 if t2 > +1.0 else t2
+        t2 = -1.0 if t2 < -1.0 else t2
+        pitch_y = np.arcsin(t2)
+     
+        t3 = +2.0 * (w * z + x * y)
+        t4 = +1.0 - 2.0 * (y * y + z * z)
+        yaw_z = np.arctan2(t3, t4)
+     
+        return roll_x, pitch_y, yaw_z # in radians
+
 cm = 1/2.54
 textwidth = 13.98611*cm
 
@@ -24,15 +46,16 @@ pose_file = open(os.path.join("Results", "PoseData.csv"),'r')
 csvfile = csv.reader(pose_file)
 pose_line = next(csvfile)
 pose_data = np.zeros((row_count,8))
-fig, ax = plt.subplots(2,1)
+fig, ax = plt.subplots(3,1)
 plt.figure(1)
 # ax[0].xaxis.set_inverted(True)
 # ax[1].xaxis.set_inverted(True)
 # ax[0].axis('equal')
 # ax[1].axis('equal')
-plt.xlabel('Side to side position (X, cm)')
-ax[0].set(ylabel='Forward Backwards (Y, cm)')
-ax[1].set(ylabel='Up Down (Z, cm)')
+plt.xlabel('X (cm)')
+ax[0].set(ylabel='Y (cm)')
+ax[1].set(ylabel='Z (cm)')
+ax[2].set(ylabel='Tilt (Degrees)')
 # plt.gca().set_aspect('equal')
 
 plt.figure(2)
@@ -88,6 +111,9 @@ for hmap_file in hmap_files:
 print((int(pose_line[0])-int(os.path.splitext(color_files[0])[0]))/1_000_000_000)
 first = True
 first_color = True
+roll = np.empty(0)
+pitch = np.empty(0)
+
 for i in range(len(color_files)-1):
     t_now = time.time()
     if frametimes[i] >= 25.0:
@@ -146,6 +172,21 @@ for i in range(len(color_files)-1):
                 ax[1].plot(pose_data[0:pose_i, 2], pose_data[0:pose_i, 3], 'o', color='black')
                 ax[1].plot(pose_data[pose_i-1, 2], pose_data[pose_i-1, 3], 'o', color='red')
                 ax[1].plot(pose_data[0, 2], pose_data[0, 3], 'o', color='blue')
+
+                r, p, _ = euler_from_quaternion(pose_data[pose_i-1, 5], pose_data[pose_i-1, 4], pose_data[pose_i-1, 6], pose_data[pose_i-1, 7])
+                roll = np.append(roll,r)
+                pitch = np.append(pitch,p)
+                ax[2].plot(pose_data[0:pose_i, 2], roll[0:pose_i],':', color='black')
+                ax[2].plot(pose_data[0:pose_i, 2], pitch[0:pose_i],'--', color='black')
+                
+                ax[2].plot(pose_data[0:pose_i, 2], roll[0:pose_i], 'o', color='black')
+                ax[2].plot(pose_data[pose_i-1, 2], roll[pose_i-1], 'o', color='red')
+                ax[2].plot(pose_data[0, 2], roll[0], 'o', color='blue')
+                
+                ax[2].plot(pose_data[0:pose_i, 2], pitch[0:pose_i], 'o', color='black')
+                ax[2].plot(pose_data[pose_i-1, 2], pitch[pose_i-1], 'o', color='red')
+                ax[2].plot(pose_data[0, 2], pitch[0], 'o', color='blue')
+                ax[2].legend(['roll', 'pitch'])
                 plt.draw()
                 plt.pause(0.0001)
                 
@@ -183,8 +224,9 @@ cv2.imwrite("color.jpeg", cv2.imread(os.path.join(path_color, color_files[i]))[:
 #     plt.draw()
 plt.figure(1)
 fig.set_figwidth(textwidth)
+fig.set_figheight(15*cm)
 plt.savefig("pos.pdf", format="pdf", bbox_inches="tight")
 plt.figure(2)
-fig.set_figwidth(textwidth)
+fig.set_figwidth(textwidth*0.7)
 plt.savefig("hmap.pdf", format="pdf", bbox_inches="tight")
 input("Enter end")
