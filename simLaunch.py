@@ -158,7 +158,7 @@ if __name__ == '__main__':
                     model.site_rgba[plot_i] = ARC_COLORS[i]
                     model.site_size[plot_i] = [0.12,0.12,0.12]
                     plot_i = (plot_i + 1)%5000
-            walk_machine.draw_anchor = []
+            
             # Record data
             feet_floor_h = []
             for i in range(6):
@@ -167,6 +167,10 @@ if __name__ == '__main__':
                 csv.writer(csv_file).writerow(np.append(np.append(np.append(body_pos, body_quat), walk_machine.height + walk_machine.floor_height), perception.get_height_at_point(np.array([0,0,0]))))
             with open("feet.csv", "a") as csv_file:
                 csv.writer(csv_file).writerow(np.append(np.append(feet_positions[0],[feet_positions[1:]]), feet_floor_h))
+            if len(walk_machine.draw_anchor) != 0:
+                with open("anchors.csv", "a") as csv_file:
+                    csv.writer(csv_file).writerow(walk_machine.draw_anchor)
+            walk_machine.draw_anchor = []
 
             arc_draw_count = 0
         arc_draw_count += 1

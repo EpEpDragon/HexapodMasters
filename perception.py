@@ -55,8 +55,8 @@ class Perception():
         self.anchor_correction_windows = np.array((6,2))
         self.mouseX = 0
         self.mouseY = 0
-        cv2.namedWindow('SDF Slice', cv2.WINDOW_NORMAL)
-        cv2.setMouseCallback('SDF Slice', self._get_hmap_mouse_pos)
+        cv2.namedWindow('Heightmap', cv2.WINDOW_NORMAL)
+        cv2.setMouseCallback('Heightmap', self._get_hmap_mouse_pos)
         self._init_shader(n_points)
 
 
@@ -228,7 +228,7 @@ class Perception():
         # img[self.mouseY, self.mouseX] = [255,0,0]
         # new_anchor = (self.find_anchor(np.array([self.mouseY, self.mouseX,0]), ANCHOR_CORRECTION_RADIUS, ANCHOR_CORRECTION_THRESHOLD))%HMAP_EXTENTS
         # img[new_anchor[0], new_anchor[1]] = [0,1,1]
-        cv2.imshow('SDF Slice', (img * 255).astype(np.uint8))
+        cv2.imshow('Heightmap', (img * 255).astype(np.uint8))
         cv2.waitKey(1)
 
     def update(self, camera_pos, body_pos, camera_quat, body_quat, depth):

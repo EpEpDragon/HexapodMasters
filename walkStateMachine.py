@@ -244,7 +244,7 @@ class WalkCycleMachine(StateMachine):
             # Mult 100 for scaling (cm to mm)
             x = max(sqrt(diff[:2] @ diff[:2]) * 100, 0.00001)
             y = diff[2] * 100
-            Fa = -abs(Ch/x) - abs(0.515*(y-q) / (1+abs(y-q)) - 0.513)
+            Fa = -abs(Ch/x) - abs(0.515*(y-q) / (1+abs(y-q)) - 0.51)
             
             Fb = y/x - Fa*x
             Ftheta = np.arctan(2*Fa*x + Fb)
