@@ -30,7 +30,7 @@ class Perception():
         #---------------------------------------------------------------------------------
          # SDF grind, cell origin at lower corner
         hmap_buffer = np.zeros((HMAP_EXTENTS, HMAP_EXTENTS), dtype=np.float32)
-        hmap_buffer[:,:] = 0.2
+        # hmap_buffer[:,:] = 0.2
         self.sdf_shm = shared_memory.SharedMemory(create=True,size=hmap_buffer.nbytes)
         self.hmap_buffer = np.ndarray(hmap_buffer.shape, dtype=np.float32, buffer=self.sdf_shm.buf)
         self.hmap_buffer[:] = hmap_buffer[:]

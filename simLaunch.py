@@ -28,6 +28,8 @@ POINT_CLOUD_DIVISOR = 10
 # Changed from control interface thread, thus list for mutable
 view = [0]
 snapshot = [False]
+save_i = 0
+color = None
 
 is_sim_running = True
 
@@ -80,7 +82,7 @@ def read_camera():
         cv2.imshow('Camera', depth_linear / np.max(depth_linear))
     cv2.waitKey(1)
 
-    return depth_linear
+    return depth_linear, image
 
 def read_sensors():
     return data.sensordata[0:3], data.sensordata[3:6], data.sensordata[[7,8,9,6]], data.sensordata[[11,12,13,10]], [data.sensordata[14:17], data.sensordata[17:20], data.sensordata[20:23], data.sensordata[23:26], data.sensordata[26:29], data.sensordata[29:32]]
@@ -115,7 +117,7 @@ if __name__ == '__main__':
     
     # Start contorl interface
     # controlInterface.start_interface(walk_machine,perception,view)
-    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine, view, perception.map_view))
+    control_interface_thread = threading.Thread(target=controlInterface.start_interface, args=(walk_machine, view, perception.map_view, snapshot))
     control_interface_thread.start()
     perception.add_refs(walk_machine)
  
@@ -169,11 +171,17 @@ if __name__ == '__main__':
                 csv.writer(csv_file).writerow(np.append(np.append(feet_positions[0],[feet_positions[1:]]), feet_floor_h))
             if len(walk_machine.draw_anchor) != 0:
                 with open("anchors.csv", "a") as csv_file:
-                    csv.writer(csv_file).writerow(walk_machine.draw_anchor)
+                    csv.writer(csv_file).writerow(walk_machine.draw_anchor)            
             walk_machine.draw_anchor = []
 
             arc_draw_count = 0
         arc_draw_count += 1
+        
+        if snapshot[0]:
+            snapshot[0] = False
+            np.save(f"HMap{save_i}.npy", perception.hmap_buffer)
+            cv2.imwrite(f"Color{save_i}.png", color)
+            save_i += 1
 
 
         # Move actuators-
@@ -194,7 +202,7 @@ if __name__ == '__main__':
             # torque_file.write(str(data.sensordata[15])+",")
             # torque_file.close
 
-            depth_linear = read_camera()
+            depth_linear, color = read_camera()
             perception.update(cam_pos, body_pos, cam_quat, body_quat, depth_linear.reshape(RES_X*RES_Y))
             k = 0
         k += 1

@@ -19,7 +19,7 @@ from raylib import (
     KEY_UP,
     KEY_DOWN,
     KEY_Z,
-    KEY_P,
+    KEY_S,
 )
 
 from numpy import (
@@ -63,8 +63,8 @@ class ProgressBar():
         draw_text(v, self.v_x, self.v_y, self.v_size, self.t_color)                     # Value text
 
 
-def start_interface(walk_machine, view, map_view):
-    control_interface = ControInterface(walk_machine, view, map_view)
+def start_interface(walk_machine, view, map_view, snapshot):
+    control_interface = ControInterface(walk_machine, view, map_view, snapshot)
     if platform in ['Windows','win32','cywin']:
         warnings.warn("Not implemented on Windows OS")
     else:
@@ -91,7 +91,7 @@ def start_interface(walk_machine, view, map_view):
 
 
 class ControInterface():
-    def __init__(self, walk_machine, view, map_view) -> None:
+    def __init__(self, walk_machine, view, map_view, snapshot) -> None:
         self.walk_machine = walk_machine
         # self.cloud_vis = CloudVis()
         self.walk_direction = Vector2(0,0)
@@ -100,6 +100,7 @@ class ControInterface():
         self.image = load_image("machine.png")
         self.view = view
         self.map_view = map_view
+        self.snapshot = snapshot
         set_target_fps(60)
         set_config_flags(ConfigFlags.FLAG_WINDOW_RESIZABLE)
         init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Control Interface")
@@ -127,6 +128,8 @@ class ControInterface():
                 self.view[0] += 1
                 self.view[0] = self.view[0] % (2)
                 self.map_view[0] = self.view[0]
+            if is_key_pressed(KEY_S):
+                self.snapshot[0] = True
 
 
             self.walk_machine.set_speed(self.walk_machine.speed + get_mouse_wheel_move()*0.1)
